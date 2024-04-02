@@ -9,6 +9,7 @@ module.exports = {
     colors: {
       'text': 'var(--text)',
       'active': 'var(--active)',
+      'warning': 'var(--warning)',
       'background': 'var(--background)',
       'primary': 'var(--primary)',
       'secondary': 'var(--secondary)',

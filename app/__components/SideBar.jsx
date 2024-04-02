@@ -1,33 +1,61 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { usePathname } from 'next/navigation'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartLine, faUserFriends, faShop, faReceipt, faTags, faChartPie, faWarehouse, faGears} from "@fortawesome/free-solid-svg-icons";
+import {
+  faChartLine,
+  faUserFriends,
+  faShop,
+  faReceipt,
+  faTags,
+  faChartPie,
+  faWarehouse,
+  faGears,
+  faSignOut,
+  faSpinner
+} from "@fortawesome/free-solid-svg-icons";
+import { logOutHandler } from "../_lib/clientHandlers";
 
 const SideBar = () => {
+
+  const pathname = usePathname()
+
+  const [loading, setLoading] = useState(false)
+
+  const logOut = async () => {
+    setLoading(true)
+    await logOutHandler()
+    setLoading(false)
+  }
+
   return (
-    <div className=" min-w-36 w-auto min-h-[80vh] drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
+    <div className=" min-w-36 w-auto min-h-[80vh] h-auto flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
       <Image
-        src="/assets/logo.svg"
+        src="/assets/logo.png"
         width={100}
         height={100}
         alt="logo"
         className="w-full h-full"
       />
       <div className="w-full flex flex-col gap-1 mt-10">
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
-          <FontAwesomeIcon
+      <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/" || pathname === "" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>          <FontAwesomeIcon
             icon={faChartLine}
             height={22}
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="#"> 
             Dashboard
           </Link>
         </div>{" "}
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
-          <FontAwesomeIcon
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>          <FontAwesomeIcon
             icon={faUserFriends}
             height={22}
             width={22}
@@ -37,7 +65,9 @@ const SideBar = () => {
             Staffs
           </Link>
         </div>{" "}
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>
           <FontAwesomeIcon
             icon={faShop}
             height={22}
@@ -48,7 +78,9 @@ const SideBar = () => {
             Branches
           </Link>
         </div>{" "}
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>
           <FontAwesomeIcon
             icon={faReceipt}
             height={22}
@@ -59,7 +91,9 @@ const SideBar = () => {
             Invoice
           </Link>
         </div>{" "}
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>
           <FontAwesomeIcon
             icon={faTags}
             height={22}
@@ -70,7 +104,9 @@ const SideBar = () => {
             Products
           </Link>
         </div>{" "}
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>
           <FontAwesomeIcon
             icon={faChartPie}
             height={22}
@@ -81,7 +117,9 @@ const SideBar = () => {
             Report
           </Link>
         </div>{" "}
-        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>
           <FontAwesomeIcon
             icon={faWarehouse}
             height={22}
@@ -91,7 +129,10 @@ const SideBar = () => {
           <Link className="text-xl ml-2" href="#">
             Warehouse
           </Link>
-        </div>{" "}        <div className="flex items-center pr-8 pl-2 py-2 rounded-lg hover: hover:shadow-md active:shadow-md active:shadow-secondary active:text-active">
+        </div>{" "}
+        <div className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
+      pathname === "/dashboard" ? "shadow-md shadow-secondary text-active" : ""
+    }`}>
           <FontAwesomeIcon
             icon={faGears}
             height={22}
@@ -103,8 +144,25 @@ const SideBar = () => {
           </Link>
         </div>{" "}
       </div>
+      <div
+        id="logout"
+        className="mt-auto w-auto py-3 px-2 flex justify-center items-center rounded-xl text-primary hover:text-warning hover:font-bold"
+      >
+        <button disabled={loading} className="flex text-xl items-center" onClick={logOut}>
+          {" "}
+          <FontAwesomeIcon
+            icon={loading ? faSpinner : faSignOut}
+            height={22}
+            width={22}
+            alt="faSignOut"
+            className="mr-2"
+          />
+          {loading? "Logging Out." : "Logout"}
+        </button>
+      </div>
     </div>
   );
 };
 
 export default SideBar;
+
