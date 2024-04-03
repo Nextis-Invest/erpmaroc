@@ -2,7 +2,9 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div>Admin</div>
+    <section id="admin" className="flex w-[80%] h-full">
+    Admin
+  </section>
   )
 }
 

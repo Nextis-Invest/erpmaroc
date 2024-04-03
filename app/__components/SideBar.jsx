@@ -32,14 +32,17 @@ const SideBar = () => {
   };
 
   return (
-    <div className=" min-w-36 w-auto min-h-[80vh] h-auto flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
-      <Image
-        src="/assets/logo.png"
-        width={100}
-        height={100}
-        alt="logo"
-        className="w-full h-full"
-      />
+    <div className=" min-w-36 w-auto min-h-[80vh] h-auto mr-5 flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
+      {/* <Link href="/" className="w-full h-full"> */}
+        {" "}
+        <Image
+          src="/assets/logo.png"
+          width={100}
+          height={100}
+          alt="logo"
+          className="w-full h-full"
+        />
+      {/* </Link> */}
       <div className="w-full flex flex-col gap-1 mt-10">
         <div
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
@@ -55,7 +58,7 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/">
             Dashboard
           </Link>
         </div>{" "}
@@ -73,7 +76,7 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/staffs">
             Staffs
           </Link>
         </div>{" "}
@@ -90,7 +93,7 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/branches">
             Branches
           </Link>
         </div>{" "}
@@ -107,7 +110,7 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/invoices">
             Invoices
           </Link>
         </div>{" "}
@@ -124,7 +127,7 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/products">
             Products
           </Link>
         </div>{" "}
@@ -141,7 +144,7 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/report">
             Report
           </Link>
         </div>{" "}
@@ -158,7 +161,7 @@ const SideBar = () => {
             width={22}
             alt="faWarehouse"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/warehouse">
             Warehouse
           </Link>
         </div>{" "}
@@ -192,7 +195,7 @@ const SideBar = () => {
             width={22}
             alt="Settings"
           />
-          <Link className="text-xl ml-2" href="#">
+          <Link className="text-xl ml-2" href="/setting">
             Settings
           </Link>
         </div>{" "}

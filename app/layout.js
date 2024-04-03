@@ -1,5 +1,5 @@
+import SideBar from "./__components/SideBar";
 import "./globals.css";
-
 
 export const metadata = {
   title: "Enterprise Resourse Management System",
@@ -9,7 +9,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-background " >{children}</body>
+      <body className="bg-background ">
+        {" "}
+        <main className="flex items-start justify-between px-5 py-10">
+          <SideBar />
+          {children}
+        </main>
+      </body>
     </html>
   );
 }
