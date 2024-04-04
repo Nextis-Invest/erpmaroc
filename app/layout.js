@@ -1,3 +1,4 @@
+import { DataContextProvider } from "@/Context/DataContext";
 import SideBar from "./__components/SideBar";
 import "./globals.css";
 
@@ -10,11 +11,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-background ">
+        <DataContextProvider>
         {" "}
         <main className="flex items-start justify-between px-5 py-10">
           <SideBar />
           {children}
         </main>
+        </DataContextProvider>
       </body>
     </html>
   );

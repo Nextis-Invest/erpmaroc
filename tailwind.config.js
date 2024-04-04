@@ -7,14 +7,14 @@ module.exports = {
   ],
   theme: {
     colors: {
-      'text': 'var(--text)',
-      'active': 'var(--active)',
-      'warning': 'var(--warning)',
-      'background': 'var(--background)',
-      'primary': 'var(--primary)',
-      'secondary': 'var(--secondary)',
-      'accent': 'var(--accent)',
-     },
+      text: "var(--text)",
+      active: "var(--active)",
+      warning: "var(--warning)",
+      background: "var(--background)",
+      primary: "var(--primary)",
+      secondary: "var(--secondary)",
+      accent: "var(--accent)",
+    },
     extend: {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -23,8 +23,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-  ]
-
-   
+  plugins: [],
 };
