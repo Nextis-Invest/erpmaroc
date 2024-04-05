@@ -5,104 +5,86 @@ import React, { Suspense, useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import Loading from "./Loading";
 import { ExcelHandler } from "./ExcelHandler";
+import { line } from "fontawesome";
 
 const DashBoard = () => {
   const { data, setdata } = useContext(DataContext);
   const [years, setYears] = useState([]);
   const [pricesByYear, setPricesByYear] = useState({});
   const [series, setSeries] = useState([]);
+  const [columns, setColumns] = useState([]);
+  const [lines, setLines] = useState([]);
 
-  let revenue = []
-  let totalSale = []
-  // const chartController = () => {
-  //   if (data == null) {
-  //     return;
-  //   }
-
-  //   let temp_years = [];
-  //   let temp_prices = {};
-  //   let temp_data = {};
-
-  //   // Extract Years and sort
-
-  //   for (let i = 0; i < data.length; i++) {
-  //     if (!temp_years.includes(data[i].Year)) {
-  //       temp_years.push(data[i].Year);
-  //     }
-  //   }
-
-  //   temp_years.sort((a, b) => a - b);
-  //   setYears(temp_years.map((number) => number.toString()));
-
-  //   data.forEach(book => {
-  //     const { Year } = book;
-  //     if (!temp_prices[Year]) {
-  //       temp_prices[Year] = [];
-  //     }
-  //     temp_prices[Year].push(book.Price);
-  //   });
-  // };
+  let revenue = [];
+  let totalSale = [];
+  let cols;
 
   const chartController = () => {
     if (data == null) {
       return;
     }
-  
+
     let temp_years = [];
     let temp_prices = {};
-    let temp_data = {};
-  
+
     // Extract Years and sort
     for (let i = 0; i < data.length; i++) {
-      if (!temp_years.includes(data[i].Year)) {
+      if (!temp_years?.includes(data[i].Year)) {
         temp_years.push(data[i].Year);
       }
     }
-  
-    temp_years.sort((a, b) => a - b);
-    setYears(temp_years.map((number) => number.toString()));
-  
+
+    temp_years?.sort((a, b) => a - b);
+    setYears(temp_years?.map((number) => number?.toString()));
+
     // Extract prices for each year
-    data.forEach(book => {
+    data.forEach((book) => {
       const { Year } = book;
       if (!temp_prices[Year]) {
         temp_prices[Year] = [];
       }
       temp_prices[Year].push(book.Price);
     });
-  
+
     setPricesByYear(temp_prices);
 
-    let total
-    
-    Object.keys(temp_prices).map(year => {
-      total = temp_prices[year].reduce((acc, price) => acc + price, 0);
-      revenue.push(total)
+    Object.keys(temp_prices).map((year) => {
+      let total = temp_prices[year]?.reduce((acc, price) => acc + price, 0);
+      revenue.push(total);
     });
-    
+
     Object.keys(temp_prices).forEach((year) => {
       const totalBooksSold = temp_prices[year].length; // Count the number of books for the year
       totalSale.push(totalBooksSold);
     });
 
-    let s = [ {
-      name: "Sale",
-      data:totalSale
-    },{
-      name: "Revenue",
-      data:revenue
-    }]
+    cols = Object.keys(data[0]);
+    console.log("🚀 ~ chartController ~ cols:", cols);
 
-    setSeries(s)
+    let s = [
+      {
+        name: "Sale",
+        data: totalSale,
+      },
+      {
+        name: "Revenue",
+        data: revenue,
+      },
+    ];
+
+    setSeries(s);
     console.log(series);
   };
-  
+
   useEffect(() => {
     chartController();
-  }, [data]);
+    setColumns(cols);
+    console.log("Lines", lines);
+  }, [data, cols, lines]);
 
   console.log(years);
   console.log(pricesByYear);
+  console.log(columns);
 
   var chartOptions = {
     chart: {
@@ -129,6 +111,49 @@ const DashBoard = () => {
       categories: years,
     },
   };
+
+  const barChartOptions = {
+    chart: {
+      type: 'bar',
+    },
+    xaxis: {
+      categories: ['Category A', 'Category B', 'Category C', 'Category D', 'Category E'],
+    },
+    colors: ['#008FFB', '#00E396', '#FEB019'], // Specify colors for each series
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        dataLabels: {
+          position: 'top', // Show data labels at the top of each column
+        },
+        stroke: {
+          show: true, // Show strokes for each column
+          colors: ['#008FFB', '#00E396', '#FEB019'], // Specify stroke colors for each series
+          width: 2, // Adjust stroke width as needed
+          dashArray: 3, // Optionally specify dash array for stroke
+        },
+      },
+    },
+  };
+
+
+  // Define chart data
+  const chartData = [
+    {
+      name: "Series 1",
+      data: [44, 55, 41, 67, 22],
+      strokeColor: "#008FFB",
+    },
+    {
+      name: "Series 2",
+      data: [13, 23, 20, 8, 13],
+    },
+    {
+      name: "Series 3",
+      data: [11, 17, 15, 15, 21],
+    },
+  ];
+
   var pieOptions = {
     chart: {
       type: "donut",
@@ -160,27 +185,74 @@ const DashBoard = () => {
           id="chart"
           className="drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none"
         >
-          <Chart
-            options={chartOptions}
-            series={series}
-            // series={chartOptions.series}
-            type={chartOptions.chart.type}
-            height={320}
-            className="w-full border-b-2 border-primary"
-          />
-          <div id="secondRow">
-            <Chart
-              options={pieOptions}
-              series={pieOptions.series}
-              type={pieOptions.chart.type}
-              // width={700}
-              height={500}
-              className="w-2/5 mt-5 border-r-2 border-primary"
-            />
+          <div id="firstRow" className="w-full flex items-start">
+            <div id="firstCol" className="w-full">
+              {" "}
+              <Chart
+                options={chartOptions}
+                series={series}
+                // series={chartOptions.series}
+                type={chartOptions.chart.type}
+                height={320}
+                className="w-full border-b-2 border-primary"
+              />
+            </div>
+            <div id="secCol" className="w-max">
+              <h3 class="mb-4 font-semibold text-gray-900">Columns</h3>
+              <ul class=" w-max text-sm font-medium text-gray-900 bg-white rounded-lg">
+                {console.log(columns)}
+                {columns &&
+                  columns.map((col) => (
+                    <li key={col} class="w-full rounded-t-lg pr-5">
+                      <div class="flex items-center ps-3">
+                        <input
+                          id="col"
+                          type="checkbox"
+                          value="col"
+                          onChange={() => {
+                            setLines(
+                              lines.includes(col)
+                                ? lines.filter((line) => line !== col)
+                                : [...lines, col]
+                            );
+                          }}
+                          class="w-4 h-4 text-blue-600 bg-gray-100 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <label
+                          for="col"
+                          class="w-full py-1.2 ms-2 text-sm font-medium text-gray-900"
+                        >
+                          {col}
+                        </label>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+          <div id="secondRow" className="flex">
+            <div id="firstCol" className="w-2/4">
+              <Chart
+                options={pieOptions}
+                series={pieOptions.series}
+                type={pieOptions.chart.type}
+                // width={700}
+                height={500}
+                className="mt-5 border-r-2 border-primary"
+              />
+            </div>
+            <div id="secCol" className="w-2/3">
+              {" "}
+              <Chart
+                options={chartOptions}
+                series={chartData}
+                type="bar"
+                height={320}
+              />
+            </div>
           </div>
         </div>
-        <ExcelHandler/>
-
+        <ExcelHandler />
       </div>
     </Suspense>
   );
