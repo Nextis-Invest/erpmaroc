@@ -8,13 +8,17 @@ import { ExcelHandler } from "./ExcelHandler";
 import { line } from "fontawesome";
 
 const DashBoard = () => {
-  const { data, setdata } = useContext(DataContext);
   const [years, setYears] = useState([]);
   const [pricesByYear, setPricesByYear] = useState({});
   const [series, setSeries] = useState([]);
   const [columns, setColumns] = useState([]);
   const [lines, setLines] = useState([]);
 
+
+  const { data, setdata } = useContext(DataContext);
+
+
+  
   let revenue = [];
   let totalSale = [];
   let cols;
@@ -112,47 +116,56 @@ const DashBoard = () => {
     },
   };
 
-  const barChartOptions = {
+  var colChartOption = {
+    series: [{
+    name: 'Branch 1',
+    data: [44, 55, 57, 56, 61, 36, 26, 45, 58, 63, 60, 66]
+  }, {
+    name: 'Branch 2',
+    data: [76, 85, 101, 98, 87, 36, 26, 45, 105, 91, 114, 94]
+  }, {
+    name: 'Branch 3',
+    data: [35, 41, 36, 26, 45, 48, 52, 36, 26, 45, 53, 41]
+  }],
     chart: {
-      type: 'bar',
+    type: 'bar',
+    height: 350
+  },
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      columnWidth: '55%',
+      endingShape: 'rounded'
     },
-    xaxis: {
-      categories: ['Category A', 'Category B', 'Category C', 'Category D', 'Category E'],
-    },
-    colors: ['#008FFB', '#00E396', '#FEB019'], // Specify colors for each series
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        dataLabels: {
-          position: 'top', // Show data labels at the top of each column
-        },
-        stroke: {
-          show: true, // Show strokes for each column
-          colors: ['#008FFB', '#00E396', '#FEB019'], // Specify stroke colors for each series
-          width: 2, // Adjust stroke width as needed
-          dashArray: 3, // Optionally specify dash array for stroke
-        },
-      },
-    },
+  },
+  dataLabels: {
+    enabled: false
+  },
+  stroke: {
+    show: true,
+    width: 2,
+    colors: ['transparent']
+  },
+  xaxis: {
+    categories: ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct','Nov', 'Dec'],
+  },
+  yaxis: {
+    title: {
+      text: 'Branch Revenue'
+    } 
+  },
+  fill: {
+    opacity: 1
+  },
+  tooltip: {
+    y: {
+      formatter: function (val) {
+        return  val + " MMK"
+      }
+    }
+  }
   };
 
-
-  // Define chart data
-  const chartData = [
-    {
-      name: "Series 1",
-      data: [44, 55, 41, 67, 22],
-      strokeColor: "#008FFB",
-    },
-    {
-      name: "Series 2",
-      data: [13, 23, 20, 8, 13],
-    },
-    {
-      name: "Series 3",
-      data: [11, 17, 15, 15, 21],
-    },
-  ];
 
   var pieOptions = {
     chart: {
@@ -230,29 +243,29 @@ const DashBoard = () => {
               </ul>
             </div>
           </div>
-          <div id="secondRow" className="flex">
-            <div id="firstCol" className="w-2/4">
+          <div id="secondRow" className="flex items-center">
+            <div id="firstCol" className="w-2/5 border-r-2 border-primary">
               <Chart
                 options={pieOptions}
                 series={pieOptions.series}
                 type={pieOptions.chart.type}
                 // width={700}
                 height={500}
-                className="mt-5 border-r-2 border-primary"
+                className="mt-5 max-h-72"
               />
             </div>
-            <div id="secCol" className="w-2/3">
+            <div id="secCol" className="w-2/3 max-h-[300px]">
               {" "}
               <Chart
-                options={chartOptions}
-                series={chartData}
+                options={colChartOption}
+                series={colChartOption.series}
                 type="bar"
                 height={320}
               />
             </div>
           </div>
         </div>
-        <ExcelHandler />
+        {/* <ExcelHandler /> */}
       </div>
     </Suspense>
   );
