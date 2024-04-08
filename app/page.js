@@ -4,7 +4,7 @@ import DashBoard from "./__components/DashBoard";
 
 export default function Home() {
   return (
-    <section id="dashboard" className="flex min-w-[80%] h-full">
+    <section id="dashboard" className="grow min-w-[80%] h-full">
       <DashBoard />
     </section>
   )

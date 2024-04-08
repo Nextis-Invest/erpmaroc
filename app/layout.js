@@ -3,7 +3,7 @@ import SideBar from "./__components/SideBar";
 import "./globals.css";
 
 export const metadata = {
-  title: "Enterprise Resourse Management System",
+  title: "Enterprise Resourse Planning System",
   description: "ERP system developed by Nay Myo Khant",
 };
 

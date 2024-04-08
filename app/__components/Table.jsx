@@ -1,12 +1,16 @@
 "use client";
-import { DataContext } from "@/Context/DataContext";
-import React, { useContext, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
+import Loading from "./Loading";
 
-const Table = () => {
-  const { data, setdata } = useContext(DataContext);
+const Table = ({ data, mode }) => {
   const [paginatedData, setPaginatedData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPagination, setCurrentPagination] = useState(1);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+
   const rowsPerPage = 20;
+  let delay = 30;
 
   const startingIndex = (currentPagination - 1) * rowsPerPage;
   const endingIndex = startingIndex + rowsPerPage;
@@ -30,12 +34,27 @@ const Table = () => {
       );
     }
   }
+
+  const productDetail = async (e) => {
+    e.preventDefault();
+    setTimeout(() => {
+      setShowPopup(false);
+    }, 30000);
+
+    setShowPopup(true);
+    setPopupPosition({ x: e.clientX, y: e.clientY - 200 });
+    console.log(showPopup);
+    console.log(popupPosition);
+
+    // router.push(`/products/${i}`);
+    // const res = await fetch("https://random.imagecdn.app/500/150")
+  };
   useEffect(() => {
     setPaginatedData(data?.slice(startingIndex, endingIndex));
   }, [currentPagination]);
 
   if (!data) {
-    return;
+    return <div className="w-full h-full font-bold">No Selected Data</div>;
   }
 
   const tableHeader = Object.keys(data[0]).map((key) => (
@@ -44,13 +63,17 @@ const Table = () => {
     </th>
   ));
   const tableRows = paginatedData.map((row, index) => (
-    <tr className=" border-b-2 border-b-secondary lg:h-9" key={index}>
+    <tr
+      onClick={(e) => productDetail(e)}
+      className="relative border-b-2 border-b-secondary lg:h-9 hover:bg-[#0000002c]"
+      key={index}
+    >
       <td className="border-r-2 border-secondary" key={index}>
-        {(index + (currentPagination * rowsPerPage))-19}
+        {index + currentPagination * rowsPerPage - 19}
       </td>
       {Object.values(row).map((value, index) => (
         <td
-          className="text-center px-2 mx-2 border-r-2 border-secondary hover:font-extrabold"
+          className="text-center px-2 mx-2 border-r-2 border-secondary"
           key={index}
         >
           {value}
@@ -60,31 +83,60 @@ const Table = () => {
   ));
 
   return (
-    <div className="w-full min-h-[80vh] h-auto flex flex-col content-center">
-      <table className="w-full lg:min-w-[1600px] md:min-w-[1000px]">
-        <thead>
-          <tr>
-            <th className="border-r-2 border-b-4 border-secondary">No</th>
-            {tableHeader}
-          </tr>
-        </thead>
-        <tbody>{tableRows}</tbody>
-      </table>
-      <div className="w-full h-14 text-center my-auto">
-        {paginationButtons}.....
-        <button
-          key={totalPages}
-          onClick={() => setCurrentPagination(totalPages)}
-          className={
-            currentPagination === totalPages
-              ? "text-active text-2xl font-extrabold px-4 py-1 rounded-md mx-1 my-2"
-              : "text-primary font-bold text-xl px-4 py-1 rounded-md mx-2 my-2"
-          }
-        >
-          {totalPages}
-        </button>
+    <Suspense fallback={<Loading />}>
+      <div className="w-full min-h-[80vh] h-auto flex flex-col content-center">
+        <table className="w-full md:max-w-[800px] lg:max-w-[1000px] xl:max-w-[1700px]">
+          <thead>
+            <tr>
+              <th className="border-r-2 border-b-4 border-secondary">No</th>
+              {tableHeader}
+            </tr>
+          </thead>
+          <tbody className="relative">{tableRows}</tbody>
+        </table>
+        <div className="w-full h-14 text-center my-auto">
+          {paginationButtons}.....
+          <button
+            key={totalPages}
+            onClick={() => setCurrentPagination(totalPages)}
+            className={
+              currentPagination === totalPages
+                ? "text-active text-2xl font-extrabold px-4 py-1 rounded-md mx-1 my-2"
+                : "text-primary font-bold text-xl px-4 py-1 rounded-md mx-2 my-2"
+            }
+          >
+            {totalPages}
+          </button>
+        </div>
       </div>
-    </div>
+      {showPopup && (
+        <div
+          className="popup-box h-auto w-auto"
+          style={{
+            position: "absolute",
+            top: popupPosition.y,
+            left: popupPosition.x,
+          }}
+        >
+          {loading && (
+            <div className=" px-3 py-2 rounded-md ">
+              <Loading size="2x" />
+            </div>
+          )}
+          <img
+            onLoad={() => setLoading(false)}
+            style={{ display: loading ? "none" : "block" }}
+            src="https://random.imagecdn.app/500/350"
+          />
+          <p
+            style={{ display: loading ? "none" : "block" }}
+            className="mix-blend-difference absolute text-background border-1 border-text  right-2 bottom-1"
+          >
+            Close after 30s
+          </p>
+        </div>
+      )}
+    </Suspense>
   );
 };
 
