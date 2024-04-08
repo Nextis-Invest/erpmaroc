@@ -99,7 +99,7 @@ const SideBar = () => {
         </div>{" "}
         <div
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/branches"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -108,7 +108,7 @@ const SideBar = () => {
             icon={faReceipt}
             height={22}
             width={22}
-            alt="dashboard"
+            alt="branches"
           />
           <Link className="text-xl ml-2" href="/invoices">
             Invoices
