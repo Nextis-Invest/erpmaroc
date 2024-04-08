@@ -44,7 +44,7 @@ const SideBar = () => {
         />
       {/* </Link> */}
       <div className="w-full flex flex-col gap-1 mt-10">
-        <div
+        <Link href="/"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/" || pathname === ""
               ? "shadow-md shadow-secondary text-active"
@@ -58,13 +58,13 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <Link className="text-xl ml-2" href="/">
+          <span className="text-xl ml-2" >
             Dashboard
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link  href="/staffs"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/staffs"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -74,15 +74,15 @@ const SideBar = () => {
             icon={faUserFriends}
             height={22}
             width={22}
-            alt="dashboard"
+            alt="staffs"
           />
-          <Link className="text-xl ml-2" href="/staffs">
+          <span className="text-xl ml-2">
             Staffs
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link href="/branches"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/branches"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -91,15 +91,15 @@ const SideBar = () => {
             icon={faShop}
             height={22}
             width={22}
-            alt="dashboard"
+            alt="branches"
           />
-          <Link className="text-xl ml-2" href="/branches">
+          <span className="text-xl ml-2">
             Branches
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link  href="/invoices"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/invoices"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -108,15 +108,15 @@ const SideBar = () => {
             icon={faReceipt}
             height={22}
             width={22}
-            alt="dashboard"
+            alt="Invoices"
           />
-          <Link className="text-xl ml-2" href="/invoices">
+          <span className="text-xl ml-2">
             Invoices
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link  href="/products"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/products"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -125,15 +125,15 @@ const SideBar = () => {
             icon={faTags}
             height={22}
             width={22}
-            alt="dashboard"
+            alt="products"
           />
-          <Link className="text-xl ml-2" href="/products">
+          <span className="text-xl ml-2">
             Products
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link href="/report"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/report"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -142,15 +142,15 @@ const SideBar = () => {
             icon={faChartPie}
             height={22}
             width={22}
-            alt="dashboard"
+            alt="report"
           />
-          <Link className="text-xl ml-2" href="/report">
+          <span className="text-xl ml-2" >
             Report
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link  href="/warehouse"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/warehouse"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -161,11 +161,11 @@ const SideBar = () => {
             width={22}
             alt="faWarehouse"
           />
-          <Link className="text-xl ml-2" href="/warehouse">
+          <span className="text-xl ml-2">
             Warehouse
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link  href="/admin"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/admin"
               ? "shadow-md shadow-secondary text-active"
@@ -178,13 +178,13 @@ const SideBar = () => {
             width={22}
             alt="faUserShield"
           />
-          <Link className="text-xl ml-2" href="/admin">
+          <span className="text-xl ml-2">
             Admin
-          </Link>
-        </div>{" "}
-        <div
+          </span>
+        </Link>{" "}
+        <Link href="/settings"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/dashboard"
+            pathname === "/settings"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -195,10 +195,10 @@ const SideBar = () => {
             width={22}
             alt="Settings"
           />
-          <Link className="text-xl ml-2" href="/setting">
+          <span className="text-xl ml-2" >
             Settings
-          </Link>
-        </div>{" "}
+          </span>
+        </Link>{" "}
       </div>
       <div
         id="logout"
