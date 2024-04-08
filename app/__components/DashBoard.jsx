@@ -4,8 +4,7 @@ import { DataContext } from "@/Context/DataContext";
 import React, { Suspense, useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import Loading from "./Loading";
-import { ExcelHandler } from "./ExcelHandler";
-import { line } from "fontawesome";
+
 
 const DashBoard = () => {
   const [years, setYears] = useState([]);
@@ -85,11 +84,10 @@ const DashBoard = () => {
     setColumns(cols);
     console.log("Lines", lines);
   }, [data, cols, lines]);
-
-  console.log(years);
-  console.log(pricesByYear);
-  console.log(columns);
-
+  
+  console.log("🚀 ~ DashBoard ~ columns:", columns)
+  console.log("🚀 ~ DashBoard ~ pricesByYear:", pricesByYear)
+  console.log("🚀 ~ DashBoard ~ years:", years)
   var chartOptions = {
     chart: {
       type: "area",
@@ -270,5 +268,7 @@ const DashBoard = () => {
     </Suspense>
   );
 };
+
+
 
 export default DashBoard;
