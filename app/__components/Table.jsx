@@ -1,8 +1,10 @@
 "use client";
 import React, { Suspense, useEffect, useState } from "react";
 import Loading from "./Loading";
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-const Table = ({ data, mode }) => {
+const Table = ({ data, mode, action }) => {
   const [paginatedData, setPaginatedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPagination, setCurrentPagination] = useState(1);
@@ -36,6 +38,10 @@ const Table = ({ data, mode }) => {
   }
 
   const productDetail = async (e) => {
+    if(mode != "products"){
+      return
+      
+    }
     e.preventDefault();
     setTimeout(() => {
       setShowPopup(false);
@@ -58,7 +64,7 @@ const Table = ({ data, mode }) => {
   }
 
   const tableHeader = Object.keys(data[0]).map((key) => (
-    <th className="mx-2 border-b-4 border-r-2 border-secondary" key={key}>
+    <th className="mx-2 border-y-4 border-x-2 border-secondary py-2" key={key}>
       {key}
     </th>
   ));
@@ -68,17 +74,18 @@ const Table = ({ data, mode }) => {
       className="relative border-b-2 border-b-secondary lg:h-9 hover:bg-[#0000002c]"
       key={index}
     >
-      <td className="border-r-2 border-secondary" key={index}>
+      <td className="text-center border-x-2 border-secondary" key={index}>
         {index + currentPagination * rowsPerPage - 19}
       </td>
       {Object.values(row).map((value, index) => (
         <td
-          className="text-center px-2 mx-2 border-r-2 border-secondary"
+          className="text-center px-2 mx-2 border-x-2 border-secondary"
           key={index}
         >
           {value}
         </td>
       ))}
+      {mode == "staffs" && <td className="text-center px-2 mx-2 border-x-2 border-secondary cursor-pointer" onClick={action}><FontAwesomeIcon  icon={faEllipsis}/></td>}
     </tr>
   ));
 
@@ -88,8 +95,10 @@ const Table = ({ data, mode }) => {
         <table className="w-full md:max-w-[800px] lg:max-w-[1000px] xl:max-w-[1700px]">
           <thead>
             <tr>
-              <th className="border-r-2 border-b-4 border-secondary">No</th>
+              <th className="mx-2 border-y-4 border-x-2 border-secondary py-2">No</th>
               {tableHeader}
+              {mode == "staffs" && <td className="text-center mx-2 font-bold border-y-4 border-x-2 border-secondary py-2">Edit</td>}
+
             </tr>
           </thead>
           <tbody className="relative">{tableRows}</tbody>

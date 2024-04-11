@@ -97,7 +97,7 @@ const SideBar = () => {
             Branches
           </span>
         </Link>{" "}
-        <Link  href="/invoices"
+        {/* <Link  href="/invoices"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/invoices"
               ? "shadow-md shadow-secondary text-active"
@@ -113,7 +113,7 @@ const SideBar = () => {
           <span className="text-xl ml-2">
             Invoices
           </span>
-        </Link>{" "}
+        </Link>{" "} */}
         <Link  href="/products"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/products"
