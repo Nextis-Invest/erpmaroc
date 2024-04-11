@@ -1,5 +1,5 @@
 import React from "react";
-import Staff from "../__components/Staff";
+import Staff from "../../components/Staff";
 
 
 const page = () => {

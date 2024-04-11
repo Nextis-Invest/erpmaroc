@@ -1,5 +1,5 @@
 import React from 'react'
-import Warehouse from '../__components/Warehouse'
+import Warehouse from '../../components/Warehouse'
 
 const page = () => {
   return (

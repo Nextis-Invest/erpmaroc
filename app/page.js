@@ -1,6 +1,6 @@
 import Image from "next/image";
-import SideBar from "./__components/SideBar";
-import DashBoard from "./__components/DashBoard";
+import SideBar from "../components/SideBar";
+import DashBoard from "../components/DashBoard";
 
 export default function Home() {
   return (

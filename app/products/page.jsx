@@ -1,7 +1,7 @@
 import React from "react";
-import Table from "../__components/Table";
-import Products from "../__components/Products";
-import SearchBox from "../__components/SearchBox";
+import Table from "../../components/Table";
+import Products from "../../components/Products";
+import SearchBox from "../../components/SearchBox";
 
 const page = () => {
   return (
