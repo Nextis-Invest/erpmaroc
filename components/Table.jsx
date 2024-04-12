@@ -103,7 +103,8 @@ const Table = ({ data, mode, action }) => {
           </thead>
           <tbody className="relative">{tableRows}</tbody>
         </table>
-        <div className="w-full h-14 text-center my-auto">
+        {
+          totalPages > 20 && <div className="w-full h-14 text-center my-auto">
           {paginationButtons}.....
           <button
             key={totalPages}
@@ -117,6 +118,7 @@ const Table = ({ data, mode, action }) => {
             {totalPages}
           </button>
         </div>
+        }
       </div>
       {showPopup && (
         <div
