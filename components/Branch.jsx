@@ -4,6 +4,7 @@ import Chart from "react-apexcharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import Loading from "./Loading";
+import Grid from "./grid";
 
 const Branch = () => {
   const users = [
@@ -131,58 +132,57 @@ const Branch = () => {
           />
         </div>{" "}
         <div id="secRow" className="w-full">
-          {users.map((user) => {
-            return (
-              <div
-                id="user"
-                className="grid grid-cols-5 gap-2 h-12 border-b-2 border-primary items-center"
-                key={user.name} // Adding a unique key for each user
-              >
-                <div className="ml-2">{user.name}</div>
-                <div>{user.privilege}</div>
-                <div className="grid grid-cols-4 gap-4 text-sm">
-                  {user.control.map((c) => (
-                    <div key={c} className="text-gray-700">
-                      {c}
-                    </div>
-                  ))}
+        {users.map((user) => {
+        return (
+          <div
+            id="user"
+            className="grid grid-cols-5 gap-2 h-12 border-b-2 border-primary items-center"
+            key={user.name}
+          >
+            <div className="ml-2">{user.name}</div>
+            <div>{user.privilege}</div>
+            <div className="grid grid-cols-4 gap-4 text-sm">
+              {user.control.map((c) => (
+                <div key={c} className="text-gray-700">
+                  {c}
                 </div>
-                <div className="grid grid-cols-4 gap-2 text-sm">
-                  {user.permissions.map((permission) => (
-                    <div
-                      key={permission}
-                      className={`text-gray-700 text-background text-center p-0.5 px-1 rounded-full ${
-                        permission === "create"
-                          ? "bg-[#34D399]"
-                          : permission === "read"
-                          ? "bg-[#3B82F6]"
-                          : permission === "write"
-                          ? "bg-[#e7a325]"
-                          : permission === "delete"
-                          ? "bg-[#EF4444]"
-                          : "bg-[#6B7280]"
-                      }`}
-                    >
-                      {permission}
-                    </div>
-                  ))}
+              ))}
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-sm">
+              {user.permissions.map((permission) => (
+                <div
+                  key={permission}
+                  className={`text-gray-700 text-background text-center p-0.5 px-1 rounded-full ${
+                    permission === "create"
+                      ? "bg-[#34D399]"
+                      : permission === "read"
+                      ? "bg-[#3B82F6]"
+                      : permission === "write"
+                      ? "bg-[#e7a325]"
+                      : permission === "delete"
+                      ? "bg-[#EF4444]"
+                      : "bg-[#6B7280]"
+                  }`}
+                >
+                  {permission}
                 </div>
+              ))}
+            </div>
 
-                <div className=" grid justify-end">
-                  <button className="w-10 h-auto" onClick={()=>{alert("Clicked")}}>
-                    <FontAwesomeIcon
-                      icon={faEllipsis}
-                      height={22}
-                      width={22}
-                      alt="threeDots"
-                      className="mr-2"
-                    />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+            <div className=" grid justify-end">
+              <button className="w-10 h-auto" onClick={()=>{alert("Clicked")}}>
+                <FontAwesomeIcon
+                  icon={faEllipsis}
+                  height={22}
+                  width={22}
+                  alt="threeDots"
+                  className="mr-2"
+                />
+              </button>
+            </div>
+          </div>
+        );
+      })}        </div>
       </Suspense>
     </div>
   );
