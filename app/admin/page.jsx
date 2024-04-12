@@ -1,5 +1,5 @@
 import React from 'react'
-import { ExcelHandler } from '../__components/ExcelHandler'
+import { ExcelHandler } from '../../components/ExcelHandler'
 
 const page = () => {
   return (

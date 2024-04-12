@@ -1,5 +1,5 @@
 import { DataContextProvider } from "@/Context/DataContext";
-import SideBar from "./__components/SideBar";
+import SideBar from "../components/SideBar";
 import "./globals.css";
 
 export const metadata = {
