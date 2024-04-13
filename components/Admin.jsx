@@ -1,12 +1,18 @@
 "use client";
+
+import { useUser } from "@auth0/nextjs-auth0/client";
+
 import React from "react";
 import { ExcelHandler } from "./ExcelHandler";
-import Table from "./Table";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
-import { key } from "fontawesome";
 
 const Admin = () => {
+  const { user, error, isLoading } = useUser();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>{error.message}</div>;
+
   const modifyKey = () => {
     alert("Clicked");
   };
@@ -53,7 +59,8 @@ const Admin = () => {
     },
   ];
 
-  console.log(keys);
+  // console.log(keys);
+  console.log("User-",user);
 
   return (
     <div className="w-full min-h-[80vh] flex">
@@ -157,8 +164,14 @@ const Admin = () => {
                   XLSX, XLS
                 </p>
               </div>
-              <button id="export-file" class="hidden" onClick={()=>{alert("Clicked")}}>
-              export to EXCEL file
+              <button
+                id="export-file"
+                class="hidden"
+                onClick={() => {
+                  alert("Clicked");
+                }}
+              >
+                export to EXCEL file
               </button>
             </label>
           </div>
@@ -170,6 +183,15 @@ const Admin = () => {
       >
         <span className="font-bold text-3xl text-active">Activities</span>
       </div>
+      {
+        user && (
+          <div>
+            <img src={user?.picture} alt={user?.name} />
+            <h2>{user?.name}</h2>
+            <p>{user?.email}</p>
+          </div>
+          )
+      }
     </div>
   );
 };

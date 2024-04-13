@@ -4,7 +4,6 @@ import Chart from "react-apexcharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import Loading from "./Loading";
-import Grid from "./grid";
 
 const Branch = () => {
   const users = [

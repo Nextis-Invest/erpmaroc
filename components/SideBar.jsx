@@ -148,9 +148,9 @@ const SideBar = () => {
             Report
           </span>
         </Link>{" "}
-        <Link  href="/warehouse"
+        <Link  href="/record"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/warehouse"
+            pathname === "/record"
               ? "shadow-md shadow-secondary text-active"
               : ""
           }`}
@@ -162,7 +162,7 @@ const SideBar = () => {
             alt="faWarehouse"
           />
           <span className="text-xl ml-2">
-            Warehouse
+            Sold Record
           </span>
         </Link>{" "}
         <Link  href="/admin"
@@ -200,16 +200,12 @@ const SideBar = () => {
           </span>
         </Link>{" "}
       </div>
-      <div
+      <a href="/api/auth/login">Login</a>
+      <Link href="/api/auth/login"
         id="logout"
-        className="mt-auto w-auto py-3 px-2 flex justify-center items-center rounded-xl text-primary hover:text-warning hover:font-bold"
+        className="mt-auto text-xl w-auto py-3 px-2 flex justify-center items-center rounded-xl text-primary hover:text-warning hover:font-bold"
       >
-        <button
-          disabled={loading}
-          className="flex text-xl items-center"
-          onClick={logOut}
-        >
-          {" "}
+        
           <FontAwesomeIcon
             icon={loading ? faSpinner : faSignOut}
             height={22}
@@ -217,9 +213,8 @@ const SideBar = () => {
             alt="faSignOut"
             className="mr-2"
           />
-          {loading ? "Logging Out." : "Logout"}
-        </button>
-      </div>
+         Logout
+      </Link>
     </div>
   );
 };

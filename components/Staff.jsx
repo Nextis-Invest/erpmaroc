@@ -72,6 +72,7 @@ const edit = ()=>{
   return (
     <div>
       <Table data={staffs} mode="staffs" action={edit}/>
+      
     </div>
   );
 };
