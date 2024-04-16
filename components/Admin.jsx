@@ -1,17 +1,49 @@
 "use client";
 
-import { useUser } from "@auth0/nextjs-auth0/client";
-
+import { sendEmail } from "@/app/action/email/sendEmail";
 import React from "react";
-import { ExcelHandler } from "./ExcelHandler";
+import { ExcelHandler } from "../components/ExcelHandler";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { EmailTemplate } from "@/lib/email-template/EmailTemplate";
 
 const Admin = () => {
-  const { user, error, isLoading } = useUser();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error.message}</div>;
+  const sendEmailHandler = async () => {
+    fetch('/api/')
+    // console.log("sending email-")
+    // sendEmail({
+    //   from: "naymyokhant78@gmail.com",
+    //   to: ["naymyokhant908@gmail.com", "nay304095@gmail.com"],
+    //   subject: "Hello World",
+    //   react: EmailTemplate({ firstName: 'John' , options: null})
+    // })
+
+    // console.log("successfully sent email")
+
+    // try {
+    //   const response = await fetch("/api/se nd-email", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //       email: email,
+    //       subject: subject,
+    //       message: message,
+    //     }),
+    //   });
+
+    //   if (response.ok) {
+    //     console.log("Email sent successfully");
+    //   } else {
+    //     console.log("Failed to send email");
+    //   }
+    // } catch (error) {
+    //   console.log("Error sending email:", error);
+    // }
+  }
+  
 
   const modifyKey = () => {
     alert("Clicked");
@@ -60,7 +92,6 @@ const Admin = () => {
   ];
 
   // console.log(keys);
-  console.log("User-",user);
 
   return (
     <div className="w-full min-h-[80vh] flex">
@@ -182,16 +213,9 @@ const Admin = () => {
         className="mx-7 px-3 w-1/4 max-w-[300px] min-h-[80vh] max-h-[95vh] border-l-2 border-active"
       >
         <span className="font-bold text-3xl text-active">Activities</span>
+        <button className=" px-3 py-2 bg-secondary rounded-lg" onClick={sendEmailHandler}>Send Email</button>
       </div>
-      {
-        user && (
-          <div>
-            <img src={user?.picture} alt={user?.name} />
-            <h2>{user?.name}</h2>
-            <p>{user?.email}</p>
-          </div>
-          )
-      }
+
     </div>
   );
 };

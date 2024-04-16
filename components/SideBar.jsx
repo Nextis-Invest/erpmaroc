@@ -18,7 +18,7 @@ import {
   faSignOut,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import { logOutHandler } from "../app/_lib/clientHandlers";
+import { logOutHandler } from "../lib/clientHandlers";
 
 const SideBar = () => {
   const pathname = usePathname();
