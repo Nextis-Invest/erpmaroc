@@ -5,12 +5,12 @@ const ITEM = require('./item')
 const RecordSchema = new mongoose.Schema({
   item: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ITEM',
+    ref: ITEM,
     required: true
   },
   branch: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'BRANCH', // Reference to the Branch model
+    ref: BRANCH, // Reference to the Branch model
     required: true
   },
   quantity: {

@@ -9,10 +9,11 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+
   return (
     <html lang="en">
       <body className="bg-background">
-        <UserProvider>
+          <UserProvider> 
           <DataContextProvider>
             {" "}
             <main className="max-w-[2000px] mx-auto flex items-start justify-between lg:justify-evenly px-5 py-10">
@@ -20,7 +21,7 @@ export default function RootLayout({ children }) {
               {children}
             </main>
           </DataContextProvider>
-        </UserProvider>
+          </UserProvider>
       </body>
     </html>
   );

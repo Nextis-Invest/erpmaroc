@@ -18,33 +18,31 @@ import {
   faSignOut,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import { logOutHandler } from "../lib/clientHandlers";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const SideBar = () => {
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(false);
 
-  const logOut = async () => {
-    setLoading(true);
-    await logOutHandler();
-    setLoading(false);
-  };
+  const { user, error, isLoading } = useUser();
+
+  
 
   return (
     <div className=" min-w-36 w-auto min-h-[80vh] h-auto mr-5 flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
-      {/* <Link href="/" className="w-full h-full"> */}
-        {" "}
-        <Image
-          src="/assets/logo.png"
-          width={100}
-          height={100}
-          alt="logo"
-          className="w-full h-full"
-        />
+      {/* <Link href="/" className="w-full h-full"> */}{" "}
+      <Image
+        src="/assets/logo.png"
+        width={100}
+        height={100}
+        alt="logo"
+        className="w-full h-full"
+      />
       {/* </Link> */}
       <div className="w-full flex flex-col gap-1 mt-10">
-        <Link href="/"
+        <Link
+          href="/"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/" || pathname === ""
               ? "shadow-md shadow-secondary text-active"
@@ -58,11 +56,10 @@ const SideBar = () => {
             width={22}
             alt="dashboard"
           />
-          <span className="text-xl ml-2" >
-            Dashboard
-          </span>
+          <span className="text-xl ml-2">Dashboard</span>
         </Link>{" "}
-        <Link  href="/staffs"
+        <Link
+          href="/staffs"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/staffs"
               ? "shadow-md shadow-secondary text-active"
@@ -76,11 +73,10 @@ const SideBar = () => {
             width={22}
             alt="staffs"
           />
-          <span className="text-xl ml-2">
-            Staffs
-          </span>
+          <span className="text-xl ml-2">Staffs</span>
         </Link>{" "}
-        <Link href="/branches"
+        <Link
+          href="/branches"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/branches"
               ? "shadow-md shadow-secondary text-active"
@@ -93,9 +89,7 @@ const SideBar = () => {
             width={22}
             alt="branches"
           />
-          <span className="text-xl ml-2">
-            Branches
-          </span>
+          <span className="text-xl ml-2">Branches</span>
         </Link>{" "}
         {/* <Link  href="/invoices"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
@@ -114,7 +108,8 @@ const SideBar = () => {
             Invoices
           </span>
         </Link>{" "} */}
-        <Link  href="/products"
+        <Link
+          href="/products"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/products"
               ? "shadow-md shadow-secondary text-active"
@@ -127,11 +122,10 @@ const SideBar = () => {
             width={22}
             alt="products"
           />
-          <span className="text-xl ml-2">
-            Products
-          </span>
+          <span className="text-xl ml-2">Products</span>
         </Link>{" "}
-        <Link href="/report"
+        <Link
+          href="/report"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/report"
               ? "shadow-md shadow-secondary text-active"
@@ -144,11 +138,10 @@ const SideBar = () => {
             width={22}
             alt="report"
           />
-          <span className="text-xl ml-2" >
-            Report
-          </span>
+          <span className="text-xl ml-2">Report</span>
         </Link>{" "}
-        <Link  href="/record"
+        <Link
+          href="/record"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/record"
               ? "shadow-md shadow-secondary text-active"
@@ -161,11 +154,10 @@ const SideBar = () => {
             width={22}
             alt="faWarehouse"
           />
-          <span className="text-xl ml-2">
-            Sold Record
-          </span>
+          <span className="text-xl ml-2">Record</span>
         </Link>{" "}
-        <Link  href="/admin"
+        <Link
+          href="/admin"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/admin"
               ? "shadow-md shadow-secondary text-active"
@@ -178,11 +170,10 @@ const SideBar = () => {
             width={22}
             alt="faUserShield"
           />
-          <span className="text-xl ml-2">
-            Admin
-          </span>
+          <span className="text-xl ml-2">Admin</span>
         </Link>{" "}
-        <Link href="/settings"
+        <Link
+          href="/settings"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/settings"
               ? "shadow-md shadow-secondary text-active"
@@ -195,17 +186,15 @@ const SideBar = () => {
             width={22}
             alt="Settings"
           />
-          <span className="text-xl ml-2" >
-            Settings
-          </span>
+          <span className="text-xl ml-2">Settings</span>
         </Link>{" "}
       </div>
-      <a href="/api/auth/login">Login</a>
-      <Link href="/api/auth/login"
-        id="logout"
-        className="mt-auto text-xl w-auto py-3 px-2 flex justify-center items-center rounded-xl text-primary hover:text-warning hover:font-bold"
-      >
-        
+      {user && (
+        <a
+          href="/api/auth/logout"
+          id="logout"
+          className="mt-auto text-xl w-auto py-3 px-2 flex justify-center items-center rounded-xl text-primary hover:text-warning hover:font-bold"
+        >
           <FontAwesomeIcon
             icon={loading ? faSpinner : faSignOut}
             height={22}
@@ -213,8 +202,9 @@ const SideBar = () => {
             alt="faSignOut"
             className="mr-2"
           />
-         Logout
-      </Link>
+          Logout
+        </a>
+       )}
     </div>
   );
 };

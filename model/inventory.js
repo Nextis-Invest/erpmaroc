@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const ITEM = require('./item')
-const RECORD = require('./Record')
+const RECORD = require('./record')
 const BRANCH = require('./branchData')
 
 const InventorySchema = new mongoose.Schema({
   item: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ITEM',
+    ref: ITEM,
     required: true
   },
   quantity: {
@@ -15,12 +15,12 @@ const InventorySchema = new mongoose.Schema({
   },
   branch: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'BRANCH',
+    ref: BRANCH,
     required: true
   },
   record: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'RECORD',
+    ref: RECORD,
     required: true
   }
 });

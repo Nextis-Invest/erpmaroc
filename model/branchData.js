@@ -19,11 +19,11 @@ const BranchSchema = new mongoose.Schema({
   },
   manager: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ADMIN' // Reference to the Admin model
+    ref: ADMIN // Reference to the Admin model
   },
   staff: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'STAFF' // Reference to the Staff model
+    ref: STAFF // Reference to the Staff model
   }],
   contact: {
     type: String,
@@ -39,12 +39,12 @@ const BranchSchema = new mongoose.Schema({
   },
   parentBranch: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'BRANCH', // Reference to the BRANCH model for the parent branch 
+    ref: BRANCH, // Reference to the BRANCH model for the parent branch 
     required: false
   },
   childBranch: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'BRANCH' // Reference to the BRANCH model for child branch
+    ref: BRANCH // Reference to the BRANCH model for child branch
   }]
 });
 
