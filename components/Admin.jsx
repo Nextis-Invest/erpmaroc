@@ -1,56 +1,23 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { ExcelHandler } from "../components/ExcelHandler";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { DataContext } from "@/Context/DataContext";
 
 const Admin = () => {
   const { user, error, isLoading } = useUser();
+  const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
 
   useEffect(() => {
     if (!user) {
       return redirect("/login");
     }
-  }, [user])
-  
-  const sendEmailHandler = async () => {
-    fetch("/api/");
-    // console.log("sending email-")
-    // sendEmail({
-    //   from: "naymyokhant78@gmail.com",
-    //   to: ["naymyokhant908@gmail.com", "nay304095@gmail.com"],
-    //   subject: "Hello World",
-    //   react: EmailTemplate({ firstName: 'John' , options: null})
-    // })
-
-    // console.log("successfully sent email")
-
-    // try {
-    //   const response = await fetch("/api/se nd-email", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       email: email,
-    //       subject: subject,
-    //       message: message,
-    //     }),
-    //   });
-
-    //   if (response.ok) {
-    //     console.log("Email sent successfully");
-    //   } else {
-    //     console.log("Failed to send email");
-    //   }
-    // } catch (error) {
-    //   console.log("Error sending email:", error);
-    // }
-  };
+  }, [user]);
 
   const modifyKey = () => {
     alert("Clicked");
@@ -98,15 +65,14 @@ const Admin = () => {
     },
   ];
 
-
   return (
     <div>
       {" "}
-      <div id="userBaner" className="mb-3 h-14 relative">
+      <div id="userBaner" className="mb-3 h-14 ">
         {user && (
           <div
             id="user"
-            className="flex flex-col group focus-within: transition-all absolute top-0 right-0 hover:block content-end w-max ml-auto mr-7 gap-3 px-4 py-2 pr-7 rounded-lg bg-background shadow-md shadow-secondary"
+            className="flex flex-col group focus-within: transition-all absolute top-50 right-10 hover:block content-end w-max ml-auto mr-7 gap-3 px-4 py-2 pr-7 rounded-lg bg-background shadow-md shadow-secondary"
           >
             {/* <div className="flex items-center">
               {" "}
@@ -136,9 +102,7 @@ const Admin = () => {
                   <p className="font-bold text-lg text-active">{user?.name}</p>
                 </summary>
                 <div class="mt-3 leading-6 text-active text-md font-semibold">
-                  <p>
-                    Email: {user?.email}
-                  </p>
+                  <p>Email: {user?.email}</p>
                 </div>
               </details>
             </div>
@@ -148,7 +112,7 @@ const Admin = () => {
       <div className="w-full min-h-[80vh] flex">
         <div id="left_col" className=" w-3/4 flex flex-col justify-start">
           <div id="first_row" className="w-full h-2/3">
-            <div id="keys" className="active pb-5">
+            <div id="keys" className="active">
               <span className="font-bold text-3xl text-active">KEYS</span>
               {keys.map((key) => {
                 return (
@@ -180,8 +144,17 @@ const Admin = () => {
                   </div>
                 );
               })}
+              <div className="w-full flex">
+                {" "}
+                <button
+                  className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
+                  onClick={() => toggleSideBar("key")}
+                >
+                  Add new keys
+                </button>
+              </div>
             </div>
-            <div id="branches" className="mt-5">
+            <div id="branches" className="mt-3 pb-5">
               <span className="font-bold text-3xl text-active">Branches</span>
               {branches.map((key, index) => {
                 return (
@@ -208,6 +181,15 @@ const Admin = () => {
                   </div>
                 );
               })}
+              <div className="w-full flex">
+                {" "}
+                <button
+                  className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
+                  onClick={() => toggleSideBar("branch")}
+                >
+                  Add new branch
+                </button>
+              </div>
             </div>
           </div>
           <div
@@ -263,7 +245,7 @@ const Admin = () => {
           id="right_col"
           className="mx-7 px-3 w-1/4 max-w-[300px] min-h-[80vh] max-h-[95vh] border-l-2 border-active"
         >
-          <span className="font-bold text-3xl text-active">Activities</span>
+          <span className="font-bold text-3xl text-active">Activities</span>{" "}
         </div>
       </div>
     </div>

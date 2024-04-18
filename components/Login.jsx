@@ -1,9 +1,13 @@
 
+import { getSession } from "@auth0/nextjs-auth0";
+import { redirect } from "next/navigation";
 import React from "react";
 
-const Login = () => {
-
+const Login = async () => {
+    const { user } = await getSession();
+    user && redirect('/')
   return (
+    
     <div className="flex flex-col min-w-[80%] h-full min-h-[80vh] justify-center items-center">
       <h1 className="text-4xl font-mono text-center font-bold text-primary mb-5">
         You have to have an account to use IGNITE.

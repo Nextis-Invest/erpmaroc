@@ -1,8 +1,9 @@
+import FormSideBar from '@/components/FormSideBar'
 import React from 'react'
 
 const page = () => {
   return (
-    <div>Setting</div>
+    <div><FormSideBar/></div>
   )
 }
 
