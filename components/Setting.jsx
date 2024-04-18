@@ -16,45 +16,14 @@ const Setting = () => {
   }, [user]);
 
   const info = {
-    companyName: "Example Company",
-    address: {
+    companyName: "Your Company Name",
       street: "123 Main Street",
       city: "Anytown",
       state: "Example State",
-      postalCode: "12345",
-      country: "Example Country",
-    },
-    contact: {
+      country: "Myanmar",
       phone: "+1234567890",
       email: "info@example.com",
-      website: "https://www.example.com",
-    },
-    employees: [
-      {
-        name: "John Doe",
-        position: "CEO",
-        email: "john.doe@example.com",
-        phone: "+1234567890",
-      },
-      {
-        name: "Jane Smith",
-        position: "CFO",
-        email: "jane.smith@example.com",
-        phone: "+1234567890",
-      },
-    ],
-    departments: [
-      {
-        name: "Sales",
-        manager: "John Doe",
-        employees: ["Alice", "Bob", "Charlie"],
-      },
-      {
-        name: "Marketing",
-        manager: "Jane Smith",
-        employees: ["David", "Emma", "Frank"],
-      },
-    ],
+      website: "yourwebsite.com",
   };
 
   return (
@@ -99,38 +68,38 @@ const Setting = () => {
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">Country:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.address.country}
+                {info.country}
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">State:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.address.state}
+                {info.state}
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">City:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.address.city}
+                {info.city}
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">Street:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.address.street}
+                {info.street}
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">Website:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.contact.website}
+                {info.website}
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">Email:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.contact.email}
+                {info.email}
               </span>{" "}
               <span className="font-bold my-2 text-xl text-active">Phone:</span>
               <span className="font-bold my-2 text-xl text-active">
-                {info.contact.phone}
+                {info.phone}
               </span>
             </div>
             <div className="w-full flex">
                 {" "}
                 <button
                   className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
-                  onClick={() => toggleSideBar("branch")}
+                  onClick={() => toggleSideBar("edit-branch")}
                 >
                   Edit info
                 </button>

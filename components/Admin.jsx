@@ -11,6 +11,7 @@ import { DataContext } from "@/Context/DataContext";
 
 const Admin = () => {
   const { user, error, isLoading } = useUser();
+  console.log("🚀 ~ Admin ~ user:", user)
   const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
 
   useEffect(() => {
@@ -74,21 +75,6 @@ const Admin = () => {
             id="user"
             className="flex flex-col group focus-within: transition-all absolute top-50 right-10 hover:block content-end w-max ml-auto mr-7 gap-3 px-4 py-2 pr-7 rounded-lg bg-background shadow-md shadow-secondary"
           >
-            {/* <div className="flex items-center">
-              {" "}
-              <Image
-                width={40}
-                height={40}
-                className="rounded-full"
-                src={`${user?.image}`}
-                alt="user-profile"
-              />
-              <p>{user?.name}</p>
-
-            </div>
-            <p className="hidden group-hover:block focus:block group-focus:block">
-              {user?.email}
-            </p> */}
             <div class="max-w-lg mx-auto">
               <details className=" outline-none ring-0">
                 <summary class="flex gap-2 items-center justify-end text-sm leading-6 text-slate-900 ring-0 font-semibold select-none">
@@ -99,7 +85,7 @@ const Admin = () => {
                     src={`${user?.picture}`}
                     alt="user-profile"
                   />
-                  <p className="font-bold text-lg text-active">{user?.name}</p>
+                  <p className="font-bold text-lg text-active">{user?.nickname}</p>
                 </summary>
                 <div class="mt-3 leading-6 text-active text-md font-semibold">
                   <p>Email: {user?.email}</p>
@@ -185,7 +171,7 @@ const Admin = () => {
                 {" "}
                 <button
                   className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
-                  onClick={() => toggleSideBar("branch")}
+                  onClick={() => toggleSideBar("add-branch")}
                 >
                   Add new branch
                 </button>
