@@ -16,7 +16,8 @@ console.log("mode = "+formMode)
         <Drawer.Items>
           {formMode === 'key' && <StaffForm/>}
           {formMode === 'add-branch' && <StaffForm/>}
-          {formMode === 'edit-branch' && <BranchForm/>}
+          {formMode === 'edit-branch' && <BranchForm mode = "edit"/>}
+          {formMode === 'create-branch' && <BranchForm mode = "create"/>}
         </Drawer.Items>
       </Drawer>
     </>

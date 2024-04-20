@@ -6,11 +6,6 @@ if (mongoose.models.STAFF) {
   STAFF = mongoose.model("STAFF");
 } else {
   const staffSchema = new mongoose.Schema({
-    id: {
-      type: String,
-      required: true,
-      unique: true, // Assuming IDs should be unique
-    },
     name: {
       type: String,
       required: true,

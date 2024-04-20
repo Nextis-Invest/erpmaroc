@@ -3,6 +3,8 @@ import SideBar from "../components/SideBar";
 import "./globals.css";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import FormSideBar from "@/components/FormSideBar";
+import { ReactQueryProvider } from "@/Context/QueryClientProvider";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export const metadata = {
   title: "Enterprise Resourse Planning System",
@@ -14,14 +16,17 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="bg-background">
         <UserProvider>
-          <DataContextProvider>
-            {" "}
-            <main className="max-w-[2000px] mx-auto flex items-start justify-between lg:justify-evenly px-5 py-10">
-              <SideBar />
-              {children}
-              <FormSideBar />
-            </main>
-          </DataContextProvider>
+          <ReactQueryProvider>
+            <DataContextProvider>
+              {" "}
+              <main className="max-w-[2000px] mx-auto flex items-start justify-between lg:justify-evenly px-5 py-10">
+                <SideBar />
+                {children}
+                <ReactQueryDevtools initialIsOpen={false} />
+                <FormSideBar />
+              </main>
+            </DataContextProvider>
+          </ReactQueryProvider>
         </UserProvider>
       </body>
     </html>

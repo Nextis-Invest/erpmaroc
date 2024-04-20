@@ -1,9 +1,54 @@
-import { createBranch } from "@/lib/fetch/Branch";
+import { DataContext } from "@/Context/DataContext";
+import { createBranch, updateBranch } from "@/lib/fetch/Branch";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import {
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useContext } from "react";
 import { useForm } from "react-hook-form";
 
-export default function BranchForm() {
+export default function BranchForm({ mode }) {
+  const queryClient = useQueryClient();
+  const data = queryClient.getQueryData("branchData");
+  console.log("🚀 ~ BranchForm ~ data:", data);
+
   const { user, error } = useUser();
+  const { branchData, isOpen, setIsOpen, setBranchData, toggleSideBar } =
+    useContext(DataContext);
+
+
+  const createBranchMutation = useMutation({
+    mutationFn: async (d) => createBranch(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      queryClient.invalidateQueries("branchData");
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+      window.location.reload();
+      setIsOpen(false);
+    },
+  });
+
+  const editBranchMutation = useMutation({
+    mutationFn: async (d) => updateBranch(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      queryClient.invalidateQueries("branchData");
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+      window.location.reload();
+      setIsOpen(false);
+    },
+  });
 
   const {
     register,
@@ -13,17 +58,26 @@ export default function BranchForm() {
   } = useForm();
 
   const onSubmit = async (data) => {
-    console.log("Submitted");
     const d = {
-      ...data, ...user
-    }
-    console.log(d);
+      ...data,
+      ...user,
+    };
 
-    try {
-      await createBranch(d);
-    } catch (error) {
-      // setError(error || "error");
-      console.log(error)
+    if(mode == "edit" )
+    {
+      try {
+        console.log(mode)
+        editBranchMutation.mutate(d);
+      } catch (error) {
+        console.log(error);
+      }
+    } else if(mode == "create"){
+      try {
+        console.log(mode)
+          createBranchMutation.mutate(d);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -33,12 +87,14 @@ export default function BranchForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
     >
-      <span className="font-bold text-3xl text-active">Edit Branch</span>
+      <span className="font-bold text-3xl text-active">
+        {mode == "edit" ? "Edit Branch" : "Create Branch"}
+      </span>
 
       {/* register your input into the hook by invoking the "register" function */}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.companyName}
         placeholder="Company Name"
         type="text"
         {...register("companyName", { required: "Company Name required." })}
@@ -50,7 +106,7 @@ export default function BranchForm() {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.countryName}
         placeholder="Country Name"
         type="text"
         {...register("countryName", { required: "Country Name required." })}
@@ -62,7 +118,7 @@ export default function BranchForm() {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.stateName}
         placeholder="State Name"
         type="text"
         {...register("stateName", { required: "State Name required." })}
@@ -74,7 +130,7 @@ export default function BranchForm() {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        Value={data?.data?.branch?.cityName}
         placeholder="City Name"
         type="text"
         {...register("cityName", { required: "City Name required." })}
@@ -86,7 +142,7 @@ export default function BranchForm() {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.streetName}
         placeholder="Street Name"
         type="text"
         {...register("streetName", { required: "Street Name required." })}
@@ -98,7 +154,7 @@ export default function BranchForm() {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.websiteUrl}
         placeholder="Website"
         type="url"
         {...register("websiteUrl")}
@@ -110,19 +166,19 @@ export default function BranchForm() {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.email}
         placeholder="Email"
         type="email"
-        {...register("branchemail", { required: "Email required." })}
+        {...register("branchEmail", { required: "Email required." })}
       />
-      {errors?.branchemail && (
+      {errors?.branchEmail && (
         <span className="text-warning font-medium">
-          {errors?.branchemail.message}
+          {errors?.branchEmail.message}
         </span>
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue=""
+        defaultValue={data?.data?.branch?.phone}
         placeholder="Phone Number"
         type="tel"
         {...register("phone")}
@@ -139,7 +195,7 @@ export default function BranchForm() {
         className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
         type="submit"
       >
-        {isLoading ? "Loading" : isSubmitting ? "Submitting" : "Save"}
+        {mode == "edit" ? "Save" : "Create"}
       </button>
     </form>
   );
