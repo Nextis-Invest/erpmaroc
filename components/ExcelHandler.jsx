@@ -7,7 +7,7 @@ import React, { useState, useContext } from "react";
 import { DataContext } from "@/Context/DataContext";
 
 export const ExcelHandler = () => {
-  const { data, setData } = useContext(DataContext);
+  const { branchData, setBranchData } = useContext(DataContext);
 
   // const [file, setFile] = useState([])
   const handler = async (e) => {
@@ -15,7 +15,7 @@ export const ExcelHandler = () => {
     const wb = XLSX.read(await file.arrayBuffer());
     const ws = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws);
-    setData(data);
+    setBranchData(data);
   };
 
   return (

@@ -2,7 +2,6 @@
 
 
 import React from "react";
-import DataGrid from "react-data-grid";
 import Table from "./Table";
 
 const Staff = () => {

@@ -10,6 +10,7 @@ export const useBranchFetch = (email) => {
   return useQuery({
     gcTime: 24 * 24 *60 * 60 * 1000,
     queryKey: "branchData",
+    retry: 10,
     queryFn: () => getBranch(email),
     onSuccess(data) {
         console.log("🚀 ~ onSuccess ~ sueBranch data:", data)

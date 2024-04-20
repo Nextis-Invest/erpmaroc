@@ -1,9 +1,7 @@
+const { Timestamp } = require("mongodb");
 const mongoose = require("mongoose");
-const PRODUCT = require("./product");
-const RECORD = require("./record");
-const BRANCH = require("./branchData");
 
-const InventorySchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -32,14 +30,9 @@ const InventorySchema = new mongoose.Schema({
     ref: BRANCH,
     required: true,
   },
-  record: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: RECORD,
-    required: true,
-  },
   Timestamp: true,
 });
 
-const Inventory = mongoose.model("Inventory", InventorySchema);
+const PRODUCT = mongoose.model("PRODUCT", ProductSchema);
 
-module.exports = Inventory;
+module.exports = PRODUCT;

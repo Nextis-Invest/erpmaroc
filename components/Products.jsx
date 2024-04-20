@@ -1,21 +1,25 @@
-"use client"
+"use client";
 
-import React, { useContext } from 'react'
-import Table from './Table'
-import { DataContext } from '@/Context/DataContext';
-import { redirect } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import React, { useContext } from "react";
+import Table from "./Table";
+import { DataContext } from "@/Context/DataContext";
+import { redirect } from "next/navigation";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import TanStackTable from "./productTable";
 
 const Products = () => {
   const { user, error, isLoading } = useUser();
 
-    const { data, setdata } = useContext(DataContext);
-    if (!user) {
-      return redirect('/login');
-    }
+  const { branchData, setBranchData } = useContext(DataContext);
+  if (error) {
+    return redirect("/login");
+  }
   return (
-    <div><Table data={data} mode="products"/> </div>
-  )
-}
+    <div>
+      {/* <Table data={branchData} mode="products" />{" "} */}
+      <TanStackTable branchData={branchData}/>
+    </div>
+  );
+};
 
-export default Products
+export default Products;

@@ -27,6 +27,19 @@ body {
 }
 
 
+#cell[data]:hover::after {
+
+  background-color: #0050C8;
+  color: #f2f2f2;
+  font-weight: 500;
+  padding:6px 9px;
+  border-radius: 3px;
+  content: attr(data);
+  position: absolute;
+  top: 0%;
+  left: 20%;
+  z-index: 999;
+}
 
 @layer utilities {
   .text-balance {

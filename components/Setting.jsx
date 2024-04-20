@@ -6,6 +6,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import React, { useContext, useEffect } from "react";
+import Loading from "./Loading";
 
 const Setting = () => {
   const { user, error, isLoading } = useUser();
@@ -23,13 +24,11 @@ const Setting = () => {
   console.log("🚀 ~ Setting ~ fetchingBranch:", fetchingBranch);
   console.log("🚀 ~ Setting ~ isSuccess:", isSuccess);
 
-  
-
   useEffect(() => {
-    if (!user) {
+    if (error) {
       redirect("/login");
     }
-  }, [user]);
+  }, [user, error]);
 
   return (
     <div className="w-full h-full">
@@ -59,91 +58,109 @@ const Setting = () => {
           </div>
         </div>
       )}
-      <div
-        id="settings"
-        className="flex mt-20 justify-evenly w-full h-auto min-h-[75vh] p-5"
-      >
-        <div id="leftCol" className="w-1/2 p-3 border-r-2 border-active">
-          <div id="editDetails" className="w-full h-[75%]">
-            <span className="font-bold my-2 text-3xl text-active">Setting</span>
-            {data?.data?.branch ? (
-              <div id="info" className=" grid grid-cols-2 mt-5">
-                <span className="font-bold my-2 text-xl text-active">
-                  Company Name:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.companyName}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  Country:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.countryName}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  State:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.stateName}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  City:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.cityName}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  Street:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.streetName}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  Website:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.websiteUrl}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  Email:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.email}
-                </span>{" "}
-                <span className="font-bold my-2 text-xl text-active">
-                  Phone:
-                </span>
-                <span className="font-bold my-2 text-xl text-active">
-                  {data.data.branch.phone}
-                </span>
+      {isLoading && (
+        <div className="w-full h-[70vh] flex items-center justify-center">
+          <Loading size="3x" />
+        </div>
+      )}
+
+      {user && (
+        <div
+          id="settings"
+          className="flex mt-20 justify-evenly w-full h-auto min-h-[75vh] p-5"
+        >
+          <div id="leftCol" className="w-1/2 p-3 border-r-2 border-active">
+            <div id="editDetails" className="w-full h-[75%]">
+              <span className="font-bold my-2 text-3xl text-active">
+                Setting
+              </span>
+              {data?.data?.branch ? (
+                <div id="info" className=" grid grid-cols-2 mt-5">
+                  <span className="font-bold my-2 text-xl text-active">
+                    Company Name:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.companyName}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    Country:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.countryName}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    State:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.stateName}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    City:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.cityName}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    Street:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.streetName}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    Website:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.websiteUrl}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    Email:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.branchEmail}
+                  </span>{" "}
+                  <span className="font-bold my-2 text-xl text-active">
+                    Phone:
+                  </span>
+                  <span className="font-bold my-2 text-xl text-active">
+                    {data.data.branch.phone}
+                  </span>
+                </div>
+              ) : fetchingBranch ? (<div className="w-full h-1/2 flex justify-center items-center"><Loading size="2x"/></div>) : errorInFetchBranch ? (
+                <div className="w-full h-1/2 flex justify-center items-center">
+                  <p className="font-bold text-xl text-active">
+                    Branch Doesn&apos;t Created yet
+                  </p>
+                </div>
+              ) : <></>}
+              <div className="w-full flex">
+                {" "}
+                <button
+                  className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
+                  onClick={() =>
+                    toggleSideBar(
+                      data?.data?.branch ? "edit-branch" : "create-branch"
+                    )
+                  }
+                >
+                  {data?.data?.branch ? "Edit info" : "Create branch"}
+                </button>
               </div>
-            ) : (
-              <p>Branch Doesn&apos;t Created yet</p>
-            )}
-            <div className="w-full flex">
-              {" "}
-              <button
-                className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
-                onClick={() => toggleSideBar(data?.data?.branch ? "edit-branch" : "edit-branch")}
-              >
-                {data?.data?.branch ? "Edit info" : "Create branch"}
+            </div>
+            <div id="downloadData" className="w-full h-[15%] ">
+              <button className="w-full h-full border-2 text-3xl text-primary border-active border-dashed rounded-lg cursor-pointer">
+                Download all data
               </button>
             </div>
           </div>
-          <div id="downloadData" className="w-full h-[15%] ">
-            <button className="w-full h-full border-2 text-3xl text-primary border-active border-dashed rounded-lg cursor-pointer">
-              Download all data
-            </button>
+          <div
+            id="rightCol"
+            className="w-1/2 h-[75vh] flex flex-col justify-center items-center p-3 "
+          >
+            <p>AI Suggestion</p>
+            <p>(Avaliable in future.)</p>
           </div>
         </div>
-        <div
-          id="rightCol"
-          className="w-1/2 h-[75vh] flex flex-col justify-center items-center p-3 "
-        >
-          <p>AI Suggestion</p>
-          <p>(Avaliable in future.)</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

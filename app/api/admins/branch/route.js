@@ -14,12 +14,12 @@ export const POST = async (Request) => {
       cityName,
       streetName,
       websiteUrl,
-      email,
-      branchEmail,
+      email:managerEmail,
+      branchEmail : email,
       phone,
     } = body;
     console.log(
-      "😐",
+      "😐 Creating a new branch = ",
       companyName,
       countryName,
       stateName,
@@ -28,10 +28,10 @@ export const POST = async (Request) => {
       websiteUrl,
       email,
       phone,
-      branchEmail
+      managerEmail
     );
     await connectToDB();
-    const admin = await ADMIN.findOne({ email: email });
+    const admin = await ADMIN.findOne({ email: managerEmail });
 
     if (!admin) {
       return NextResponse.json(
@@ -44,12 +44,12 @@ export const POST = async (Request) => {
       companyName: companyName,
       cityName: cityName,
       countryName: countryName,
-      email: branchEmail,
+      branchEmail: email,
       phone: phone,
       stateName: stateName,
       streetName: streetName,
       websiteUrl: websiteUrl,
-      manager: email,
+      manager: managerEmail,
     });
     const createdBranch = await newBranch.save();
 
@@ -83,12 +83,12 @@ export const PATCH = async (Request) => {
       cityName,
       streetName,
       websiteUrl,
-      email,
-      branchEmail,
+      email: managerEmail,
+      branchEmail :email,
       phone,
     } = body;
     console.log(
-      "😐",
+      "😐 Editing branch",
       companyName,
       countryName,
       stateName,
@@ -97,11 +97,11 @@ export const PATCH = async (Request) => {
       websiteUrl,
       email,
       phone,
-      branchEmail
+      managerEmail
     );
     await connectToDB();
-    const admin = await ADMIN.findOne({ email: email });
-    const existingBranch = await BRANCH.findOne({ manager: email });
+    const admin = await ADMIN.findOne({ email: managerEmail });
+    const existingBranch = await BRANCH.findOne({ manager: managerEmail });
     // console.log("🚀 ~ PATCH ~ existingBranch:", existingBranch)
 
     if (!admin) {
@@ -131,10 +131,13 @@ export const PATCH = async (Request) => {
     }
 
     const updatedBranch = await BRANCH.findOneAndUpdate(
-      { manager: email },
+      { manager: managerEmail },
       { $set: updateFields },
       { new: true }
     );
+    console.log("🚀 ~ PATCH ~ updateFields:", updateFields)
+    console.log("🚀 ~ PATCH ~ updatedBranch:", updatedBranch)
+    
 
     if (!updatedBranch) {
       return NextResponse.json(
@@ -164,14 +167,16 @@ export const PATCH = async (Request) => {
   }
 };
 
+
+///// Get Branch Data for setting Route
 ////  api/admins/branch?email="email"
 export const GET = async (req, Request, Response) => {
   const searchParams = req.nextUrl.searchParams;
-  const email = searchParams.get("email");
+  const managerEmail = searchParams.get("email");
 
   try {
     await connectToDB();
-    const branch = await BRANCH.findOne({ manager: email });
+    const branch = await BRANCH.findOne({ manager: managerEmail });
 
     if(!branch){
       return NextResponse.json({

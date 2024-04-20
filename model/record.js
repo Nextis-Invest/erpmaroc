@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const BRANCH = require('./branchData'); // Import the Branch schema
-const ITEM = require('./item')
+const PRODUCT = require('./product')
 
 const RecordSchema = new mongoose.Schema({
-  item: {
+  PRODUCT: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: ITEM,
+    ref: PRODUCT,
     required: true
   },
   branch: {

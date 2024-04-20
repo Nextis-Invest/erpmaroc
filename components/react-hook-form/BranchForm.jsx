@@ -23,7 +23,7 @@ export default function BranchForm({ mode }) {
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
-      queryClient.invalidateQueries("branchData");
+      // await queryClient.invalidateQueries("branchData");
       await queryClient.refetchQueries({
         queryKey: "branchData",
         type: "active",
@@ -39,7 +39,7 @@ export default function BranchForm({ mode }) {
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
-      queryClient.invalidateQueries("branchData");
+      // await queryClient.invalidateQueries("branchData");
       await queryClient.refetchQueries({
         queryKey: "branchData",
         type: "active",
@@ -166,7 +166,7 @@ export default function BranchForm({ mode }) {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        defaultValue={data?.data?.branch?.email}
+        defaultValue={data?.data?.branch?.branchEmail}
         placeholder="Email"
         type="email"
         {...register("branchEmail", { required: "Email required." })}

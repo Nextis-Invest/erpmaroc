@@ -113,7 +113,7 @@ if (mongoose.models.BRANCH) {
       required: true,
       unique: false,
     },
-    email: {
+    branchEmail: {
       type: String,
       required: true,
       unique: false,
