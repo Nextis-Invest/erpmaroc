@@ -28,7 +28,7 @@ const SideBar = () => {
   const { user, error, isLoading } = useUser();
 
   return (
-    <div className=" min-w-36 w-auto min-h-[80vh] h-auto mr-5 flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
+    <div className=" min-w-36 sticky top-0 w-auto min-h-[80vh] h-auto mr-5 flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
       {/* <Link href="/" className="w-full h-full"> */}{" "}
       <Image
         src="/assets/logo.png"
