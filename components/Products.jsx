@@ -11,12 +11,12 @@ const Products = () => {
   const { user, error, isLoading } = useUser();
 
   const { branchData, setBranchData } = useContext(DataContext);
+  
   if (error) {
     return redirect("/login");
   }
   return (
     <div>
-      {/* <Table data={branchData} mode="products" />{" "} */}
       <TanStackTable branchData={branchData}/>
     </div>
   );

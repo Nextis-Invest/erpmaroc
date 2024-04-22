@@ -149,14 +149,14 @@ export const PATCH = async (Request) => {
 
     // console.log(createdBranch);
     return NextResponse.json(
-      JSON.stringify({
+      {
         meta: {
           status: 201,
           manager: updatedBranch.manager,
           branchId: updatedBranch._id,
         },
         data: { updatedBranch },
-      })
+      }
     );
   } catch (error) {
     console.log(error);

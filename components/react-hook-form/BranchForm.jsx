@@ -130,7 +130,7 @@ export default function BranchForm({ mode }) {
       )}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        Value={data?.data?.branch?.cityName}
+        defaultValue={data?.data?.branch?.cityName}
         placeholder="City Name"
         type="text"
         {...register("cityName", { required: "City Name required." })}
