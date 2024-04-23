@@ -5,7 +5,7 @@ import Table from "./Table";
 import { DataContext } from "@/Context/DataContext";
 import { redirect } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import TanStackTable from "./productTable";
+import TanStackTable from "./TanstackTable";
 
 const Products = () => {
   const { user, error, isLoading } = useUser();
@@ -17,7 +17,7 @@ const Products = () => {
   }
   return (
     <div>
-      <TanStackTable branchData={branchData}/>
+      <TanStackTable />
     </div>
   );
 };

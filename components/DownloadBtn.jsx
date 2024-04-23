@@ -2,7 +2,7 @@ import { faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as XLSX from "xlsx/xlsx.mjs";
 
-const DownloadBtn = ({ data = [], fileName }) => {
+export const DownloadBtn = ({ data = [], fileName }) => {
   return (
     <button
     title="Download as EXCEL."
@@ -18,5 +18,3 @@ const DownloadBtn = ({ data = [], fileName }) => {
     </button>
   );
 };
-
-export default DownloadBtn;

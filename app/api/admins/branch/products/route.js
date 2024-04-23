@@ -150,7 +150,6 @@ export const PATCH = async (Request) => {
 
 ///// Get Products Data with pagination
 //// `/api/admins/branch/products?branch=${branch}&page=${page}&limit=${limit}`
-
 export const GET = async (req, res) => {
   try {
     const searchParams = req.nextUrl.searchParams;
@@ -162,7 +161,16 @@ export const GET = async (req, res) => {
     const limit = searchParams.get("limit");
     // Connect to the database
     await connectToDB();
-  console.log("🚀 ~ GET ~ search:", search);
+    console.log(
+      "🚀 ~ GET ~ search:",
+      search,
+      "Branch: ",
+      branch,
+      "Page:",
+      page,
+      "limit:",
+      limit
+    );
 
     // Count total documents
     const totalProducts = await PRODUCT.countDocuments({ branch });
@@ -185,8 +193,6 @@ export const GET = async (req, res) => {
       query = {
         $and: [
           { branch },
-          { name: { $regex: search, $options: "i" } },
-
           {
             $or: [
               { name: { $regex: search, $options: "i" } },
@@ -200,18 +206,19 @@ export const GET = async (req, res) => {
     }
 
     // Fetch products
-    // const products = await PRODUCT.find(query)
-    const products = await PRODUCT.find({
-      branch: "66213e5a3b089febfa583dc8",
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ],
-    })
-      .skip(search ? 0 : (page - 1) * limit)
-      .limit(search  ? undefined : parseInt(limit));
+    // const products = await PRODUCT.find({
+    //   branch,
+    //   $or: [
+    //     { name: { $regex: search, $options: "i" } },
+    //     { name: { $regex: search, $options: "i" } },
+    //     { description: { $regex: search, $options: "i" } },
+    //   ],
+    // })
+    const products = await PRODUCT.find(query)
+      .skip(search ? 0 : page * limit)
+      .limit(search ? undefined : parseInt(limit));
 
+    console.log("🚀 ~ GET ~ query:", query);
 
     // Return response
     return NextResponse.json({
@@ -219,8 +226,8 @@ export const GET = async (req, res) => {
         status: 201,
         message:
           "If this was a search operation, page and limit will be neglected.",
-        ...(!search  && { page: page }),
-        ...(!search && { count: limit }),
+        ...(!search == undefined && { page: page }),
+        ...(!search == undefined && { count: limit }),
         totalProducts,
         branchId: branch,
       },

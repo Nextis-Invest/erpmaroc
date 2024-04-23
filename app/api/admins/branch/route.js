@@ -193,7 +193,7 @@ export const GET = async (req, Request, Response) => {
       meta: {
         status: 201,
         manager: branch?.manager,
-        branchId: branch._id,
+        branchId: branch.id,
       },
       data: {
         branch,

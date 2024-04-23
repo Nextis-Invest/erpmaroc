@@ -1,6 +1,5 @@
 "use client";
 import {
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -8,8 +7,8 @@ import {
   useReactTable,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import DownloadBtn from "./DownloadBtn";
+import { useEffect, useState } from "react";
+import {DownloadBtn} from "./DownloadBtn";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSortUp,
@@ -17,103 +16,113 @@ import {
   faFileUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import AddNewProductBtn from "./AddNewProductBtn";
-import SearchBox from "./SearchBox";
 import { getProduct } from "@/lib/fetch/Product";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useBranchFetch } from "@/hooks/useBranchFetch";
 
-// function generateRandomProduct() {
-//   const randomCategories = ["Electronics", "Clothing", "Home Goods"]; // Example categories
-//   const randomCategory =
-//     randomCategories[Math.floor(Math.random() * randomCategories.length)];
+const TanStackTable = () => {
+  const { user, error, isLoading: Authenticating } = useUser();
 
-//   return {
-//     name: `Product ${Math.floor(Math.random() * 10000)}`, // Random product name
-//     description: `This is a description for product ${Math.floor(
-//       Math.random() * 10000
-//     )}`, // Random description
-//     notes: `Some additional notes about product ${Math.floor(
-//       Math.random() * 10000
-//     )}`, // Random notes
-//     category: randomCategory,
-//     price: Math.random() * 100 + 50, // Random price between $50 and $150
-//     quantity: Math.floor(Math.random() * 100) + 1, // Random quantity between 1 and 10
-//     branch: Math.floor(Math.random() * 100) + 1, // Generate a random ObjectId for branch reference
-//   };
-// }
-
-// let branchDataMockUp = [];
-// for (let i = 0; i < 200; i++) {
-//   let a = generateRandomProduct();
-//   branchDataMockUp.push(a);
-// }
-
-// console.log("🚀 ~ branchDataMockUp:", branchDataMockUp);
-
-const TanStackTable = ({ branchData }) => {
-  const columnHelper = createColumnHelper();
+  const [search, setSearch] = useState();
   const [pagination, setPagination] = useState({
-    pageIndex: 0,
+    pageIndex: 1,
     pageSize: 10,
   });
-
-  const dataQuery = useQuery({
-    gcTime: 24 * 24 * 60 * 60 * 1000,
-    queryKey: ["productData", pagination],
-    queryFn: () => getProduct("66213e5a3b089febfa583dc8", 1, 10, "test"),
-    placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
-  });
-  console.log(
-    "🚀 ~ TanStackTable ~ dataQuery:",
-    dataQuery?.data?.data?.products
-  );
-
-  const defaultData = useMemo(() => [], []);
-
-  // const [data] = useState(() => [...dataQuery?.data?.data?.products]);
   const [sorting, setSorting] = useState([]);
   const [filtering, setFiltering] = useState("");
 
+
+  const {
+    data: branchData,
+    isLoading: fetchingBranch,
+    error: errorInFetchBranch,
+    isSuccess,
+  } = useBranchFetch(user?.email);
+  console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
+
+
+  console.log("🚀 ~ TanStackTable ~ user:", user);
+  useEffect(() => {
+    if (error) {
+      redirect("/login");
+    }
+  }, [user, error]);
+
+  const dataQuery = useQuery({
+    gcTime: 24 * 24 * 60 * 60 * 1000,
+    queryKey: ["productData", pagination, search],
+    queryFn: () =>
+      getProduct(
+        branchData.meta.branchId,
+        pagination.pageIndex,
+        pagination.pageSize,
+        search
+      ),
+    placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
+  });
+  console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery?.data?.data);
+
   const columns = [
-    columnHelper.accessor("No", {
+    {
+      accessorKey: "no",
       id: "no",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "No",
-    }),
-    columnHelper.accessor("Name", {
-      id: "Name",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "Name",
-    }),
-    columnHelper.accessor("Category", {
+      cell: (info) => (
+        <span>
+          {info.row.index + pagination.pageIndex * pagination.pageSize + 1}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "name",
+      id: "name",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.category,
       id: "category",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "category",
-    }),
-    columnHelper.accessor("Description", {
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.description,
       id: "description",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "description",
-    }),
-    columnHelper.accessor("Note", {
-      id: "note",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "note",
-    }),
-    columnHelper.accessor("Price", {
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.notes,
+      id: "notes",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.price,
       id: "price",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "price",
-    }),
-    columnHelper.accessor("Quantity", {
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.quantity,
       id: "quantity",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-      header: "quantity",
-    }),
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorKey: "✏️",
+      id: "edit",
+      cell: (info) => (
+        <span onClick={()=>{
+          console.log("🚀 ~ TanStackTable ~ info:", info.row.original._id); //This will extract ID
+        }}>
+          ✏️
+        </span>
+      ),
+    },
   ];
 
   const table = useReactTable({
-    data: dataQuery.data?.data.products ?? defaultData,
-    // data: dataQuery.data.data.products ?? defaultData,
+    // data: dataQuery.data?.data?.products,
+    data: dataQuery?.data?.data?.products ?? [],
     columns,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -134,8 +143,44 @@ const TanStackTable = ({ branchData }) => {
     <div className="p-2 mx-auto bg-background">
       <div className="flex sticky z-10 top-0 bg-[#F2F2F2] justify-between pb-2">
         <div className="w-full flex  items-center justify-between gap-1">
-          <SearchBox />
-
+          {/* <SearchBox /> */}
+          <div id="searchBox" className="w-2/5">
+            <div className="flex relative">
+              <div className="relative w-full">
+                <input
+                  type="search"
+                  id="search-dropdown"
+                  className="block p-2 w-full z-20 focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-e-lg rounded-lg border border-primary"
+                  placeholder="Search..."
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                  }}
+                  required
+                />
+                <button
+                  type="buttin"
+                  className="absolute top-0 end-0 p-2.5 px-4 text-sm font-medium h-full text-white bg-active rounded-e-lg  hover:bg-blue-800 focus:outline-none focus:ring-blue-300"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      stroke="#fff"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="3"
+                      d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                    />
+                  </svg>
+                  <span className="sr-only">Search</span>
+                </button>
+              </div>
+            </div>
+          </div>
           <div className="flex">
             {" "}
             <FontAwesomeIcon
@@ -194,28 +239,31 @@ const TanStackTable = ({ branchData }) => {
             </tr>
           ))}
         </thead>
-        <tbody>
-          {table.getRowModel().rows.length ? (
+        <tbody className="w-full h-auto">
+          {/* {console.log(table?.getRowModel().rows)} */}
+          {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row, i) => (
               <tr
                 key={row._id}
-                className={`
+                className={`h-10
                   ${i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"}
                   `}
               >
                 {row.getVisibleCells().map(
                   (cell) => (
-                    console.log(cell),
+                    console.log(cell.column.getSize()),
                     (
                       <td
                         id="cell"
                         key={cell._id}
                         className="px-2.5 py-1.5 truncate hover:overflow-visible max-w-32"
-                        data={cell.getContext()}
+                        data={cell.getValue() || "No data"}
                         style={{ position: "relative" }}
                       >
-                        {/* {cell.row.original.name} */}
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     )
                   )
@@ -235,7 +283,7 @@ const TanStackTable = ({ branchData }) => {
           onClick={() => {
             table.previousPage();
           }}
-          disabled={!table.getCanPreviousPage()}
+          disabled={pagination.pageIndex <= 0}
           className="p-1 border border-gray-500 px-2 disabled:opacity-30"
         >
           {"<"}
@@ -244,7 +292,12 @@ const TanStackTable = ({ branchData }) => {
           onClick={() => {
             table.nextPage();
           }}
-          disabled={!table.getCanNextPage()}
+          disabled={
+            pagination.pageIndex + 1 >=
+            Math.ceil(
+              dataQuery?.data?.meta?.totalProducts / pagination.pageSize
+            )
+          }
           className="p-1 border border-gray-300 px-2 disabled:opacity-30"
         >
           {">"}
@@ -253,32 +306,44 @@ const TanStackTable = ({ branchData }) => {
         <span className="flex items-center gap-1">
           <div>Page</div>
           <strong>
-            {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
+            {pagination.pageIndex + 1} of{" "}
+            {Math.ceil(
+              dataQuery?.data?.meta?.totalProducts / pagination.pageSize
+            )}
           </strong>
         </span>
+
         <span className="flex items-center gap-1">
           | Go to page:
           <input
             type="number"
-            defaultValue={table.getState().pagination.pageIndex + 1}
+            defaultValue={table.getState().pagination.pageIndex}
             onChange={(e) => {
-              const page = e.target.value ? Number(e.target.value) - 1 : 0;
-              table.setPageIndex(page);
+              const page = e.target.value ? Number(e.target.value) : 0;
+              // table.setPageIndex(page);
+              setPagination((prevPagination) => ({
+                ...prevPagination,
+                pageIndex: page,
+              }));
             }}
             className="border p-1 rounded w-16 bg-transparent"
           />
         </span>
         <select
-          value={table.getState().pagination.pageSize}
+          value={pagination.pageSize}
           onChange={(e) => {
-            table.setPageSize(Number(e.target.value));
+            // table.setPageSize(Number(e.target.value));
+            setPagination((prevPagination) => ({
+              ...prevPagination,
+              pageIndex: 1,
+              pageSize: e.target.value,
+            }));
           }}
           className="p-2 bg-transparent"
         >
-          {[10, 20, 30, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
+          {[10, 20, 30, 40, 50].map((size) => (
+            <option key={size} value={size}>
+              Show {size}
             </option>
           ))}
         </select>
