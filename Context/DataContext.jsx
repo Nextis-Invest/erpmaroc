@@ -36,8 +36,8 @@ export const DataContext = createContext();
 export const DataContextProvider = ({ children }) => {
   // const [state, dispatch] = useReducer(reducer, { product: null });
 
-
   const [branchData, setBranchData] = useState(null);
+  const [productData, setProductData] = useState(null);
   const [formMode, setFormMode] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +56,9 @@ export const DataContextProvider = ({ children }) => {
         branchData,
         isOpen,
         formMode,
+        productData,
         toggleSideBar,
+        setProductData,
         setIsOpen,
         setBranchData,
         setFormMode,

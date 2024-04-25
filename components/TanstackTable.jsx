@@ -7,8 +7,8 @@ import {
   useReactTable,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import {DownloadBtn} from "./DownloadBtn";
+import { useContext, useEffect, useState } from "react";
+import { DownloadBtn } from "./DownloadBtn";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSortUp,
@@ -24,8 +24,16 @@ import {
 } from "@tanstack/react-query";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
+import { DataContext } from "@/Context/DataContext";
+import Loading from "./Loading";
 
 const TanStackTable = () => {
+  const {
+    branchData: branchDataFromContext,
+    setProductData,
+    isOpen,
+    toggleSideBar,
+  } = useContext(DataContext);
   const { user, error, isLoading: Authenticating } = useUser();
 
   const [search, setSearch] = useState();
@@ -36,7 +44,6 @@ const TanStackTable = () => {
   const [sorting, setSorting] = useState([]);
   const [filtering, setFiltering] = useState("");
 
-
   const {
     data: branchData,
     isLoading: fetchingBranch,
@@ -44,7 +51,6 @@ const TanStackTable = () => {
     isSuccess,
   } = useBranchFetch(user?.email);
   console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
-
 
   console.log("🚀 ~ TanStackTable ~ user:", user);
   useEffect(() => {
@@ -54,7 +60,7 @@ const TanStackTable = () => {
   }, [user, error]);
 
   const dataQuery = useQuery({
-    gcTime: 24 * 24 * 60 * 60 * 1000,
+    // gcTime: 24 * 24 * 60 * 60 * 1000,
     queryKey: ["productData", pagination, search],
     queryFn: () =>
       getProduct(
@@ -65,7 +71,7 @@ const TanStackTable = () => {
       ),
     placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
-  console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery?.data?.data);
+  console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
 
   const columns = [
     {
@@ -73,7 +79,9 @@ const TanStackTable = () => {
       id: "no",
       cell: (info) => (
         <span>
-          {info.row.index + pagination.pageIndex * pagination.pageSize + 1}
+          {info.row.index +
+            (pagination.pageIndex - 1) * pagination.pageSize +
+            1}
         </span>
       ),
     },
@@ -106,17 +114,6 @@ const TanStackTable = () => {
       accessorFn: (row) => row.quantity,
       id: "quantity",
       cell: (info) => info.getValue(),
-    },
-    {
-      accessorKey: "✏️",
-      id: "edit",
-      cell: (info) => (
-        <span onClick={()=>{
-          console.log("🚀 ~ TanStackTable ~ info:", info.row.original._id); //This will extract ID
-        }}>
-          ✏️
-        </span>
-      ),
     },
   ];
 
@@ -152,7 +149,11 @@ const TanStackTable = () => {
                   id="search-dropdown"
                   className="block p-2 w-full z-20 focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-e-lg rounded-lg border border-primary"
                   placeholder="Search..."
-                  onChange={(e) => {
+                  onClick={(e) => {
+                    setPagination((prevPagination) => ({
+                      ...prevPagination,
+                      pageIndex: 1,
+                    }));
                     setSearch(e.target.value);
                   }}
                   required
@@ -240,7 +241,6 @@ const TanStackTable = () => {
           ))}
         </thead>
         <tbody className="w-full h-auto">
-          {/* {console.log(table?.getRowModel().rows)} */}
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row, i) => (
               <tr
@@ -248,6 +248,18 @@ const TanStackTable = () => {
                 className={`h-10
                   ${i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"}
                   `}
+                onClick={() => {
+                  console.log(
+                    "🚀 ~ TanStackTable ~ info:",
+                    row.original._id,
+                    setProductData(
+                      dataQuery?.data?.data?.products.find(
+                        (obj) => obj._id === row.original._id
+                      )
+                    ),
+                    toggleSideBar("edit-product")
+                  ); //This will extract ID
+                }}
               >
                 {row.getVisibleCells().map(
                   (cell) => (
@@ -270,6 +282,12 @@ const TanStackTable = () => {
                 )}
               </tr>
             ))
+          ) : dataQuery.isLoading ? (
+            <tr className="text-center h-32 overflow-hidden">
+              <td colSpan={12}>
+                <Loading size="3x" />
+              </td>
+            </tr>
           ) : (
             <tr className="text-center h-32">
               <td colSpan={12}>No Recoard Found!</td>
@@ -283,7 +301,7 @@ const TanStackTable = () => {
           onClick={() => {
             table.previousPage();
           }}
-          disabled={pagination.pageIndex <= 0}
+          disabled={pagination.pageIndex <= 1}
           className="p-1 border border-gray-500 px-2 disabled:opacity-30"
         >
           {"<"}
@@ -293,7 +311,7 @@ const TanStackTable = () => {
             table.nextPage();
           }}
           disabled={
-            pagination.pageIndex + 1 >=
+            pagination.pageIndex >=
             Math.ceil(
               dataQuery?.data?.meta?.totalProducts / pagination.pageSize
             )
@@ -306,10 +324,10 @@ const TanStackTable = () => {
         <span className="flex items-center gap-1">
           <div>Page</div>
           <strong>
-            {pagination.pageIndex + 1} of{" "}
+            {pagination.pageIndex} of{" "}
             {Math.ceil(
               dataQuery?.data?.meta?.totalProducts / pagination.pageSize
-            )}
+            ) || 0}
           </strong>
         </span>
 

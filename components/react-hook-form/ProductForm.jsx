@@ -1,154 +1,341 @@
-import { createProduct, updateProduct } from "@/lib/fetch/Product";
+import { DataContext } from "@/Context/DataContext";
+import { createProduct, sellProduct, updateProduct } from "@/lib/fetch/Product";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation } from "@tanstack/react-query";
+import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-export default function ProductForm({mode}) {
-    const {
-        register,
-        handleSubmit,
-        setError,
-        formState: { errors, isLoading, isSubmitting, isSubmitSuccessful },
-      } = useForm();
+export default function ProductForm({ mode }) {
+  const [productToEdit, setproductToEdit] = useState({});
+  const [sellForm, setSellForm] = useState(true);
 
-      const createProductMutation = useMutation({
-        mutationFn: async (d) => createProduct(d),
-    
-        onSuccess: async () => {
-          console.log("Invalidating branchData");
-          // await queryClient.invalidateQueries("branchData");
-          await queryClient.refetchQueries({
-            queryKey: "products",
-            type: "active",
-            exact: true,
-          });
-          // window.location.reload();
-          setIsOpen(false);
-        },
+  const {
+    register,
+    handleSubmit,
+    setError,
+    setValue,
+    getValues,
+    formState: { errors, isLoading, isSubmitting, isSubmitSuccessful },
+  } = useForm();
+
+  const { user, error } = useUser();
+  const { productData, isOpen, setIsOpen, setProductData, toggleSideBar } =
+    useContext(DataContext);
+
+  useEffect(() => {
+    setproductToEdit(productData);
+  }, [productData]);
+  console.log("🚀 ~ ProductForm ~ productToEdit:", productToEdit);
+
+  const decreaseQuantity = () => {
+    if (getValues("quantity") > 1) {
+      setValue("quantity", parseInt(getValues("quantity")) - 1);
+    }
+  };
+
+  const increaseQuantity = () => {
+    if (productData.quantity > getValues("quantity")) {
+      setValue("quantity", parseInt(getValues("quantity")) + 1);
+    }
+  };
+
+  const createProductMutation = useMutation({
+    mutationFn: async (d) => createProduct(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      await queryClient.invalidateQueries("productData");
+      await queryClient.refetchQueries({
+        queryKey: "products",
+        type: "active",
+        exact: true,
       });
+      // window.location.reload();
+      setIsOpen(false);
+    },
+  });
 
-      const updateProductMutation = useMutation({
-        mutationFn: async (d) => updateProduct(d),
-    
-        onSuccess: async () => {
-          console.log("Invalidating branchData");
-          // await queryClient.invalidateQueries("branchData");
-          await queryClient.refetchQueries({
-            queryKey: "products",
-            type: "active",
-            exact: true,
-          });
-          // window.location.reload();
-          setIsOpen(false);
-        },
+  const updateProductMutation = useMutation({
+    mutationFn: async (d) => updateProduct(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      await queryClient.invalidateQueries("productData");
+      await queryClient.refetchQueries({
+        queryKey: "productData",
+        type: "active",
+        exact: true,
       });
+      // window.location.reload();
+      setIsOpen(false);
+    },
+  });
 
-      const onSubmit = async (data) => {
-        console.log(data)
-        return
-        const d = {
-          ...data,
-          ...user,
-        };
-    
-        if(mode == "edit" )
-        {
-          try {
-            console.log(mode)
-            // editBranchMutation.mutate(d);
-          } catch (error) {
-            console.log(error);
-          }
-        } else if(mode == "create"){
-          try {
-            console.log(mode)
-              // createBranchMutation.mutate(d);
-          } catch (error) {
-            console.log(error);
-          }
+  const sellProductMutation = useMutation({
+    mutationFn: async (d) => sellProduct(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      await queryClient.invalidateQueries("productData");
+      await queryClient.refetchQueries({
+        queryKey: "productData",
+        type: "active",
+        exact: true,
+      });
+      // window.location.reload();
+      setIsOpen(false);
+    },
+  });
+
+  const sell = async (data) => {
+    console.log("🚀 ~ onSubmit ~ sellForm:", sellForm, "🚩", mode);
+    const d = {
+      _id: productData._id,
+      ...data,
+    };
+
+    try {
+      console.log(mode);
+      sellProductMutation.mutate(d);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const onSubmit = async (data) => {
+    console.log("🚀 ~ onSubmit ~ sellForm:", sellForm, "🚩", mode);
+    const d = {
+      _id: productData._id,
+      ...data,
+    };
+
+    if (mode == "edit") {
+      if (sellForm) {
+        console.log("🚀 ~ onSubmit ~ sellForm:", sellForm);
+
+        try {
+          console.log(mode);
+          sellProductMutation.mutate(d);
+        } catch (error) {
+          console.log(error);
         }
-      };
-      let data = []
+      }
+      try {
+        console.log(mode);
+        updateProductMutation.mutate(d);
+      } catch (error) {
+        console.log(error);
+      }
+    } else if (mode == "add") {
+      try {
+        console.log(mode);
+        createProductMutation.mutate(d);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+  console.log(productData);
   return (
     /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
-    >
-      <span className="font-bold text-3xl text-active">
-        {mode == "edit" ? "Edit Product" : "Create Product"}
-      </span>
-
-      {/* register your input into the hook by invoking the "register" function */}
-      <input
-        className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        //defaultValue={data?.data?.branch?.name}
-        placeholder="Product Name"
-        type="text"
-        {...register("name", { required: "Product name required." })}
-      />
-      {errors?.name && (
-        <span className="text-warning font-medium">
-          {errors?.name.message}
-        </span>
+    <>
+      {mode == "edit" && (
+        <ul class="grid w-full select-none gap-3 grid-cols-2 mb-4">
+          <li>
+            <input
+              type="radio"
+              id="sell"
+              checked={sellForm}
+              onChange={() => setSellForm(true)}
+              name="formMode"
+              value="formMode"
+              class="hidden peer"
+              required
+            />
+            <label
+              for="sell"
+              class="flex items-center  text-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
+            >
+              <div class="block">
+                <div class="w-full text-lg font-semibold">Sell</div>
+              </div>
+            </label>
+          </li>
+          <li>
+            <input
+              type="radio"
+              id="edit"
+              onChange={() => setSellForm(false)}
+              name="formMode"
+              value="formMode"
+              class="hidden peer"
+            />
+            <label
+              for="edit"
+              class="inline-flex items-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
+            >
+              <div class="block">
+                <div class="w-full capitalize text-lg font-semibold">Edit</div>
+              </div>
+            </label>
+          </li>
+        </ul>
       )}
-      <input
-        className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        //defaultValue={data?.data?.branch?.description }
-        placeholder="Description"
-        type="text"
-        {...register("description")}
-      />
 
-      <input
-        className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        // defaultValue={data?.data?.branch?.category}
-        placeholder="Category"
-        type="text"
-        {...register("category")}
-      />
+      {mode == "edit" && sellForm ? (
+        <form
+          id="form"
+          onSubmit={handleSubmit(sell)}
+          className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+        >
+          <span className="font-bold text-3xl text-active">Sell</span>
+          <div className="w-full flex items-center justify-center">
+            <input
+              className="bg-gray-50 border mt-3 ml-1 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-l-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+              defaultValue="1"
+              placeholder="Sold units"
+              type="number"
+              {...register("quantity", {
+                min: 1,
+                required: "Product quabtity required.",
+              })}
+            />
+            <button
+              onClick={() => increaseQuantity()}
+              type="button"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium text-sm px-5 py-[11px] mt-2 "
+            >
+              <FontAwesomeIcon
+                title="Add new products from excle."
+                icon={faPlus}
+                size="1x"
+                color="#eee"
+              />
+            </button>
 
-      <input
-        className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        //defaultValue={data?.data?.branch?.price}
-        placeholder="Price"
-        type="number"
-        {...register("price", {min: 1, required: "Product price required." })}
-      />
+            <button
+              onClick={() => decreaseQuantity()}
+              type="button"
+              class="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-r-lg text-sm px-5 py-[11px] mt-2"
+            >
+              <FontAwesomeIcon
+                title="Add new products from excle."
+                icon={faMinus}
+                size="1x"
+                color="#eee"
+              />
+            </button>
+          </div>{" "}
+          {errors?.quantity && (
+            <span className="text-warning font-medium">
+              {errors?.quantity.message}
+            </span>
+          )}
+          <textarea
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.sellNotes}
+            placeholder="Note"
+            type="text"
+            {...register("sellNotes")}
+          />
+          <button
+            disabled={isLoading || isSubmitting}
+            className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
+            type="submit"
+          >
+            Save
+          </button>
+        </form>
+      ) : (
+        <form
+          id="form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+        >
+          <span className="font-bold text-3xl text-active">
+            {mode == "edit" ? "Edit Product" : "Create Product"}
+          </span>
 
-      {errors?.price && (
-        <span className="text-warning font-medium">
-          {errors?.price.message}
-        </span>
+          {/* register your input into the hook by invoking the "register" function */}
+          <input
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.name}
+            placeholder="Product Name"
+            type="text"
+            {...register("name", { required: "Product name required." })}
+          />
+          {errors?.name && (
+            <span className="text-warning font-medium">
+              {errors?.name.message}
+            </span>
+          )}
+          <input
+            key={Date.now()}
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.description}
+            placeholder="Description"
+            type="text"
+            {...register("description")}
+          />
+
+          <input
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.category}
+            placeholder="Category"
+            type="text"
+            {...register("category")}
+          />
+
+          <input
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.price}
+            placeholder="Price"
+            type="number"
+            {...register("price", {
+              min: 1,
+              required: "Product price required.",
+            })}
+          />
+
+          {errors?.price && (
+            <span className="text-warning font-medium">
+              {errors?.price.message}
+            </span>
+          )}
+          <input
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.quantity}
+            placeholder="Quantity"
+            type="number"
+            {...register("quantity", {
+              min: 1,
+              required: "Quantity required.",
+            })}
+          />
+
+          {errors?.quantity && (
+            <span className="text-warning font-medium">
+              {errors?.quantity.message}
+            </span>
+          )}
+          <textarea
+            className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
+            defaultValue={productToEdit?.notes}
+            placeholder="Note"
+            type="text"
+            {...register("notes")}
+          />
+
+          <button
+            disabled={isLoading || isSubmitting}
+            className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
+            type="submit"
+          >
+            {mode == "edit" ? "Save" : "Create"}
+          </button>
+        </form>
       )}
-      <input
-        className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        //defaultValue={data?.data?.branch?.quantity}
-        placeholder="Quantity"
-        type="number"
-        {...register("quantity", {min: 1, required: "Quantity required." })}
-      />
-
-      {errors?.quantity && (
-        <span className="text-warning font-medium">
-          {errors?.quantity.message}
-        </span>
-      )}
-            <textarea
-        className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-        //defaultValue={data?.data?.branch?.note}
-        placeholder="Note"
-        type="text"
-        
-        {...register("note")}
-      />
-
-      <button
-        disabled={isLoading || isSubmitting}
-        className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
-        type="submit"
-      >
-        {mode == "edit" ? "Save" : "Create"}
-      </button>
-    </form>
+    </>
   );
 }

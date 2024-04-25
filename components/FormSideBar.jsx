@@ -12,7 +12,7 @@ const FormSideBar = () => {
 console.log("mode = "+formMode)
   return (
     <>
-      <Drawer className="min-w-[30vw] z-50" open={isOpen} onClose={()=>{setIsOpen(false)}} position="right">
+      <Drawer className="min-w-[400px]  max-w-[500px] z-50" open={isOpen} onClose={()=>{setIsOpen(false)}} position="right">
         <Drawer.Header title="Drawer" />
         <Drawer.Items>
           {formMode === 'add-product' && <ProductForm mode="add"/>}

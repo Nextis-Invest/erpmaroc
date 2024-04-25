@@ -1,14 +1,19 @@
-"use client"
+"use client";
 import { DataContext } from "@/Context/DataContext";
 import { faPlusSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useContext } from "react";
 
 const AddNewProductBtn = () => {
-    const { branchData, setBranchData, isOpen, toggleSideBar } =
+  const { setProductData, setBranchData, isOpen, toggleSideBar } =
     useContext(DataContext);
   return (
-    <button onClick={()=>toggleSideBar("add-product")}>
+    <button
+      onClick={() => {
+        setProductData(null);
+        toggleSideBar("add-product");
+      }}
+    >
       {" "}
       <FontAwesomeIcon
         title="Add a new product."

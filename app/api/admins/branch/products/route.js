@@ -10,10 +10,10 @@ import PRODUCT from "@/model/product";
 export const POST = async (Request) => {
   try {
     const body = await Request.json();
-    const { name, description, category, price, quantity, notes, email } = body;
+    const { productName, description, category, price, quantity, notes, email } = body;
     console.log(
       "👽 Creating a new Product = ",
-      name,
+      productName,
       description,
       category,
       price,
@@ -31,7 +31,7 @@ export const POST = async (Request) => {
       );
     }
     const newProduct = new PRODUCT({
-      name: name,
+      name: productName,
       description: description,
       category: category,
       price: price,
@@ -62,7 +62,7 @@ export const POST = async (Request) => {
 export const PATCH = async (Request) => {
   try {
     const body = await Request.json();
-    const { _id, name, description, category, price, quantity, notes, email } =
+    const { _id, name, description, category, price, quantity, notes } =
       body;
     console.log(
       "👽 Updating a Product = ",
@@ -72,18 +72,10 @@ export const PATCH = async (Request) => {
       category,
       price,
       quantity,
-      notes,
-      email
+      notes
     );
     await connectToDB();
-    const branch = await BRANCH.findOne({ manager: email }); //check whether the branch was exist with given mananger email
 
-    if (!branch) {
-      return NextResponse.json(
-        { error: "Branch doesn't exist." },
-        { status: 404 }
-      );
-    }
     const existingProduct = await PRODUCT.findById({ _id: _id });
     // console.log("🚀 ~ PATCH ~ existingBranch:", existingBranch)
 
@@ -159,6 +151,7 @@ export const GET = async (req, res) => {
     const branch = searchParams.get("branch");
     const page = searchParams.get("page");
     const limit = searchParams.get("limit");
+
     // Connect to the database
     await connectToDB();
     console.log(
@@ -205,17 +198,8 @@ export const GET = async (req, res) => {
       };
     }
 
-    // Fetch products
-    // const products = await PRODUCT.find({
-    //   branch,
-    //   $or: [
-    //     { name: { $regex: search, $options: "i" } },
-    //     { name: { $regex: search, $options: "i" } },
-    //     { description: { $regex: search, $options: "i" } },
-    //   ],
-    // })
     const products = await PRODUCT.find(query)
-      .skip(search ? 0 : page * limit)
+      .skip(search ? 0 : (page - 1 ) * limit)
       .limit(search ? undefined : parseInt(limit));
 
     console.log("🚀 ~ GET ~ query:", query);
