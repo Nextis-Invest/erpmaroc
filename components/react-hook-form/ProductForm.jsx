@@ -106,21 +106,12 @@ export default function ProductForm({ mode }) {
   const onSubmit = async (data) => {
     console.log("🚀 ~ onSubmit ~ sellForm:", sellForm, "🚩", mode);
     const d = {
-      _id: productData._id,
+      email: user.email,
+      _id: productData?._id,
       ...data,
     };
 
     if (mode == "edit") {
-      if (sellForm) {
-        console.log("🚀 ~ onSubmit ~ sellForm:", sellForm);
-
-        try {
-          console.log(mode);
-          sellProductMutation.mutate(d);
-        } catch (error) {
-          console.log(error);
-        }
-      }
       try {
         console.log(mode);
         updateProductMutation.mutate(d);

@@ -97,7 +97,7 @@ const Table = ({ data, mode, action }) => {
             <tr>
               <th className="mx-2 border-y-4 border-x-2 border-secondary py-2">No</th>
               {tableHeader}
-              {mode == "staffs" && <td className="text-center mx-2 font-bold border-y-4 border-x-2 border-secondary py-2">Edit</td>}
+              {mode == "staffs" && <td className="text-center mx-2 font-bold py-2">Edit</td>}
 
             </tr>
           </thead>

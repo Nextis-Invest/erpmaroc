@@ -6,13 +6,11 @@ import { NextResponse } from "next/server";
 export const PATCH = async (Request) => {
   try {
     const body = await Request.json();
-    const { _id, name, price, quantity, sellNotes } =
+    const { _id, quantity, sellNotes } =
       body;
     console.log(
       "🧾 Selling a Product = ",
       _id,
-      name,
-      price,
       quantity,
       sellNotes
     );
@@ -46,7 +44,7 @@ export const PATCH = async (Request) => {
 
     if (soldProduct) {
       const record = await RECORD.create({
-        productName: name,
+        productName: soldProduct.name,
         quantity: quantity,
         totalPrice: soldProduct.price * quantity,
         sellNotes: sellNotes,

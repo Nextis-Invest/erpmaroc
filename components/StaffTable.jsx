@@ -16,7 +16,6 @@ import {
   faFileUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import AddNewProductBtn from "./AddNewProductBtn";
-import { getProduct } from "@/lib/fetch/Product";
 import {
   keepPreviousData,
   useQuery,
@@ -26,8 +25,9 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { DataContext } from "@/Context/DataContext";
 import Loading from "./Loading";
+import { getStaff } from "@/lib/fetch/staff";
 
-const TanStackTable = () => {
+const StaffTable = () => {
   const {
     branchData: branchDataFromContext,
     setProductData,
@@ -61,9 +61,9 @@ const TanStackTable = () => {
 
   const dataQuery = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
-    queryKey: ["productData", pagination, search],
+    queryKey: ["staffData", pagination, search],
     queryFn: () =>
-      getProduct(
+      getStaff(
         branchData.meta.branchId,
         pagination.pageIndex,
         pagination.pageSize,
@@ -71,7 +71,8 @@ const TanStackTable = () => {
       ),
     placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
-  // console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
+  console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
+
 
   const columns = [
     {
@@ -91,35 +92,40 @@ const TanStackTable = () => {
       cell: (info) => info.getValue(),
     },
     {
-      accessorFn: (row) => row.category,
-      id: "category",
+      accessorFn: (row) => row.position,
+      id: "position",
       cell: (info) => info.getValue(),
     },
     {
-      accessorFn: (row) => row.description,
-      id: "description",
+      accessorFn: (row) => row.phone,
+      id: "phone",
       cell: (info) => info.getValue(),
     },
     {
-      accessorFn: (row) => row.notes,
-      id: "notes",
+      accessorFn: (row) => row.address,
+      id: "address",
       cell: (info) => info.getValue(),
     },
     {
-      accessorFn: (row) => row.price,
-      id: "price",
+      accessorFn: (row) => row.salary,
+      id: "salary",
       cell: (info) => info.getValue(),
     },
     {
-      accessorFn: (row) => row.quantity,
-      id: "quantity",
+      accessorFn: (row) => row.bonus,
+      id: "bonus",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.dayOff,
+      id: "datyOff",
       cell: (info) => info.getValue(),
     },
   ];
 
   const table = useReactTable({
     // data: dataQuery.data?.data?.products,
-    data: dataQuery?.data?.data?.products ?? [],
+    data: dataQuery?.data?.data?.staffs ?? [],
     columns,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -193,11 +199,11 @@ const TanStackTable = () => {
             />
             {dataQuery && (
               <DownloadBtn
-                data={dataQuery?.data?.data?.products}
+                data={dataQuery?.data?.data?.staffs}
                 fileName={"peoples"}
               />
             )}
-            <AddNewProductBtn mode="add-product" />
+            <AddNewProductBtn mode="add-staff" />
           </div>
         </div>
       </div>
@@ -253,11 +259,11 @@ const TanStackTable = () => {
                     "🚀 ~ TanStackTable ~ info:",
                     row.original._id,
                     setProductData(
-                      dataQuery?.data?.data?.products.find(
+                      dataQuery?.data?.data?.staffs.find(
                         (obj) => obj._id === row.original._id
                       )
                     ),
-                    toggleSideBar("edit-product")
+                    toggleSideBar("edit-staff")
                   ); //This will extract ID
                 }}
               >
@@ -290,7 +296,7 @@ const TanStackTable = () => {
             </tr>
           ) : (
             <tr className="text-center h-32">
-              <td colSpan={12}>No Product Found!</td>
+              <td colSpan={12}>No Staff Found!</td>
             </tr>
           )}
         </tbody>
@@ -313,7 +319,7 @@ const TanStackTable = () => {
           disabled={
             pagination.pageIndex >=
             Math.ceil(
-              dataQuery?.data?.meta?.totalProducts / pagination.pageSize
+              dataQuery?.data?.meta?.totalStaffs / pagination.pageSize
             )
           }
           className="p-1 border border-gray-300 px-2 disabled:opacity-30"
@@ -326,7 +332,7 @@ const TanStackTable = () => {
           <strong>
             {pagination.pageIndex} of{" "}
             {Math.ceil(
-              dataQuery?.data?.meta?.totalProducts / pagination.pageSize
+              dataQuery?.data?.meta?.totalStaffs / pagination.pageSize
             ) || 0}
           </strong>
         </span>
@@ -370,4 +376,4 @@ const TanStackTable = () => {
   );
 };
 
-export default TanStackTable;
+export default StaffTable;

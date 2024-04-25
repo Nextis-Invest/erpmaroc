@@ -3,6 +3,7 @@
 
 import React from "react";
 import Table from "./Table";
+import StaffTable from "./StaffTable";
 
 const Staff = () => {
   const staffs = [
@@ -70,7 +71,8 @@ const edit = ()=>{
 
   return (
     <div>
-      <Table data={staffs} mode="staffs" action={edit}/>
+      {/* <Table data={staffs} mode="staffs" action={edit}/> */}
+      <StaffTable />
       
     </div>
   );

@@ -4,14 +4,14 @@ import { faPlusSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useContext } from "react";
 
-const AddNewProductBtn = () => {
+const AddNewProductBtn = ({mode}) => {
   const { setProductData, setBranchData, isOpen, toggleSideBar } =
     useContext(DataContext);
   return (
     <button
       onClick={() => {
         setProductData(null);
-        toggleSideBar("add-product");
+        toggleSideBar(mode);
       }}
     >
       {" "}

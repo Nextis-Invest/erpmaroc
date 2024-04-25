@@ -1,25 +1,18 @@
 import BRANCH from "@/model/branchData";
-import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
 
 import { connectToDB } from "@/lib/database/connectToDB";
-import PRODUCT from "@/model/product";
+import STAFF from "@/model/staffs";
 // import { parse } from "next/dist/build/swc";
 
-/// /api/admins/branch/products
+/// /api/admins/branch/staffs
 export const POST = async (Request) => {
   try {
     const body = await Request.json();
-    const { name, description, category, price, quantity, notes, email } = body;
+    const { name, position, salary, phone, address, bonus, dayOff, email } = body;
     console.log(
-      "👽 Creating a new Product = ",
-      name,
-      description,
-      category,
-      price,
-      quantity,
-      notes,
-      email
+      "👮‍♀️ Creating a new Staff = ",
+      name, position, phone, address, salary, bonus, dayOff, email
     );
     await connectToDB();
     const branch = await BRANCH.findOne({ manager: email }); //check whether the branch was exist with given mananger email
@@ -30,30 +23,31 @@ export const POST = async (Request) => {
         { status: 404 }
       );
     }
-    const newProduct = new PRODUCT({
+    const newStaff = new STAFF({
       name: name,
-      description: description,
-      category: category,
-      price: price,
-      quantity: quantity,
-      notes: notes,
+      position: position,
+      salary: salary,
+      bonus: bonus,
+      dayOff: dayOff,
+      phone: phone,
+      address: address,
       branch: branch.id,
     });
-    const createdProduct = await newProduct.save();
+    const createdStaff = await newStaff.save();
 
-    console.log(createdProduct);
+    console.log(createdStaff);
     return NextResponse.json({
       meta: {
         status: 201,
-        branch: createdProduct.branch,
-        productId: createdProduct._id,
+        branch: createdStaff.branch,
+        productId: createdStaff._id,
       },
-      data: { createdProduct },
+      data: { createdStaff },
     });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: "Internal Server Error in Creating Product", error: error },
+      { message: "Internal Server Error in Creating Staff", error: error },
       { status: 500 }
     );
   }
@@ -62,26 +56,19 @@ export const POST = async (Request) => {
 export const PATCH = async (Request) => {
   try {
     const body = await Request.json();
-    const { _id, name, description, category, price, quantity, notes } =
-      body;
+    const {_id, name, position, salary, phone, address, bonus, dayOff, email } = body;
     console.log(
-      "👽 Updating a Product = ",
-      _id,
-      name,
-      description,
-      category,
-      price,
-      quantity,
-      notes
+      "👮‍♀️ Updating Staff = ",
+      _id,name, position, phone, address, salary, bonus, dayOff, email
     );
     await connectToDB();
 
-    const existingProduct = await PRODUCT.findById({ _id: _id });
+    const existingStaff = await STAFF.findById({ _id: _id });
     // console.log("🚀 ~ PATCH ~ existingBranch:", existingBranch)
 
-    if (!existingProduct) {
+    if (!existingStaff) {
       return NextResponse.json(
-        { error: "Product didn't found." },
+        { error: "Staff didn't found." },
         { status: 401 }
       );
     }
@@ -90,8 +77,8 @@ export const PATCH = async (Request) => {
 
     /// This filter unmatched values before actual update to db
     for (const key in body) {
-      if (body.hasOwnProperty(key) || existingProduct.hasOwnProperty(key)) {
-        if (existingProduct[key] !== body[key]) {
+      if (body.hasOwnProperty(key) || existingStaff.hasOwnProperty(key)) {
+        if (existingStaff[key] !== body[key]) {
           updateFields[key] = body[key];
         }
       }
@@ -104,15 +91,15 @@ export const PATCH = async (Request) => {
       );
     }
 
-    const updatedProduct = await PRODUCT.findOneAndUpdate(
+    const updatedStaff = await STAFF.findOneAndUpdate(
       { _id: _id },
       { $set: updateFields },
       { new: true }
     );
     console.log("🚀 ~ PATCH ~ updateFields:", updateFields);
-    console.log("🚀 ~ PATCH ~ updatedProduct:", updatedProduct);
+    console.log("🚀 ~ PATCH ~ updatedStaff:", updatedStaff);
 
-    if (!updatedProduct) {
+    if (!updatedStaff) {
       return NextResponse.json(
         { error: "Product not found." },
         { status: 404 }
@@ -123,10 +110,10 @@ export const PATCH = async (Request) => {
     return NextResponse.json({
       meta: {
         status: 201,
-        branch: updatedProduct.branch,
-        productId: updatedProduct._id,
+        branch: updatedStaff.branch,
+        productId: updatedStaff._id,
       },
-      data: { updatedProduct },
+      data: { updatedStaff },
     });
   } catch (error) {
     console.log(error);
@@ -141,7 +128,7 @@ export const PATCH = async (Request) => {
 };
 
 ///// Get Products Data with pagination
-//// `/api/admins/branch/products?branch=${branch}&page=${page}&limit=${limit}`
+//// `/api/admins/branch/staffs?branch=${branch}&page=${page}&limit=${limit}`
 export const GET = async (req, res) => {
   try {
     const searchParams = req.nextUrl.searchParams;
@@ -166,16 +153,16 @@ export const GET = async (req, res) => {
     );
 
     // Count total documents
-    const totalProducts = await PRODUCT.countDocuments({ branch });
+    const totalStaffs = await STAFF.countDocuments({ branch });
 
     // Validate pagination
-    if ((page - 1) * limit > totalProducts) {
+    if ((page - 1) * limit > totalStaffs) {
       return NextResponse.json({
         status: "204",
-        message: "Failed to retrieve product data.",
+        message: "Failed to retrieve staff data.",
         errorCode: 204,
         details: {
-          error: "Product doesn't exist",
+          error: "Staff doesn't exist",
         },
       });
     }
@@ -186,23 +173,16 @@ export const GET = async (req, res) => {
       query = {
         $and: [
           { branch },
-          {
-            $or: [
-              { name: { $regex: search, $options: "i" } },
-              { description: { $regex: search, $options: "i" } },
-              { category: { $regex: search, $options: "i" } },
-              { notes: { $regex: search, $options: "i" } },
-            ],
-          },
+          { name: { $regex: search, $options: "i" } },
         ],
       };
     }
 
-    const products = await PRODUCT.find(query)
+    const staffs = await STAFF.find(query)
       .skip(search ? 0 : (page - 1 ) * limit)
       .limit(search ? undefined : parseInt(limit));
 
-    console.log("🚀 ~ GET ~ query:", query);
+    console.log("🚀 ~ GET ~ Staff query:", query);
 
     // Return response
     return NextResponse.json({
@@ -212,10 +192,10 @@ export const GET = async (req, res) => {
           "If this was a search operation, page and limit will be neglected.",
         ...(!search == undefined && { page: page }),
         ...(!search == undefined && { count: limit }),
-        totalProducts,
+        totalStaffs,
         branchId: branch,
       },
-      data: { products },
+      data: { staffs },
     });
   } catch (error) {
     throw error;

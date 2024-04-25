@@ -56,16 +56,16 @@
 //     ],
 //     data: {
 //       type: String, // Assuming you want to store the Excel file path or data
-// 
+//
 //     },
 //     keys: {
 //       type: [String], // Assuming keys are stored as an array of strings
-// 
+//
 //     },
 //     parentBranch: {
 //       type: mongoose.Schema.Types.ObjectId,
 //       ref: "BRANCH", // Reference to the BRANCH model for the parent branch
-// 
+//
 //     },
 //     childBranch: [
 //       {
@@ -94,7 +94,7 @@ if (mongoose.models.BRANCH) {
       type: mongoose.Schema.Types.ObjectId,
       auto: true, // Let MongoDB generate the _id automatically
     },
-    id:{
+    id: {
       type: String,
       required: true,
     },
@@ -143,36 +143,29 @@ if (mongoose.models.BRANCH) {
       required: true,
       unique: false,
     },
-    // manager: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: ADMIN, // Reference to the Admin model
-    // },
-    staff: [
+    keys: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        unique: false,
-        ref: STAFF, // Reference to the Staff model      unique: false
+        name: {
+          type: String,
+          required: true,
+        },
+        description: String,
+        createdTime: {
+          type: Date,
+          default: Date.now,
+        },
+        key: {
+          type: String,
+          unique: true,
+          required: true,
+        },
       },
     ],
-    data: {
-      type: String, // Assuming you want to store the Excel file path or data
-
-      unique: false,
-    },
-    keys: {
-      unique: false,
-      type: [String], // Assuming keys are stored as an array of strings
-
-    },
-    parentBranch: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "BRANCH", // Reference to the BRANCH model for the parent branch
-
-    },
     childBranch: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "BRANCH", // Reference to the BRANCH model for child branch
+        default: NaN,
       },
     ],
   });

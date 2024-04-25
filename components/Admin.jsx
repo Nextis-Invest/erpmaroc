@@ -1,5 +1,8 @@
 "use client";
 
+import { Button, Modal } from "flowbite-react";
+import { useState } from "react";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 import React, { useContext, useEffect } from "react";
 import { ExcelHandler } from "../components/ExcelHandler";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,21 +11,31 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { DataContext } from "@/Context/DataContext";
+import { useBranchFetch } from "@/hooks/useBranchFetch";
+import dateFormat from "dateformat";
+import { useMutation } from "@tanstack/react-query";
+import { deleteKey } from "@/lib/fetch/Branch";
 
 const Admin = () => {
   const { user, error, isLoading } = useUser();
-  console.log("🚀 ~ Admin ~ user:", user)
+  console.log("🚀 ~ Admin ~ user:", user);
   const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
+  const [openModal, setOpenModal] = useState(false);
+  const [keyId, setKeyId] = useState("");
+
+  const {
+    data: branchData,
+    isLoading: fetchingBranch,
+    error: errorInFetchBranch,
+    isSuccess,
+  } = useBranchFetch(user?.email);
+  console.log("🚀 ~ Admin ~ branchData:", branchData);
 
   useEffect(() => {
-    if (!user) {
+    if (error) {
       return redirect("/login");
     }
-  }, [user]);
-
-  const modifyKey = () => {
-    alert("Clicked");
-  };
+  }, [user, error]);
 
   let branches = [
     {
@@ -42,33 +55,69 @@ const Admin = () => {
     },
   ];
 
-  let keys = [
-    {
-      name: "Key1",
-      description: "This is the first key",
-      createdTime: "2024-04-12T08:00:00",
-      createdPerson: "John Doe",
-      key: "o1pgjr8uws2e4z",
+  const deleteKeyMutation = useMutation({
+    mutationFn: async (d) => deleteKey(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      // await queryClient.invalidateQueries("branchData");
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+      // window.location.reload();
     },
-    {
-      name: "Key2",
-      description: "This is the second key",
-      createdTime: "2024-04-12/10:30:00",
-      createdPerson: "Jane Smith",
-      key: "x5y9klzq1h3rdtx5y9klzq1h3rdt",
-    },
-    {
-      name: "Key3",
-      description: "This is the third key",
-      createdTime: "2024-04-12T12:45:00",
-      createdPerson: "Alice Johnson",
-      key: "s7v0dqw9f2rplm",
-    },
-  ];
+  });
+
+  
+  const deleteKeyFn = (id) => {
+    const d = {
+      _id: id,
+      branchId: branchData.data.branch._id
+    }
+    console.log("RANNNNNNNNNNNN");
+    deleteKeyMutation.mutate(d)
+  };
+
 
   return (
     <div>
       {" "}
+      <Modal
+        show={openModal}
+        size="md"
+        onClose={() => setOpenModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button
+                color="failure"
+                onClick={() => {
+                  deleteKeyFn(keyId), setOpenModal(false);
+                }}
+              >
+                {"Yes, I'm sure"}
+              </Button>
+              <Button
+                color="gray"
+                onClick={() => {
+                  setOpenModal(false);
+                }}
+              >
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
       <div id="userBaner" className="mb-3 h-14 ">
         {user && (
           <div
@@ -85,7 +134,9 @@ const Admin = () => {
                     src={`${user?.picture}`}
                     alt="user-profile"
                   />
-                  <p className="font-bold text-lg text-active">{user?.nickname}</p>
+                  <p className="font-bold text-lg text-active">
+                    {user?.nickname}
+                  </p>
                 </summary>
                 <div class="mt-3 leading-6 text-active text-md font-semibold">
                   <p>Email: {user?.email}</p>
@@ -99,25 +150,46 @@ const Admin = () => {
         <div id="left_col" className=" w-3/4 flex flex-col justify-start">
           <div id="first_row" className="w-full h-2/3">
             <div id="keys" className="active">
-              <span className="font-bold text-3xl text-active">KEYS</span>
-              {keys.map((key) => {
+              <span className="font-bold text-3xl text-active">
+                KEYS{" "}
+                <span
+                  title="Connect to parent branch."
+                  class="inline-flex items-center justify-center w-6 h-6 me-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full "
+                >
+                  <svg
+                    class="w-5 h-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                  </svg>
+                  <span class="sr-only">Icon description</span>
+                </span>
+              </span>
+              {branchData?.data?.branch?.keys?.map((key) => {
                 return (
                   <div
                     id="key"
-                    className="grid grid-cols-11 grid-rows-1 gap-2 h-12 border-b-2 border-primary items-center"
+                    className="grid grid-cols-10 grid-rows-1 gap-2 h-12 border-b-2 border-primary items-center"
                     key={key.name}
                   >
-                    <div className="ml-2">{key.name}</div>
+                    <div className="ml-2 truncate col-span-2">{key.name}</div>
                     <div className="truncate col-span-3 px-2 py-1 shadow-inner font-semibold shadow-[#aaaa] rounded-lg">
                       {key.key}
                     </div>
 
-                    <div className=" col-span-2">{key.description}</div>
-                    <div className="col-span-2">{key.createdPerson}</div>
-                    <div className="text-sm col-span-2">{key.createdTime}</div>
+                    <div className=" col-span-3">{key.description}</div>
+                    <div className="text-sm ">
+                      {dateFormat(key.createdTime, "paddedShortDate")}
+                    </div>
 
                     <div className=" grid justify-end">
-                      <button className="w-10 h-auto" onClick={modifyKey}>
+                      <button
+                        className="w-10 h-auto"
+                        onClick={() => {setOpenModal(true);setKeyId(key?._id)}}
+                      >
                         <FontAwesomeIcon
                           icon={faEllipsis}
                           height={22}
@@ -134,9 +206,9 @@ const Admin = () => {
                 {" "}
                 <button
                   className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
-                  onClick={() => toggleSideBar("key")}
+                  onClick={() => toggleSideBar("add-key")}
                 >
-                  Add new keys
+                  Generate new keys
                 </button>
               </div>
             </div>
@@ -154,7 +226,10 @@ const Admin = () => {
                     <div>{key.location}</div>
 
                     <div className=" grid justify-end">
-                      <button className="w-10 h-auto" onClick={modifyKey}>
+                      <button
+                        className="w-10 h-auto"
+                        onClick={() => setOpenModal(true)}
+                      >
                         <FontAwesomeIcon
                           icon={faEllipsis}
                           height={22}
@@ -171,7 +246,7 @@ const Admin = () => {
                 {" "}
                 <button
                   className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
-                  onClick={() => toggleSideBar("add-branch")}
+                  onClick={() => toggleSideBar("add-child-branch")}
                 >
                   Add new branch
                 </button>
