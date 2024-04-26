@@ -191,17 +191,10 @@ const RecordTable = () => {
           </div>
           <div className="flex">
             {" "}
-            <FontAwesomeIcon
-              title="Add new products from excle."
-              icon={faFileUpload}
-              size="2x"
-              className="ml-2"
-              color="#0050C8"
-            />
             {dataQuery && (
               <DownloadBtn
                 data={dataQuery?.data?.data?.products}
-                fileName={"peoples"}
+                fileName={"Sale_Records"}
               />
             )}
             <AddNewProductBtn mode="add-product" />
