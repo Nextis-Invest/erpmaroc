@@ -132,7 +132,7 @@ export default function ProductForm({ mode }) {
     /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
     <>
       {mode == "edit" && (
-        <ul class="grid w-full select-none gap-3 grid-cols-2 mb-4">
+        <ul className="grid w-full select-none gap-3 grid-cols-2 mb-4">
           <li>
             <input
               type="radio"
@@ -141,15 +141,15 @@ export default function ProductForm({ mode }) {
               onChange={() => setSellForm(true)}
               name="formMode"
               value="formMode"
-              class="hidden peer"
+              className="hidden peer"
               required
             />
             <label
               for="sell"
-              class="flex items-center  text-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
+              className="flex items-center  text-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
             >
-              <div class="block">
-                <div class="w-full text-lg font-semibold">Sell</div>
+              <div className="block">
+                <div className="w-full text-lg font-semibold">Sell</div>
               </div>
             </label>
           </li>
@@ -160,14 +160,14 @@ export default function ProductForm({ mode }) {
               onChange={() => setSellForm(false)}
               name="formMode"
               value="formMode"
-              class="hidden peer"
+              className="hidden peer"
             />
             <label
               for="edit"
-              class="inline-flex items-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
+              className="inline-flex items-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
             >
-              <div class="block">
-                <div class="w-full capitalize text-lg font-semibold">Edit</div>
+              <div className="block">
+                <div className="w-full capitalize text-lg font-semibold">Edit</div>
               </div>
             </label>
           </li>
@@ -195,7 +195,7 @@ export default function ProductForm({ mode }) {
             <button
               onClick={() => increaseQuantity()}
               type="button"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium text-sm px-5 py-[11px] mt-2 "
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium text-sm px-5 py-[11px] mt-2 "
             >
               <FontAwesomeIcon
                 title="Add new products from excle."
@@ -208,7 +208,7 @@ export default function ProductForm({ mode }) {
             <button
               onClick={() => decreaseQuantity()}
               type="button"
-              class="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-r-lg text-sm px-5 py-[11px] mt-2"
+              className="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-r-lg text-sm px-5 py-[11px] mt-2"
             >
               <FontAwesomeIcon
                 title="Add new products from excle."

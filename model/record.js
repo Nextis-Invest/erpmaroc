@@ -12,6 +12,9 @@ if (mongoose.models && mongoose.models.RECORD) {
       type: String,
       required: true,
     },
+    category: {
+      type: String,
+    },
     branch: {
       type: mongoose.Schema.Types.ObjectId,
       ref: BRANCH, // Reference to the Branch model

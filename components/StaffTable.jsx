@@ -26,6 +26,7 @@ import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { DataContext } from "@/Context/DataContext";
 import Loading from "./Loading";
 import { getStaff } from "@/lib/fetch/staff";
+import { redirect } from "next/navigation";
 
 const StaffTable = () => {
   const {
@@ -54,7 +55,7 @@ const StaffTable = () => {
 
   console.log("🚀 ~ TanStackTable ~ user:", user);
   useEffect(() => {
-    if (error) {
+    if (error || !user) {
       redirect("/login");
     }
   }, [user, error]);
@@ -155,7 +156,7 @@ const StaffTable = () => {
                   id="search-dropdown"
                   className="block p-2 w-full z-20 focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-e-lg rounded-lg border border-primary"
                   placeholder="Search..."
-                  onClick={(e) => {
+                  onChange={(e) => {
                     setPagination((prevPagination) => ({
                       ...prevPagination,
                       pageIndex: 1,

@@ -1,6 +1,6 @@
 import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
-import { createBranch, generateKey, updateBranch } from "@/lib/fetch/Branch";
+import { addBranch, createBranch, generateKey, updateBranch } from "@/lib/fetch/Branch";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect } from "react";
@@ -37,7 +37,7 @@ export default function KeyAndNodeForm({ mode }) {
   });
 
   const addBranchMutation = useMutation({
-    mutationFn: async (d) => updateBranch(d),
+    mutationFn: async (d) => addBranch(d),
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
@@ -75,10 +75,10 @@ export default function KeyAndNodeForm({ mode }) {
       } catch (error) {
         console.log(error);
       }
-    } else if (mode == "create") {
+    } else if (mode == "child") {
       try {
         console.log(mode);
-        // createBranchMutation.mutate(d);
+        addBranchMutation.mutate(d);
       } catch (error) {
         console.log(error);
       }

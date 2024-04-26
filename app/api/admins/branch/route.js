@@ -176,7 +176,7 @@ export const GET = async (req, Request, Response) => {
 
   try {
     await connectToDB();
-    const branch = await BRANCH.findOne({ manager: managerEmail });
+    const branch = await BRANCH.findOne({ manager: managerEmail }).populate("childBranch");
 
     if(!branch){
       return NextResponse.json({
@@ -193,7 +193,7 @@ export const GET = async (req, Request, Response) => {
       meta: {
         status: 201,
         manager: branch?.manager,
-        branchId: branch.id,
+        branchId: branch._id,
       },
       data: {
         branch,

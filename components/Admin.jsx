@@ -14,14 +14,15 @@ import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import dateFormat from "dateformat";
 import { useMutation } from "@tanstack/react-query";
-import { deleteKey } from "@/lib/fetch/Branch";
+import { deleteKey, removeBranch } from "@/lib/fetch/Branch";
 
 const Admin = () => {
   const { user, error, isLoading } = useUser();
   console.log("🚀 ~ Admin ~ user:", user);
   const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
   const [openModal, setOpenModal] = useState(false);
-  const [keyId, setKeyId] = useState("");
+  const [modalMode, setModalMode] = useState(null);
+  const [id, setId] = useState("");
 
   const {
     data: branchData,
@@ -32,28 +33,10 @@ const Admin = () => {
   console.log("🚀 ~ Admin ~ branchData:", branchData);
 
   useEffect(() => {
-    if (error) {
+    if (error || !user) {
       return redirect("/login");
     }
   }, [user, error]);
-
-  let branches = [
-    {
-      name: "Branch A",
-      manager: "John Doe",
-      location: "Ya Pone",
-    },
-    {
-      name: "Branch B",
-      manager: "Jane Smith",
-      location: "Shore side",
-    },
-    {
-      name: "Branch C",
-      manager: "Alice Johnson",
-      location: "Downtown",
-    },
-  ];
 
   const deleteKeyMutation = useMutation({
     mutationFn: async (d) => deleteKey(d),
@@ -70,16 +53,38 @@ const Admin = () => {
     },
   });
 
-  
+  const removeBranchMutation = useMutation({
+    mutationFn: async (d) => removeBranch(d),
+
+    onSuccess: async () => {
+      console.log("Invalidating branchData");
+      // await queryClient.invalidateQueries("branchData");
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+      // window.location.reload();
+    },
+  });
+
   const deleteKeyFn = (id) => {
     const d = {
       _id: id,
-      branchId: branchData.data.branch._id
-    }
+      branchId: branchData.data.branch._id,
+    };
     console.log("RANNNNNNNNNNNN");
-    deleteKeyMutation.mutate(d)
+    deleteKeyMutation.mutate(d);
   };
 
+  const removeBranchFn = (id) => {
+    const d = {
+      _id: id,
+      branchId: branchData.data.branch._id,
+    };
+    console.log("RANNNNNNNNNNNN");
+    removeBranchMutation.mutate(d);
+  };
 
   return (
     <div>
@@ -95,13 +100,21 @@ const Admin = () => {
           <div className="text-center">
             <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
             <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete?
+              Are you sure you want to delete this{" "}
+              {modalMode == "key" ? "key" : "branch"}?
             </h3>
             <div className="flex justify-center gap-4">
               <Button
                 color="failure"
                 onClick={() => {
-                  deleteKeyFn(keyId), setOpenModal(false);
+                  if (modalMode == "key") {
+                    deleteKeyFn(id);  ///ID of branch that pretend to delete
+                  } else if (modalMode == "branch") {
+                    removeBranchFn(id);
+                  } else {
+                    console.log("ERROR");
+                  }
+                  setOpenModal(false);
                 }}
               >
                 {"Yes, I'm sure"}
@@ -124,9 +137,9 @@ const Admin = () => {
             id="user"
             className="flex flex-col group focus-within: transition-all absolute top-50 right-10 hover:block content-end w-max ml-auto mr-7 gap-3 px-4 py-2 pr-7 rounded-lg bg-background shadow-md shadow-secondary"
           >
-            <div class="max-w-lg mx-auto">
+            <div className="max-w-lg mx-auto">
               <details className=" outline-none ring-0">
-                <summary class="flex gap-2 items-center justify-end text-sm leading-6 text-slate-900 ring-0 font-semibold select-none">
+                <summary className="flex gap-2 items-center justify-end text-sm leading-6 text-slate-900 ring-0 font-semibold select-none">
                   <Image
                     width={40}
                     height={40}
@@ -138,7 +151,7 @@ const Admin = () => {
                     {user?.nickname}
                   </p>
                 </summary>
-                <div class="mt-3 leading-6 text-active text-md font-semibold">
+                <div className="mt-3 leading-6 text-active text-md font-semibold">
                   <p>Email: {user?.email}</p>
                 </div>
               </details>
@@ -154,10 +167,10 @@ const Admin = () => {
                 KEYS{" "}
                 <span
                   title="Connect to parent branch."
-                  class="inline-flex items-center justify-center w-6 h-6 me-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full "
+                  className="inline-flex items-center justify-center w-6 h-6 me-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full "
                 >
                   <svg
-                    class="w-5 h-5"
+                    className="w-5 h-5"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor"
@@ -165,7 +178,7 @@ const Admin = () => {
                   >
                     <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
                   </svg>
-                  <span class="sr-only">Icon description</span>
+                  <span className="sr-only">Icon description</span>
                 </span>
               </span>
               {branchData?.data?.branch?.keys?.map((key) => {
@@ -188,7 +201,11 @@ const Admin = () => {
                     <div className=" grid justify-end">
                       <button
                         className="w-10 h-auto"
-                        onClick={() => {setOpenModal(true);setKeyId(key?._id)}}
+                        onClick={() => {
+                          setModalMode("branch");
+                          setOpenModal(true);
+                          setId(key?._id);
+                        }}
                       >
                         <FontAwesomeIcon
                           icon={faEllipsis}
@@ -214,21 +231,27 @@ const Admin = () => {
             </div>
             <div id="branches" className="mt-3 pb-5">
               <span className="font-bold text-3xl text-active">Branches</span>
-              {branches.map((key, index) => {
+              {branchData?.data?.branch?.childBranch?.map((branch, index) => {
                 return (
                   <div
                     id="key"
-                    className="grid grid-cols-4 gap-2 h-12 border-b-2 border-primary items-center"
+                    className="grid grid-cols-6 gap-2 h-12 border-b-2 border-primary items-center"
                     key={index}
                   >
-                    <div className="ml-2">{key.name}</div>
-                    <div>{key.manager}</div>
-                    <div>{key.location}</div>
+                    <div className="ml-2 col-span-2">{branch.companyName}</div>
+                    <div>{branch.phone}</div>
+                    <div className="col-span-2">{branch.cityName}</div>
 
                     <div className=" grid justify-end">
+                      {/* {branch.length > 0 && ( */}
+                      {/* <div className="w-full flex"> */}{" "}
                       <button
                         className="w-10 h-auto"
-                        onClick={() => setOpenModal(true)}
+                        onClick={() => {
+                          setModalMode("branch");
+                          setOpenModal(true);
+                          setId(branch?._id);
+                        }}
                       >
                         <FontAwesomeIcon
                           icon={faEllipsis}
@@ -239,6 +262,8 @@ const Admin = () => {
                         />
                       </button>
                     </div>
+                    {/* )} */}
+                    {/* </div> */}
                   </div>
                 );
               })}
@@ -263,11 +288,11 @@ const Admin = () => {
             <div id="sec_row_right_col" className="w-2/5">
               <label
                 for="export-file"
-                class="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
               >
-                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <svg
-                    class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+                    className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -281,17 +306,17 @@ const Admin = () => {
                       d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
                     />
                   </svg>
-                  <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span class="font-semibold">Click to upload</span> or drag
-                    and drop
+                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="font-semibold">Click to upload</span> or
+                    drag and drop
                   </p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     XLSX, XLS
                   </p>
                 </div>
                 <button
                   id="export-file"
-                  class="hidden"
+                  className="hidden"
                   onClick={() => {
                     alert("Clicked");
                   }}

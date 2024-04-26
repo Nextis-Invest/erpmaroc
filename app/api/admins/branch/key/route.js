@@ -17,7 +17,7 @@ export const PATCH = async (Request) => {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const generateKey = generateRandomString(15);
+    const generateKey = generateRandomString(20);
 
     const key = {
       name: name,

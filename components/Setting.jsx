@@ -24,11 +24,13 @@ const Setting = () => {
   console.log("🚀 ~ Setting ~ fetchingBranch:", fetchingBranch);
   console.log("🚀 ~ Setting ~ isSuccess:", isSuccess);
 
+  
   useEffect(() => {
-    if (error) {
+    if (error || !user) {
       redirect("/login");
     }
   }, [user, error]);
+  console.log("🚀 ~ Setting ~ user:", user)
 
   return (
     <div className="w-full h-full">
@@ -37,9 +39,9 @@ const Setting = () => {
           id="user"
           className="flex flex-col group focus-within: transition-all absolute top-50 right-10 hover:block content-end w-max ml-auto mr-7 gap-3 px-4 py-2 pr-7 rounded-lg bg-background shadow-md shadow-secondary"
         >
-          <div class="max-w-lg mx-auto">
+          <div className="max-w-lg mx-auto">
             <details className=" outline-none ring-0">
-              <summary class="flex gap-2 items-center justify-end text-sm leading-6 text-slate-900 ring-0 font-semibold select-none">
+              <summary className="flex gap-2 items-center justify-end text-sm leading-6 text-slate-900 ring-0 font-semibold select-none">
                 <Image
                   width={40}
                   height={40}
@@ -51,7 +53,7 @@ const Setting = () => {
                   {user?.name}
                 </p>
               </summary>
-              <div class="mt-3 leading-6 text-active text-md font-semibold">
+              <div className="mt-3 leading-6 text-active text-md font-semibold">
                 <p>Email: {user?.email}</p>
               </div>
             </details>

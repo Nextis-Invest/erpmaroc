@@ -37,7 +37,7 @@ export const POST = async (Request) => {
       price: price,
       quantity: quantity,
       notes: notes,
-      branch: branch.id,
+      branch: branch._id,
     });
     const createdProduct = await newProduct.save();
 

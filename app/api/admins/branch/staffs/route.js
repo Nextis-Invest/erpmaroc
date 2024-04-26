@@ -31,7 +31,7 @@ export const POST = async (Request) => {
       dayOff: dayOff,
       phone: phone,
       address: address,
-      branch: branch.id,
+      branch: branch._id,
     });
     const createdStaff = await newStaff.save();
 

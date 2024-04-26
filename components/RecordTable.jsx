@@ -27,8 +27,10 @@ import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { DataContext } from "@/Context/DataContext";
 import Loading from "./Loading";
 import { redirect } from "next/navigation";
+import { getRecords } from "@/lib/fetch/Branch";
+import dateFormat from "dateformat";
 
-const TanStackTable = () => {
+const RecordTable = () => {
   const {
     branchData: branchDataFromContext,
     setProductData,
@@ -64,7 +66,7 @@ const TanStackTable = () => {
     // gcTime: 24 * 24 * 60 * 60 * 1000,
     queryKey: ["productData", pagination, search],
     queryFn: () =>
-      getProduct(
+    getRecords(
         branchData.meta.branchId,
         pagination.pageIndex,
         pagination.pageSize,
@@ -87,34 +89,38 @@ const TanStackTable = () => {
       ),
     },
     {
-      accessorKey: "name",
-      id: "name",
+      accessorFn: (row) => row.productName,
+      id: "Name",
       cell: (info) => info.getValue(),
-    },
-    {
+    },{
       accessorFn: (row) => row.category,
       id: "category",
       cell: (info) => info.getValue(),
     },
     {
-      accessorFn: (row) => row.description,
-      id: "description",
-      cell: (info) => info.getValue(),
+      accessorFn: (row) => row.branch,
+      id: "branch",
+      cell: (info) => info.getValue().companyName,
     },
     {
-      accessorFn: (row) => row.notes,
+      accessorFn: (row) => row.sellNotes,
       id: "notes",
-      cell: (info) => info.getValue(),
-    },
-    {
-      accessorFn: (row) => row.price,
-      id: "price",
       cell: (info) => info.getValue(),
     },
     {
       accessorFn: (row) => row.quantity,
       id: "quantity",
       cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.totalPrice,
+      id: "totalPrice",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.date,
+      id: "date",
+      cell: (info) => dateFormat(info.getValue(), "paddedShortDate"),
     },
   ];
 
@@ -264,7 +270,6 @@ const TanStackTable = () => {
               >
                 {row.getVisibleCells().map(
                   (cell) => (
-                    console.log(cell.column.getSize()),
                     (
                       <td
                         id="cell"
@@ -371,4 +376,4 @@ const TanStackTable = () => {
   );
 };
 
-export default TanStackTable;
+export default RecordTable;

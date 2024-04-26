@@ -1,82 +1,61 @@
+import { connectToDB } from "@/lib/database/connectToDB";
+import { generateRandomString } from "@/lib/keyGenerator";
 import BRANCH from "@/model/branchData";
 import { NextResponse } from "next/server";
 
-export const GET = async (req, Request, Response) => {
-  const searchParams = req.nextUrl.searchParams;
-  const managerEmail = searchParams.get("email");
-
-  try {
-    await connectToDB();
-    const branch = await BRANCH.findOne({ manager: managerEmail });
-
-    if (!branch) {
-      return NextResponse.json({
-        status: "204",
-        message: "Failed to retrieve branch data",
-        errorCode: 204,
-        details: {
-          error: "Branch doesn't exist",
-        },
-      });
-    }
-    return NextResponse.json({
-      meta: {
-        status: 201,
-        branch: branch.companyName,
-        branchId: branch._id,
-      },
-      data: {
-        branch,
-      },
-    });
-  } catch (error) {
-    throw error;
-  }
-};
-
+//////////  /api/admins/branch/node
 export const PATCH = async (Request) => {
   try {
     const body = await Request.json();
-    const { _id, name, description } = body;
-    console.log("🗝️ Adding KEY", _id, name, description);
+    const { _id, key } = body;
+    console.log("🗝️ Adding branch", _id, key);
     await connectToDB();
-    const existingBranch = await BRANCH.findOne({ _id: _id });
-    // console.log("🚀 ~ PATCH ~ existingBranch:", existingBranch)
+    const childBranch = await BRANCH.findOne({ keys: { $elemMatch: { key: key } } });
+    console.log("🚀 ~ PATCH ~ childBranch:", childBranch)
 
-    if (!existingBranch) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    if (!childBranch) {
+      return NextResponse.json({ error: "There is no branch." }, { status: 401 });
     }
 
-    const key = {};
+    if(_id == childBranch._id){
+      return NextResponse.json(
+        { error: "Sub-branch can't add itself." },
+        { status: 404 }
+      );
+    }
 
     const updatedBranch = await BRANCH.findOneAndUpdate(
-      { manager: managerEmail },
-      { $push: { key: key } },
+      {_id: _id},
+      { $push: { childBranch: childBranch._id } },
       { new: true }
     );
-    console.log("🚀 ~ PATCH ~ updateFields:", updateFields);
     console.log("🚀 ~ PATCH ~ updatedBranch:", updatedBranch);
 
     if (!updatedBranch) {
-      return NextResponse.json({ error: "Branch not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Branch with updated key not found." },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
       meta: {
         status: 201,
-        manager: updatedBranch.manager,
+        branch: updatedBranch.companyName,
         branchId: updatedBranch._id,
       },
-      data: { updatedBranch },
+      data: updatedBranch,
     });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
       {
-        message: "Internal Server Error in Branch route while updating",
+        message: "Internal Server Error in adding child branch route while updating",
         error: error,
       },
       { status: 500 }
     );
   }
 };
+
+

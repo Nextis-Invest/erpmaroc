@@ -45,6 +45,7 @@ export const PATCH = async (Request) => {
     if (soldProduct) {
       const record = await RECORD.create({
         productName: soldProduct.name,
+        category: soldProduct.category,
         quantity: quantity,
         totalPrice: soldProduct.price * quantity,
         sellNotes: sellNotes,
@@ -60,7 +61,7 @@ export const PATCH = async (Request) => {
       return NextResponse.json({
         meta: {
           status: 204,
-          message: `"Deleted product ${name}`,
+          message: `"Deleted product ${soldProduct.productName}`,
           branch: soldProduct.branch,
           productId: soldProduct._id,
         },

@@ -209,13 +209,13 @@ const DashBoard = () => {
               />
             </div>
             <div id="secCol" className="w-max">
-              <h3 class="mb-4 font-semibold text-gray-900">Columns</h3>
-              <ul class=" w-max text-sm font-medium text-gray-900 bg-white rounded-lg">
+              <h3 className="mb-4 font-semibold text-gray-900">Columns</h3>
+              <ul className=" w-max text-sm font-medium text-gray-900 bg-white rounded-lg">
                 {console.log(columns)}
                 {columns &&
                   columns.map((col) => (
-                    <li key={col} class="w-full rounded-t-lg pr-5">
-                      <div class="flex items-center ps-3">
+                    <li key={col} className="w-full rounded-t-lg pr-5">
+                      <div className="flex items-center ps-3">
                         <input
                           id="col"
                           type="checkbox"
@@ -227,11 +227,11 @@ const DashBoard = () => {
                                 : [...lines, col]
                             );
                           }}
-                          class="w-4 h-4 text-blue-600 bg-gray-100 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-4 h-4 text-blue-600 bg-gray-100 rounded focus:ring-blue-500 focus:ring-2"
                         />
                         <label
                           for="col"
-                          class="w-full py-1.2 ms-2 text-sm font-medium text-gray-900"
+                          className="w-full py-1.2 ms-2 text-sm font-medium text-gray-900"
                         >
                           {col}
                         </label>
