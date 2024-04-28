@@ -19,7 +19,8 @@ if (mongoose.models.STAFF) {
       required: true,
     },
     branch: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: BRANCH, // Reference to the Branch model
       required: true,
     },
     phone: {

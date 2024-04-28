@@ -13,7 +13,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import dateFormat from "dateformat";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteKey, removeBranch } from "@/lib/fetch/Branch";
 
 const Admin = () => {
@@ -23,6 +23,7 @@ const Admin = () => {
   const [openModal, setOpenModal] = useState(false);
   const [modalMode, setModalMode] = useState(null);
   const [id, setId] = useState("");
+  const queryClient = useQueryClient();
 
   const {
     data: branchData,
@@ -43,7 +44,7 @@ const Admin = () => {
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
-      // await queryClient.invalidateQueries("branchData");
+      await queryClient.invalidateQueries("branchData");
       await queryClient.refetchQueries({
         queryKey: "branchData",
         type: "active",
@@ -58,7 +59,7 @@ const Admin = () => {
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
-      // await queryClient.invalidateQueries("branchData");
+      await queryClient.invalidateQueries("branchData");
       await queryClient.refetchQueries({
         queryKey: "branchData",
         type: "active",

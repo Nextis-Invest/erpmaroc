@@ -3,6 +3,11 @@ import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
 // import { middleware } from "@/middlewares/ratelimitingMiddleware";
 
+
+//// TODO API security with auth 0
+
+//// TODO Rate Limiting (Optional)
+
 export const GET = async (NextRequest) => {
   // middleware(NextRequest)
   const ip = NextRequest.headers.get("x-forwarded-for");

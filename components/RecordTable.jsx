@@ -64,7 +64,7 @@ const RecordTable = () => {
 
   const dataQuery = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
-    queryKey: ["productData", pagination, search],
+    queryKey: ["recordData", pagination, search],
     queryFn: () =>
     getRecords(
         branchData.meta.branchId,

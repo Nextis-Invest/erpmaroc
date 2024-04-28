@@ -5,95 +5,142 @@ import React, { Suspense, useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import Loading from "./Loading";
 import { ExcelHandler } from "./ExcelHandler";
-
+import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
+import { useBranchFetch } from "@/hooks/useBranchFetch";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const DashBoard = () => {
-  const [months, setMonths] = useState([]);
-  const [pricesByYear, setPricesByYear] = useState({});
+  const queryClient = useQueryClient();
+
+  let months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const [chartMonths, setChartMonths] = useState([]);
+  const [totalSale, setTotalSale] = useState([]);
+  const [revenue, setRevenue] = useState([]);
   const [series, setSeries] = useState([]);
-  const [columns, setColumns] = useState([]);
-  const [lines, setLines] = useState([]);
+  const [pieChartData, setPieChartData] = useState({salaries:0, bonus:0, revenue:0});
+  const { user, error, isLoading } = useUser();
 
+  const {
+    data: branchData,
+    isLoading: fetchingBranch,
+    error: errorInFetchBranch,
+    isSuccess,
+  } = useBranchFetch(user?.email);
 
-  const { branchData, setdata } = useContext(DataContext);
-  console.log("🚀 ~ DashBoard ~ branchData:", branchData)
+  const {
+    data,
+    isLoading: fetchingBranchData,
+    error: errorInFetchBranchdData,
+  } = useBranchDataFetch(branchData?.data?.branch?._id);
 
-//TODO Add real data
-  
-  let revenue = [];
-  let totalSale = [];
-  let cols;
-
-  const chartController = () => {
-    if (branchData == null) {
-      return;
-    }
-
-    let temp_years = [];
-    let temp_prices = {};
-
-    // Extract months and sort
-    for (let i = 0; i < branchData.length; i++) {
-      if (!temp_years?.includes(branchData[i].Year)) {
-        temp_years.push(branchData[i].Year);
-      }
-    }
-
-    temp_years?.sort((a, b) => a - b);
-    setMonths(temp_years?.map((number) => number?.toString()));
-
-    // Extract prices for each year
-    branchData.forEach((book) => {
-      const { Year } = book;
-      if (!temp_prices[Year]) {
-        temp_prices[Year] = [];
-      }
-      temp_prices[Year].push(book.Price);
-    });
-
-    setPricesByYear(temp_prices);
-
-    Object.keys(temp_prices).map((year) => {
-      let total = temp_prices[year]?.reduce((acc, price) => acc + price, 0);
-      revenue.push(total);
-    });
-
-    Object.keys(temp_prices).forEach((year) => {
-      const totalBooksSold = temp_prices[year].length; // Count the number of books for the year
-      totalSale.push(totalBooksSold);
-    });
-
-    cols = Object.keys(branchData[0]);
-    console.log("🚀 ~ chartController ~ cols:", cols);
-
-    let s = [
-      {
-        name: "Sale",
-        data: totalSale,
-      },
-      {
-        name: "Revenue",
-        data: revenue,
-      },
-    ];
-
-    setSeries(s);
-    console.log(series);
-  };
+  console.log("🚀 ~ DashBoard ~ data:", data?.data);
+  console.log("🚀 ~ DashBoard ~ branchData:", branchData);
 
   useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "dashboardData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, branchData]);
+
+  console.log("🚀 ~ chartController ~ series:", series);
+
+
+  ///////////////////Chart Controller Start
+
+  useEffect(() => {
+    let newTotalSales = [];
+    let newRevenue = [];
+    let pieChartData = [];
+
+    data?.data?.dashboardData?.forEach(
+      ({ totalRecords, totalSales, month }) => {
+        // const monthNumber = new Date().getMonth() + 1;
+        // setChartMonths(months.slice(0, monthNumber)); ///This nolonger need because serirs take all task.
+
+        newRevenue[month - 1] = totalSales; /// totalSale was sum of sale price when come from api
+        newTotalSales[month - 1] = totalRecords;
+        console.log("🚀 ~ useEffect ~ newRevenue:", newRevenue)
+
+      }
+    );
+
+
+    setTotalSale(newTotalSales);
+    setRevenue(newRevenue);
+  }, [data?.data]);
+  console.log("🚀 ~ useEffect ~ totalSale:", totalSale);
+
+  useEffect(() => {
+    const chartController = () => {
+      if (data == null) {
+        return;
+      }
+
+      let s = [
+        {
+          name: "Revenue",
+          data: revenue,
+        },
+      ];
+      const monthNumber = new Date().getMonth();
+      console.log("🚀 ~ DashBoard ~ revenue:", revenue[monthNumber])
+
+      setSeries(s);
+
+      setPieChartData((prevPieChartData) => ({
+        ...prevPieChartData,
+        salaries: data?.data?.staffData[0]?.totalSalary || 0,
+        bonus: data?.data?.staffData[0]?.totalBonus || 0,
+        revenue: revenue[monthNumber] || 0,
+      }));
+    };
+
     chartController();
-    setColumns(cols);
-    console.log("Lines", lines);
-  }, [branchData, cols, lines]);
-  
-  console.log("🚀 ~ DashBoard ~ columns:", columns)
-  console.log("🚀 ~ DashBoard ~ pricesByYear:", pricesByYear)
-  console.log("🚀 ~ DashBoard ~ months:", months)
-  
+  }, [data, revenue]);
+
+
+  ///////////////////Chart Controller End
+
+  // console.log("🚀 ~ DashBoard ~ months:", months);
+
   var chartOptions = {
     chart: {
       type: "area",
+    },
+    yaxis: {
+      title: {
+        text: "Branch Revenue",
+      },
     },
     dataLabels: {
       enabled: false,
@@ -114,79 +161,96 @@ const DashBoard = () => {
 
     xaxis: {
       categories: months,
+      // categories: chartMonths,
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + " MMK";
+        },
+      },
     },
   };
 
   var colChartOption = {
-    series: [{
-    name: 'Branch 1',
-    data: [44, 55, 57, 56, 61, 36, 26, 45, 58, 63, 60, 66]
-  }, {
-    name: 'Branch 2',
-    data: [76, 85, 101, 98, 87, 36, 26, 45, 105, 91, 114, 94]
-  }, {
-    name: 'Branch 3',
-    data: [35, 41, 36, 26, 45, 48, 52, 36, 26, 45, 53, 41]
-  }],
+    series: [
+      {
+        name: "Branch 1",
+        data: totalSale,
+      },
+      // {
+      //   name: "Branch 2",
+      //   data: [76, 85, 101, 98, 87, 36, 26, 45, 105, 91, 114, 94],
+      // },
+      // {
+      //   name: "Branch 3",
+      //   data: [35, 41, 36, 26, 45, 48, 52, 36, 26, 45, 53, 41],
+      // },
+    ],
     chart: {
-    type: 'bar',
-    height: 350
-  },
-  plotOptions: {
-    bar: {
-      horizontal: false,
-      columnWidth: '55%',
-      endingShape: 'rounded'
+      type: "bar",
+      height: 350,
     },
-  },
-  dataLabels: {
-    enabled: false
-  },
-  stroke: {
-    show: true,
-    width: 2,
-    colors: ['transparent']
-  },
-  xaxis: {
-    categories: ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct','Nov', 'Dec'],
-  },
-  yaxis: {
-    title: {
-      text: 'Branch Revenue'
-    } 
-  },
-  fill: {
-    opacity: 1
-  },
-  tooltip: {
-    y: {
-      formatter: function (val) {
-        return  val + " MMK"
-      }
-    }
-  }
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: "55%",
+        endingShape: "rounded",
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ["transparent"],
+    },
+    xaxis: {
+      categories: [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
+    },
+    yaxis: {
+      title: {
+        text: "Branch Sales",
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + " MMK";
+        },
+      },
+    },
   };
-
 
   var pieOptions = {
     chart: {
       type: "donut",
-    },
-
-    series: [44, 55, 13, 33],
-    labels: ["Revenue", "Profit", "Expenses", "Salaries"],
+    },    
+    series: [pieChartData.salaries, pieChartData.bonus, pieChartData.revenue], //TODO May be need to subtract salary and bonus from revenue to get gross income
+    labels: ["Salaries", "Bonus", "Revenue"],
     plotOptions: {
       pie: {
         expandOnClick: true,
         donut: {
           labels: {
             show: true,
-            // name: {
-            //   name
-            // },
-            // value: {
-            //   profit
-            // }
           },
         },
       },
@@ -211,41 +275,12 @@ const DashBoard = () => {
                 className="w-full border-b-2 border-primary"
               />
             </div>
-            {/* <div id="secCol" className="w-max">
-              <h3 className="mb-4 font-semibold text-gray-900">Columns</h3>
-              <ul className=" w-max text-sm font-medium text-gray-900 bg-white rounded-lg">
-                {console.log(columns)}
-                {columns &&
-                  columns.map((col) => (
-                    <li key={col} className="w-full rounded-t-lg pr-5">
-                      <div className="flex items-center ps-3">
-                        <input
-                          id="col"
-                          type="checkbox"
-                          value="col"
-                          onChange={() => {
-                            setLines(
-                              lines.includes(col)
-                                ? lines.filter((line) => line !== col)
-                                : [...lines, col]
-                            );
-                          }}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 rounded focus:ring-blue-500 focus:ring-2"
-                        />
-                        <label
-                          for="col"
-                          className="w-full py-1.2 ms-2 text-sm font-medium text-gray-900"
-                        >
-                          {col}
-                        </label>
-                      </div>
-                    </li>
-                  ))}
-              </ul>
-            </div> */}
           </div>
           <div id="secondRow" className="flex items-center">
-            <div id="firstCol" className="w-2/5 border-r-2 border-primary">
+            <div
+              id="firstCol"
+              className="w-2/5 border-r-2 border-primary relative"
+            >
               <Chart
                 options={pieOptions}
                 series={pieOptions.series}
@@ -254,6 +289,7 @@ const DashBoard = () => {
                 height={500}
                 className="mt-5 max-h-72"
               />
+              <span className=" absolute bottom-1 right-2">Monthly overview</span>
             </div>
             <div id="secCol" className="w-2/3 max-h-[300px]">
               {" "}
@@ -266,12 +302,10 @@ const DashBoard = () => {
             </div>
           </div>
         </div>
-        <ExcelHandler />
+        {/* <ExcelHandler /> */}
       </div>
     </Suspense>
   );
 };
-
-
 
 export default DashBoard;

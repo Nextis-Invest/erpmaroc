@@ -25,7 +25,7 @@ export default function KeyAndNodeForm({ mode }) {
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
-      // await queryClient.invalidateQueries("branchData");
+      await queryClient.invalidateQueries("branchData");
       await queryClient.refetchQueries({
         queryKey: "branchData",
         type: "active",
@@ -41,7 +41,7 @@ export default function KeyAndNodeForm({ mode }) {
 
     onSuccess: async () => {
       console.log("Invalidating branchData");
-      // await queryClient.invalidateQueries("branchData");
+      await queryClient.invalidateQueries("branchData");
       await queryClient.refetchQueries({
         queryKey: "branchData",
         type: "active",

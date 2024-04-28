@@ -3,13 +3,14 @@ import { createProduct, sellProduct, updateProduct } from "@/lib/fetch/Product";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function ProductForm({ mode }) {
   const [productToEdit, setproductToEdit] = useState({});
   const [sellForm, setSellForm] = useState(true);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -42,14 +43,14 @@ export default function ProductForm({ mode }) {
   }, [productToEdit, setValue]);
 
   const decreaseQuantity = () => {
-    if (getValues("quantity") > 1) {
-      setValue("quantity", parseInt(getValues("quantity")) - 1);
+    if (getValues("soldQuantity") > 1) {
+      setValue("soldQuantity", parseInt(getValues("soldQuantity")) - 1);
     }
   };
 
   const increaseQuantity = () => {
-    if (productData.quantity > getValues("quantity")) {
-      setValue("quantity", parseInt(getValues("quantity")) + 1);
+    if (productData.quantity > getValues("soldQuantity")) {
+      setValue("soldQuantity", parseInt(getValues("soldQuantity")) + 1);
     }
   };
 

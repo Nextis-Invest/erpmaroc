@@ -1,13 +1,14 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import RECORD from "@/model/record";
+import STAFF from "@/model/staffs";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 ////////    api/admins/branch/data?id="_id"
 export const GET = async (req, Request, Response) => {
-    const searchParams = req.nextUrl.searchParams;
-    const id = searchParams.get("id");
-    const branchId = new mongoose.Types.ObjectId(id);
+  const searchParams = req.nextUrl.searchParams;
+  const id = searchParams.get("id");
+  const branchId = new mongoose.Types.ObjectId(id);
 
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -20,7 +21,7 @@ export const GET = async (req, Request, Response) => {
   const endDate = new Date(
     currentYear,
     currentMonth - 1,
-    currentDate.getDate()
+    currentDate.getDate(), 23, 59, 59, 999
   ); // Subtracting 1 from currentMonth to get the correct index
 
   console.log(
@@ -36,17 +37,27 @@ export const GET = async (req, Request, Response) => {
   try {
     await connectToDB();
 
-    // const branchData = await RECORD.aggregate([{$match: {
-    //     branch: branchId
-    // }}])
-
-    const branchData = await RECORD.aggregate([
+    const staffData = await STAFF.aggregate([
       {
         $match: {
+          branch: id, // Filter by branch _id
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSalary: { $sum: "$salary" },
+          totalBonus: { $sum: "$bonus" },
+        },
+      },
+    ]);
+    console.log("🚀 ~ GET ~ staffData:", staffData);
+
+    const dashboardData = await RECORD.aggregate([
+      {
+        $match: {
+          // branch: id, // Filter by branch _id
           branch: branchId, // Filter by branch _id
-        //   branch: branchId, // Filter by branch _id
-        //   branch: branchObjectId, // Filter by branch _id
-        //   branch: mongoose.Types.ObjectId(branchId), // Filter by branch _id
           date: { $gte: startDate, $lte: endDate }, // Filter records for the current year and up to the current month
         },
       },
@@ -66,9 +77,10 @@ export const GET = async (req, Request, Response) => {
         },
       },
     ]);
-    console.log("🚀 ~ GET ~ branchData:", branchData);
 
-    if (!branchData) {
+    console.log("🚀 ~ GET ~ dashboardData:", dashboardData);
+
+    if (!dashboardData) {
       return NextResponse.json({
         status: "204",
         message: "Failed to retrieve branch data",
@@ -81,11 +93,11 @@ export const GET = async (req, Request, Response) => {
     return NextResponse.json({
       meta: {
         status: 201,
-        manager: branchData?.manager,
-        branchId: branchData._id,
+        branchId: id,
       },
       data: {
-        branchData,
+        dashboardData,
+        staffData,
       },
     });
   } catch (error) {

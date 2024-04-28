@@ -15,7 +15,7 @@ export const ExcelHandler = () => {
     const wb = XLSX.read(await file.arrayBuffer());
     const ws = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws);
-    setBranchData(data);
+    // setBranchData(data);
   };
 
   return (
