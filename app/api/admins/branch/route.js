@@ -167,9 +167,10 @@ export const PATCH = async (Request) => {
   }
 };
 
-
 ///// Get Branch Data for setting Route
 ////  api/admins/branch?email="email"
+
+//TODO: Branch Sync
 export const GET = async (req, Request, Response) => {
   const searchParams = req.nextUrl.searchParams;
   const managerEmail = searchParams.get("email");

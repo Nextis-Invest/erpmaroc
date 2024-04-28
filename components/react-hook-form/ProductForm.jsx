@@ -25,9 +25,21 @@ export default function ProductForm({ mode }) {
     useContext(DataContext);
 
   useEffect(() => {
+    setproductToEdit(null)
     setproductToEdit(productData);
   }, [productData]);
+  console.log("🚀 ~ ProductForm ~ productData:", productData);
   console.log("🚀 ~ ProductForm ~ productToEdit:", productToEdit);
+
+
+  useEffect(() => {
+    setValue('name', productToEdit?.name || '');
+    setValue('description', productToEdit?.description || '');
+    setValue('category', productToEdit?.category || '');
+    setValue('price', productToEdit?.price || '');
+    setValue('quantity', productToEdit?.quantity || '');
+    setValue('notes', productToEdit?.notes || '');
+  }, [productToEdit, setValue]);
 
   const decreaseQuantity = () => {
     if (getValues("quantity") > 1) {
@@ -93,7 +105,7 @@ export default function ProductForm({ mode }) {
     console.log("🚀 ~ onSubmit ~ sellForm:", sellForm, "🚩", mode);
     const d = {
       _id: productData._id,
-      ...data,
+      quantity :data.soldQuantity
     };
 
     try {
@@ -127,7 +139,6 @@ export default function ProductForm({ mode }) {
       }
     }
   };
-  console.log(productData);
   return (
     /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
     <>
@@ -167,7 +178,9 @@ export default function ProductForm({ mode }) {
               className="inline-flex items-center justify-center w-full p-5 text-gray-600 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 "
             >
               <div className="block">
-                <div className="w-full capitalize text-lg font-semibold">Edit</div>
+                <div className="w-full capitalize text-lg font-semibold">
+                  Edit
+                </div>
               </div>
             </label>
           </li>
@@ -187,9 +200,9 @@ export default function ProductForm({ mode }) {
               defaultValue="1"
               placeholder="Sold units"
               type="number"
-              {...register("quantity", {
+              {...register("soldQuantity", {
                 min: 1,
-                required: "Product quabtity required.",
+                required: "Product quantity required.",
               })}
             />
             <button
@@ -251,7 +264,6 @@ export default function ProductForm({ mode }) {
           {/* register your input into the hook by invoking the "register" function */}
           <input
             className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-            defaultValue={productToEdit?.name}
             placeholder="Product Name"
             type="text"
             {...register("name", { required: "Product name required." })}
@@ -262,9 +274,7 @@ export default function ProductForm({ mode }) {
             </span>
           )}
           <input
-            key={Date.now()}
             className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-            defaultValue={productToEdit?.description}
             placeholder="Description"
             type="text"
             {...register("description")}
@@ -272,7 +282,6 @@ export default function ProductForm({ mode }) {
 
           <input
             className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-            defaultValue={productToEdit?.category}
             placeholder="Category"
             type="text"
             {...register("category")}
@@ -280,7 +289,6 @@ export default function ProductForm({ mode }) {
 
           <input
             className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-            defaultValue={productToEdit?.price}
             placeholder="Price"
             type="number"
             {...register("price", {
@@ -296,7 +304,6 @@ export default function ProductForm({ mode }) {
           )}
           <input
             className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-            defaultValue={productToEdit?.quantity}
             placeholder="Quantity"
             type="number"
             {...register("quantity", {
@@ -312,7 +319,6 @@ export default function ProductForm({ mode }) {
           )}
           <textarea
             className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
-            defaultValue={productToEdit?.notes}
             placeholder="Note"
             type="text"
             {...register("notes")}

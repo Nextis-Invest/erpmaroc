@@ -28,6 +28,7 @@ import Loading from "./Loading";
 import { getStaff } from "@/lib/fetch/staff";
 import { redirect } from "next/navigation";
 
+
 const StaffTable = () => {
   const {
     branchData: branchDataFromContext,
@@ -145,6 +146,7 @@ const StaffTable = () => {
 
   return (
     <div className="p-2 mx-auto bg-background">
+   
       <div className="flex sticky z-10 top-0 bg-[#F2F2F2] justify-between pb-2">
         <div className="w-full flex  items-center justify-between gap-1">
           {/* <SearchBox /> */}
@@ -319,9 +321,7 @@ const StaffTable = () => {
           }}
           disabled={
             pagination.pageIndex >=
-            Math.ceil(
-              dataQuery?.data?.meta?.totalStaffs / pagination.pageSize
-            )
+            Math.ceil(dataQuery?.data?.meta?.totalStaffs / pagination.pageSize)
           }
           className="p-1 border border-gray-300 px-2 disabled:opacity-30"
         >

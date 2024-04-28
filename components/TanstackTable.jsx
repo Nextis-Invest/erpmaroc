@@ -160,7 +160,7 @@ const TanStackTable = () => {
                   required
                 />
                 <button
-                  type="buttin"
+                  type="button"
                   className="absolute top-0 end-0 p-2.5 px-4 text-sm font-medium h-full text-white bg-active rounded-e-lg  hover:bg-blue-800 focus:outline-none focus:ring-blue-300"
                 >
                   <svg
@@ -250,6 +250,8 @@ const TanStackTable = () => {
                   ${i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"}
                   `}
                 onClick={() => {
+                  setProductData(null);
+
                   console.log(
                     "🚀 ~ TanStackTable ~ info:",
                     row.original._id,

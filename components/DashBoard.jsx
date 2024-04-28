@@ -4,44 +4,46 @@ import { DataContext } from "@/Context/DataContext";
 import React, { Suspense, useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import Loading from "./Loading";
+import { ExcelHandler } from "./ExcelHandler";
 
 
 const DashBoard = () => {
-  const [years, setYears] = useState([]);
+  const [months, setMonths] = useState([]);
   const [pricesByYear, setPricesByYear] = useState({});
   const [series, setSeries] = useState([]);
   const [columns, setColumns] = useState([]);
   const [lines, setLines] = useState([]);
 
 
-  const { data, setdata } = useContext(DataContext);
+  const { branchData, setdata } = useContext(DataContext);
+  console.log("🚀 ~ DashBoard ~ branchData:", branchData)
 
-
+//TODO Add real data
   
   let revenue = [];
   let totalSale = [];
   let cols;
 
   const chartController = () => {
-    if (data == null) {
+    if (branchData == null) {
       return;
     }
 
     let temp_years = [];
     let temp_prices = {};
 
-    // Extract Years and sort
-    for (let i = 0; i < data.length; i++) {
-      if (!temp_years?.includes(data[i].Year)) {
-        temp_years.push(data[i].Year);
+    // Extract months and sort
+    for (let i = 0; i < branchData.length; i++) {
+      if (!temp_years?.includes(branchData[i].Year)) {
+        temp_years.push(branchData[i].Year);
       }
     }
 
     temp_years?.sort((a, b) => a - b);
-    setYears(temp_years?.map((number) => number?.toString()));
+    setMonths(temp_years?.map((number) => number?.toString()));
 
     // Extract prices for each year
-    data.forEach((book) => {
+    branchData.forEach((book) => {
       const { Year } = book;
       if (!temp_prices[Year]) {
         temp_prices[Year] = [];
@@ -61,7 +63,7 @@ const DashBoard = () => {
       totalSale.push(totalBooksSold);
     });
 
-    cols = Object.keys(data[0]);
+    cols = Object.keys(branchData[0]);
     console.log("🚀 ~ chartController ~ cols:", cols);
 
     let s = [
@@ -83,11 +85,12 @@ const DashBoard = () => {
     chartController();
     setColumns(cols);
     console.log("Lines", lines);
-  }, [data, cols, lines]);
+  }, [branchData, cols, lines]);
   
   console.log("🚀 ~ DashBoard ~ columns:", columns)
   console.log("🚀 ~ DashBoard ~ pricesByYear:", pricesByYear)
-  console.log("🚀 ~ DashBoard ~ years:", years)
+  console.log("🚀 ~ DashBoard ~ months:", months)
+  
   var chartOptions = {
     chart: {
       type: "area",
@@ -110,7 +113,7 @@ const DashBoard = () => {
     },
 
     xaxis: {
-      categories: years,
+      categories: months,
     },
   };
 
@@ -208,7 +211,7 @@ const DashBoard = () => {
                 className="w-full border-b-2 border-primary"
               />
             </div>
-            <div id="secCol" className="w-max">
+            {/* <div id="secCol" className="w-max">
               <h3 className="mb-4 font-semibold text-gray-900">Columns</h3>
               <ul className=" w-max text-sm font-medium text-gray-900 bg-white rounded-lg">
                 {console.log(columns)}
@@ -239,7 +242,7 @@ const DashBoard = () => {
                     </li>
                   ))}
               </ul>
-            </div>
+            </div> */}
           </div>
           <div id="secondRow" className="flex items-center">
             <div id="firstCol" className="w-2/5 border-r-2 border-primary">
@@ -263,7 +266,7 @@ const DashBoard = () => {
             </div>
           </div>
         </div>
-        {/* <ExcelHandler /> */}
+        <ExcelHandler />
       </div>
     </Suspense>
   );
