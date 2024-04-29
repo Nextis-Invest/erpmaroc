@@ -28,8 +28,9 @@ import Loading from "./Loading";
 import { getStaff } from "@/lib/fetch/staff";
 import { redirect } from "next/navigation";
 
-
 const StaffTable = () => {
+  const queryClient = useQueryClient();
+
   const {
     branchData: branchDataFromContext,
     setProductData,
@@ -39,12 +40,25 @@ const StaffTable = () => {
   const { user, error, isLoading: Authenticating } = useUser();
 
   const [search, setSearch] = useState();
-  const [pagination, setPagination] = useState({
-    pageIndex: 1,
-    pageSize: 10,
-  });
   const [sorting, setSorting] = useState([]);
   const [filtering, setFiltering] = useState("");
+
+  const getPaginationFromLocalStorage = () => {
+    const paginationData = localStorage.getItem("pagination");
+    if (paginationData) {
+      return JSON.parse(paginationData);
+    } else {
+      // If no data in localStorage, return default values
+      return { pageIndex: 1, pageSize: 10 };
+    }
+  };
+  const [pagination, setPagination] = useState(getPaginationFromLocalStorage);
+
+  ///////////////////////
+
+  useEffect(() => {
+    localStorage.setItem("pagination", JSON.stringify(pagination));
+  }, [pagination]);
 
   const {
     data: branchData,
@@ -55,12 +69,38 @@ const StaffTable = () => {
   console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
 
   console.log("🚀 ~ TanStackTable ~ user:", user);
-  useEffect(() => {
-    if (error || !user) {
-      redirect("/login");
-    }
-  }, [user, error]);
 
+  //// REFETCH when required data changes
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["staffData"],
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, branchData]);
+
+  //////////////////// REDIRECT TO LOGOUT if not USER
+  useEffect(() => {
+    if (!Authenticating && !user) {
+      return redirect("/login");
+    }
+  }, [user, Authenticating]);
+
+  //////////////////////
   const dataQuery = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
     queryKey: ["staffData", pagination, search],
@@ -73,8 +113,6 @@ const StaffTable = () => {
       ),
     placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
-  console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
-
 
   const columns = [
     {
@@ -146,7 +184,6 @@ const StaffTable = () => {
 
   return (
     <div className="p-2 mx-auto bg-background">
-   
       <div className="flex sticky z-10 top-0 bg-[#F2F2F2] justify-between pb-2">
         <div className="w-full flex  items-center justify-between gap-1">
           {/* <SearchBox /> */}
@@ -299,7 +336,10 @@ const StaffTable = () => {
             </tr>
           ) : (
             <tr className="text-center h-32">
-              <td colSpan={12}>No Staff Found!</td>
+              <td colSpan={12}>
+                <p>No Staff Found!</p>
+                <p onClick={() => window.location.reload()}>Refresh</p>
+              </td>
             </tr>
           )}
         </tbody>

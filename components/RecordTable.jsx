@@ -31,6 +31,8 @@ import { getRecords } from "@/lib/fetch/Branch";
 import dateFormat from "dateformat";
 
 const RecordTable = () => {
+  const queryClient = useQueryClient();
+
   const {
     branchData: branchDataFromContext,
     setProductData,
@@ -40,12 +42,29 @@ const RecordTable = () => {
   const { user, error, isLoading: Authenticating } = useUser();
 
   const [search, setSearch] = useState();
-  const [pagination, setPagination] = useState({
-    pageIndex: 1,
-    pageSize: 10,
-  });
+  // const [pagination, setPagination] = useState({
+  //   pageIndex: 1,
+  //   pageSize: 10,
+  // });
   const [sorting, setSorting] = useState([]);
   const [filtering, setFiltering] = useState("");
+
+  const getPaginationFromLocalStorage = () => {
+    const paginationData = localStorage.getItem("pagination");
+    if (paginationData) {
+      return JSON.parse(paginationData);
+    } else {
+      // If no data in localStorage, return default values
+      return { pageIndex: 1, pageSize: 10 };
+    }
+  };
+  const [pagination, setPagination] = useState(getPaginationFromLocalStorage);
+
+  ///////////////////////
+
+  useEffect(() => {
+    localStorage.setItem("pagination", JSON.stringify(pagination));
+  }, [pagination]);
 
   const {
     data: branchData,
@@ -56,17 +75,45 @@ const RecordTable = () => {
   console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
 
   console.log("🚀 ~ TanStackTable ~ user:", user);
+  ///////////////////////
+
+  //// REFETCH when required data changes
   useEffect(() => {
-    if (error || !user) {
-      redirect("/login");
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["recordData"],
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, branchData]);
+
+  //////////////////// REDIRECT TO LOGOUT if not USER
+  useEffect(() => {
+    if (!Authenticating && !user) {
+      return redirect("/login");
     }
-  }, [user, error]);
+  }, [user, Authenticating]);
+
+  //////////////////////
 
   const dataQuery = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
     queryKey: ["recordData", pagination, search],
     queryFn: () =>
-    getRecords(
+      getRecords(
         branchData.meta.branchId,
         pagination.pageIndex,
         pagination.pageSize,
@@ -92,7 +139,8 @@ const RecordTable = () => {
       accessorFn: (row) => row.productName,
       id: "Name",
       cell: (info) => info.getValue(),
-    },{
+    },
+    {
       accessorFn: (row) => row.category,
       id: "category",
       cell: (info) => info.getValue(),
@@ -197,7 +245,6 @@ const RecordTable = () => {
                 fileName={"Sale_Records"}
               />
             )}
-            <AddNewProductBtn mode="add-product" />
           </div>
         </div>
       </div>
@@ -208,7 +255,6 @@ const RecordTable = () => {
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
                   onMouseDown={header.getResizeHandler()}
                   onTouchStart={header.getResizeHandler()}
                   className="capitalize select-none px-3.5 py-2 border-r-2 border-background"
@@ -248,37 +294,18 @@ const RecordTable = () => {
                 className={`h-10
                   ${i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"}
                   `}
-                onClick={() => {
-                  console.log(
-                    "🚀 ~ TanStackTable ~ info:",
-                    row.original._id,
-                    setProductData(
-                      dataQuery?.data?.data?.products.find(
-                        (obj) => obj._id === row.original._id
-                      )
-                    ),
-                    toggleSideBar("edit-product")
-                  ); //This will extract ID
-                }}
               >
-                {row.getVisibleCells().map(
-                  (cell) => (
-                    (
-                      <td
-                        id="cell"
-                        key={cell._id}
-                        className="px-2.5 py-1.5 truncate hover:overflow-visible max-w-32"
-                        data={cell.getValue() || "No data"}
-                        style={{ position: "relative" }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    )
-                  )
-                )}
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    id="cell"
+                    key={cell._id}
+                    className="px-2.5 py-1.5 truncate hover:overflow-visible max-w-32"
+                    data={cell.getValue() || "No data"}
+                    style={{ position: "relative" }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
               </tr>
             ))
           ) : dataQuery.isLoading ? (
@@ -289,7 +316,10 @@ const RecordTable = () => {
             </tr>
           ) : (
             <tr className="text-center h-32">
-              <td colSpan={12}>No Product Found!</td>
+              <td colSpan={12}>
+                <p>No Record Found!</p>
+                <p onClick={() => window.location.reload()}>Refresh</p>
+              </td>
             </tr>
           )}
         </tbody>

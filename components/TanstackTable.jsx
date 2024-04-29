@@ -29,19 +29,19 @@ import Loading from "./Loading";
 import { redirect } from "next/navigation";
 
 const TanStackTable = () => {
+  const queryClient = useQueryClient();
+
   const {
     branchData: branchDataFromContext,
     setProductData,
     isOpen,
     toggleSideBar,
   } = useContext(DataContext);
+
   const { user, error, isLoading: Authenticating } = useUser();
 
   const [search, setSearch] = useState();
-  const [pagination, setPagination] = useState({
-    pageIndex: 1,
-    pageSize: 10,
-  });
+
   const [sorting, setSorting] = useState([]);
   const [filtering, setFiltering] = useState("");
 
@@ -51,14 +51,27 @@ const TanStackTable = () => {
     error: errorInFetchBranch,
     isSuccess,
   } = useBranchFetch(user?.email);
+
   console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
 
   console.log("🚀 ~ TanStackTable ~ user:", user);
-  useEffect(() => {
-    if (error || !user) {
-      redirect("/login");
+
+  const getPaginationFromLocalStorage = () => {
+    const paginationData = localStorage.getItem("pagination");
+    if (paginationData) {
+      return JSON.parse(paginationData);
+    } else {
+      // If no data in localStorage, return default values
+      return { pageIndex: 1, pageSize: 10 };
     }
-  }, [user, error]);
+  };
+  const [pagination, setPagination] = useState(getPaginationFromLocalStorage);
+
+  ///////////////////////
+
+  useEffect(() => {
+    localStorage.setItem("pagination", JSON.stringify(pagination));
+  }, [pagination]);
 
   const dataQuery = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
@@ -72,6 +85,36 @@ const TanStackTable = () => {
       ),
     placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
+  ////////////////REFETCH AFTER BRANCHDATA AND USER CHANGE
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["productData"],
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, branchData]);
+  //////////////////// REDIRECT TO LOGOUT if not USER
+  useEffect(() => {
+    if (!Authenticating && !user) {
+      return redirect("/login");
+    }
+  }, [user, Authenticating]);
+  /////////////////////
+
   // console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
 
   const columns = [
@@ -293,7 +336,10 @@ const TanStackTable = () => {
             </tr>
           ) : (
             <tr className="text-center h-32">
-              <td colSpan={12}>No Product Found!</td>
+              <td colSpan={12}>
+                <p>No Product Found!</p>
+                <p onClick={() => window.location.reload()}>Refresh</p>
+              </td>
             </tr>
           )}
         </tbody>

@@ -15,15 +15,17 @@ import { useBranchFetch } from "@/hooks/useBranchFetch";
 import dateFormat from "dateformat";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteKey, removeBranch } from "@/lib/fetch/Branch";
-
+import Loading from "./Loading";
+import { ElfsightWidget } from "react-elfsight-widget";
 const Admin = () => {
+  const queryClient = useQueryClient();
+
   const { user, error, isLoading } = useUser();
   console.log("🚀 ~ Admin ~ user:", user);
   const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
   const [openModal, setOpenModal] = useState(false);
   const [modalMode, setModalMode] = useState(null);
   const [id, setId] = useState("");
-  const queryClient = useQueryClient();
 
   const {
     data: branchData,
@@ -33,11 +35,26 @@ const Admin = () => {
   } = useBranchFetch(user?.email);
   console.log("🚀 ~ Admin ~ branchData:", branchData);
 
+  //// REFETCH when required data changes
   useEffect(() => {
-    if (error || !user) {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  //////////////////// REDIRECT TO LOGOUT if not USER
+  useEffect(() => {
+    if (!isLoading && !user) {
       return redirect("/login");
     }
-  }, [user, error]);
+  }, [user, isLoading]);
+
+  //////////////////////
 
   const deleteKeyMutation = useMutation({
     mutationFn: async (d) => deleteKey(d),
@@ -90,6 +107,7 @@ const Admin = () => {
   return (
     <div>
       {" "}
+      <ElfsightWidget widgetID="37253bd0-8f3f-4ad0-b767-14378fccb86c" />
       <Modal
         show={openModal}
         size="md"
@@ -111,6 +129,7 @@ const Admin = () => {
                   if (modalMode == "key") {
                     deleteKeyFn(id); ///ID of branch that pretend to delete
                   } else if (modalMode == "branch") {
+                    console.log(modalMode)
                     removeBranchFn(id);
                   } else {
                     console.log("ERROR");
@@ -149,7 +168,7 @@ const Admin = () => {
                     alt="user-profile"
                   />
                   <p className="font-bold text-lg text-active">
-                    {user?.nickname}
+                    {user?.name}
                   </p>
                 </summary>
                 <div className="mt-3 leading-6 text-active text-md font-semibold">
@@ -160,7 +179,7 @@ const Admin = () => {
           </div>
         )}
       </div>{" "}
-      <div className="w-full min-h-[80vh] flex">
+      <div className="w-full min-w-[70vw] min-h-[80vh] flex">
         <div id="left_col" className=" w-3/4 flex flex-col justify-start">
           <div id="first_row" className="w-full h-2/3">
             <div id="keys" className="active">
@@ -203,7 +222,7 @@ const Admin = () => {
                       <button
                         className="w-10 h-auto"
                         onClick={() => {
-                          setModalMode("branch");
+                          setModalMode("key");
                           setOpenModal(true);
                           setId(key?._id);
                         }}

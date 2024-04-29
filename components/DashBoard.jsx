@@ -9,6 +9,7 @@ import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { redirect } from "next/navigation";
 
 const DashBoard = () => {
   const queryClient = useQueryClient();
@@ -34,6 +35,15 @@ const DashBoard = () => {
   const [pieChartData, setPieChartData] = useState({salaries:0, bonus:0, revenue:0});
   const { user, error, isLoading } = useUser();
 
+  //////////////////// REDIRECT TO LOGOUT if not USER
+  useEffect(() => {
+    if (!isLoading && !user) {
+      return redirect("/login");
+    }
+  }, [user, isLoading]);
+
+  //////////////////////
+
   const {
     data: branchData,
     isLoading: fetchingBranch,
@@ -47,9 +57,11 @@ const DashBoard = () => {
     error: errorInFetchBranchdData,
   } = useBranchDataFetch(branchData?.data?.branch?._id);
 
-  console.log("🚀 ~ DashBoard ~ data:", data?.data);
-  console.log("🚀 ~ DashBoard ~ branchData:", branchData);
+  console.log("🚀 ~ DashBoard ~ data:", data?.data?.dashboardData);
+  // console.log("🚀 ~ DashBoard ~ branchData:", branchData);
 
+
+  //// REFETCH when required data changes
   useEffect(() => {
     const refetch = async () => {
       await queryClient.refetchQueries({
@@ -75,24 +87,46 @@ const DashBoard = () => {
   console.log("🚀 ~ chartController ~ series:", series);
 
 
+
+
+
   ///////////////////Chart Controller Start
 
   useEffect(() => {
     let newTotalSales = [];
     let newRevenue = [];
     let pieChartData = [];
+    
 
-    data?.data?.dashboardData?.forEach(
-      ({ totalRecords, totalSales, month }) => {
-        // const monthNumber = new Date().getMonth() + 1;
-        // setChartMonths(months.slice(0, monthNumber)); ///This nolonger need because serirs take all task.
+    data?.data?.dashboardData.forEach((branch)=>{
+      console.log("🚀 ~ data?.data?.dashboardData,map ~ branch:", data?.data?.dashboardData)
 
-        newRevenue[month - 1] = totalSales; /// totalSale was sum of sale price when come from api
-        newTotalSales[month - 1] = totalRecords;
-        console.log("🚀 ~ useEffect ~ newRevenue:", newRevenue)
+      Object.entries(dashboardData).forEach(([branchName, branchData]) => {
+        console.log("Branch:", branchName);
+      
+        // Iterate over each month's data for the current branch
+        Object.keys(branchData).forEach(monthKey => {
+          const monthData = branchData[monthKey];
+          console.log("Month:", monthData.month);
+          console.log("Total Records:", monthData.totalRecords);
+          console.log("Total Sales:", monthData.totalSales);
+        });
+      });
 
-      }
-    );
+      // branch.map(
+      //   ({ totalRecords, totalSales, month }) => {
+      //     console.log("🚀 ~ data?.data?.dashboardData.map ~ totalRecords:", totalRecords)
+      //     // const monthNumber = new Date().getMonth() + 1;
+      //     // setChartMonths(months.slice(0, monthNumber)); ///This nolonger need because serirs take all task.
+  
+      //     newRevenue[month - 1] = totalSales; /// totalSale was sum of sale price when come from api
+      //     newTotalSales[month - 1] = totalRecords;
+      //     console.log("🚀 ~ useEffect ~ newRevenue:", newRevenue)
+  
+      //   }
+      // );
+    })
+
 
 
     setTotalSale(newTotalSales);
@@ -116,12 +150,15 @@ const DashBoard = () => {
       console.log("🚀 ~ DashBoard ~ revenue:", revenue[monthNumber])
 
       setSeries(s);
+      
+      let r = revenue[monthNumber] - (data?.data?.staffData[0]?.totalSalary + data?.data?.staffData[0]?.totalBonus)
+      console.log("🚀 ~ chartController ~ r:", r)
 
       setPieChartData((prevPieChartData) => ({
         ...prevPieChartData,
         salaries: data?.data?.staffData[0]?.totalSalary || 0,
         bonus: data?.data?.staffData[0]?.totalBonus || 0,
-        revenue: revenue[monthNumber] || 0,
+        revenue: r || 0,
       }));
     };
 
@@ -243,7 +280,7 @@ const DashBoard = () => {
     chart: {
       type: "donut",
     },    
-    series: [pieChartData.salaries, pieChartData.bonus, pieChartData.revenue], //TODO May be need to subtract salary and bonus from revenue to get gross income
+    series: [pieChartData.salaries, pieChartData.bonus, pieChartData.revenue], 
     labels: ["Salaries", "Bonus", "Revenue"],
     plotOptions: {
       pie: {

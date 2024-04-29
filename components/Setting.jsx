@@ -7,8 +7,11 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 import Loading from "./Loading";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { ElfsightWidget } from "react-elfsight-widget";
 const Setting = () => {
+  const queryClient = useQueryClient();
+
   const { user, error, isLoading } = useUser();
   const { branchData, setBranchData, isOpen, toggleSideBar } =
     useContext(DataContext);
@@ -24,16 +27,31 @@ const Setting = () => {
   console.log("🚀 ~ Setting ~ fetchingBranch:", fetchingBranch);
   console.log("🚀 ~ Setting ~ isSuccess:", isSuccess);
 
-  
+  //// REFETCH when required data changes
   useEffect(() => {
-    if (error || !user) {
-      redirect("/login");
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  //////////////////// REDIRECT TO LOGOUT if not USER
+  useEffect(() => {
+    if (!isLoading && !user) {
+      return redirect("/login");
     }
-  }, [user, error]);
-  console.log("🚀 ~ Setting ~ user:", user)
+  }, [user, isLoading]);
+
+  //////////////////////
 
   return (
     <div className="w-full h-full">
+      <ElfsightWidget widgetID="37253bd0-8f3f-4ad0-b767-14378fccb86c" />
+
       {user && (
         <div
           id="user"
@@ -71,13 +89,13 @@ const Setting = () => {
           id="settings"
           className="flex mt-20 justify-evenly w-full h-auto min-h-[75vh] p-5"
         >
-          <div id="leftCol" className="w-1/2 p-3 border-r-2 border-active">
+          <div id="leftCol" className="w-2/3 p-3 border-r-2 border-active">
             <div id="editDetails" className="w-full h-[75%]">
               <span className="font-bold my-2 text-3xl text-active">
                 Setting
               </span>
               {data?.data?.branch ? (
-                <div id="info" className=" grid grid-cols-2 mt-5">
+                <div id="info" className=" max-w-[500px] grid grid-cols-2 mt-5">
                   <span className="font-bold my-2 text-xl text-active">
                     Company Name:
                   </span>
@@ -127,13 +145,19 @@ const Setting = () => {
                     {data.data.branch.phone}
                   </span>
                 </div>
-              ) : fetchingBranch ? (<div className="w-full h-1/2 flex justify-center items-center"><Loading size="2x"/></div>) : errorInFetchBranch ? (
+              ) : fetchingBranch ? (
+                <div className="w-full h-1/2 flex justify-center items-center">
+                  <Loading size="2x" />
+                </div>
+              ) : errorInFetchBranch ? (
                 <div className="w-full h-1/2 flex justify-center items-center">
                   <p className="font-bold text-xl text-active">
                     Branch Doesn&apos;t Created yet
                   </p>
                 </div>
-              ) : <></>}
+              ) : (
+                <></>
+              )}
               <div className="w-full flex">
                 {" "}
                 <button
@@ -156,7 +180,7 @@ const Setting = () => {
           </div>
           <div
             id="rightCol"
-            className="w-1/2 h-[75vh] flex flex-col justify-center items-center p-3 "
+            className="w-1/3 h-[75vh] flex flex-col justify-center items-center p-3 "
           >
             <p>AI Suggestion</p>
             <p>(Avaliable in future.)</p>

@@ -1,4 +1,5 @@
 import { connectToDB } from "@/lib/database/connectToDB";
+import BRANCH from "@/model/branchData";
 import RECORD from "@/model/record";
 import STAFF from "@/model/staffs";
 import mongoose from "mongoose";
@@ -37,48 +38,65 @@ export const GET = async (req, Request, Response) => {
   try {
     await connectToDB();
 
-    const staffData = await STAFF.aggregate([
-      {
-        $match: {
-          branch: id, // Filter by branch _id
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalSalary: { $sum: "$salary" },
-          totalBonus: { $sum: "$bonus" },
-        },
-      },
-    ]);
-    console.log("🚀 ~ GET ~ staffData:", staffData);
+    let staffData = [];
+    let dashboardData = [];
 
-    const dashboardData = await RECORD.aggregate([
-      {
-        $match: {
-          // branch: id, // Filter by branch _id
-          branch: branchId, // Filter by branch _id
-          date: { $gte: startDate, $lte: endDate }, // Filter records for the current year and up to the current month
-        },
-      },
-      {
-        $group: {
-          _id: { $month: "$date" }, // Group by month
-          totalRecords: { $sum: 1 }, // Count total records
-          totalSales: { $sum: "$totalPrice" }, // Sum totalPrice
-        },
-      },
-      {
-        $project: {
-          _id: 0, // Exclude _id field
-          month: "$_id", // Rename _id to month
-          totalRecords: 1,
-          totalSales: 1,
-        },
-      },
-    ]);
+    const branches = await BRANCH.findById(branchId).select("childBranch")
+    console.log("🚀 ~ GET ~ branches:", branches)
+    
+    await Promise.all(branches.childBranch.map(async(b)=>{
+      
+      // console.log("🚀 ~ awaitPromise.all ~ childBranch:", b)
+      const branch = await BRANCH.findById(b).select("companyName").lean(); ////Remove _id
+      console.log("🚀 ~ awaitPromise.all ~ branch:", branch)
 
-    console.log("🚀 ~ GET ~ dashboardData:", dashboardData);
+      const s = await STAFF.aggregate([
+        {
+          $match: {
+            branch: b, // Filter by branch _id
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalSalary: { $sum: "$salary" },
+            totalBonus: { $sum: "$bonus" },
+          },
+        },
+      ]);
+  
+      const d = await RECORD.aggregate([
+        {
+          $match: {
+            // branch: id, // Filter by branch _id
+            branch: b, // Filter by branch _id
+            date: { $gte: startDate, $lte: endDate }, // Filter records for the current year and up to the current month
+          },
+        },
+        {
+          $group: {
+            _id: { $month: "$date" }, // Group by month
+            totalRecords: { $sum: 1 }, // Count total records
+            totalSales: { $sum: "$totalPrice" }, // Sum totalPrice
+          },
+        },
+        {
+          $project: {
+            _id: 0, // Exclude _id field
+            month: "$_id", // Rename _id to month
+            totalRecords: 1,
+            totalSales: 1,
+          },
+        },
+      ]);
+
+
+      staffData.push({ [branch.companyName]: { ...s } });
+      dashboardData.push({ [branch.companyName]: { ...d } });
+      
+    }))
+
+
 
     if (!dashboardData) {
       return NextResponse.json({
@@ -89,6 +107,7 @@ export const GET = async (req, Request, Response) => {
           error: "Branch doesn't exist",
         },
       });
+
     }
     return NextResponse.json({
       meta: {

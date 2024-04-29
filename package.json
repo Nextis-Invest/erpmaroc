@@ -32,9 +32,11 @@
     "mongoose": "^8.3.1",
     "next": "14.1.4",
     "next-auth": "^4.24.7",
+    "next-elfsight-widget": "^1.1.1",
     "react": "^18",
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
+    "react-elfsight-widget": "^1.1.1",
     "react-hook-form": "^7.51.3",
     "xlsx": "file:vendor/xlsx-0.20.1.tgz"
   },
