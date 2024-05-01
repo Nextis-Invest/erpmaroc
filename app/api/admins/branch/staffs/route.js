@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 
 import { connectToDB } from "@/lib/database/connectToDB";
 import STAFF from "@/model/staffs";
-import ActivityLog from "@/model/activities";
+import ACTIVITYLOG from "@/model/activities";
 // import { parse } from "next/dist/build/swc";
 
 /// /api/admins/branch/staffs
@@ -50,7 +50,7 @@ export const POST = async (Request) => {
         { status: 404 }
       );
     }
-    const log = new ActivityLog({
+    const log = new ACTIVITYLOG({
       branch: createdStaff.branch,
       process: "Staff Added"
     })
@@ -258,8 +258,8 @@ export const DELETE = async (req) => {
       return NextResponse.json({ error: "Staff not found." }, { status: 404 });
     }
 
-    const log = new ActivityLog({
-      branch: _id,
+    const log = new ACTIVITYLOG({
+      branch: deletedStaff.branch,
       process: "Staff Removed"
     })
 

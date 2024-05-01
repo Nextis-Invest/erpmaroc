@@ -37,7 +37,7 @@ export const PATCH = async (Request) => {
         { status: 404 }
       );
     }
-    const log = new ActivityLog({
+    const log = new ACTIVITYLOG({
       branch: _id,
       process: "Branch Added"
     })

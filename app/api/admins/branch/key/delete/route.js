@@ -25,7 +25,7 @@ export const PATCH = async (Request) => {
         );
       }
 
-      const log = new ActivityLog({
+      const log = new ACTIVITYLOG({
         branch: branchId,
         process: "Key Removed"
       })

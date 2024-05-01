@@ -6,23 +6,29 @@ import { HiOutlineExclamationCircle } from "react-icons/hi";
 import React, { useContext, useEffect } from "react";
 import { ExcelHandler } from "../components/ExcelHandler";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { faEllipsis, faSortDown } from "@fortawesome/free-solid-svg-icons";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import dateFormat from "dateformat";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteKey, removeBranch } from "@/lib/fetch/Branch";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { deleteKey, getActivitiesLogs, removeBranch } from "@/lib/fetch/Branch";
 import Loading from "./Loading";
 import { ElfsightWidget } from "react-elfsight-widget";
 const Admin = () => {
   const queryClient = useQueryClient();
 
   const { user, error, isLoading } = useUser();
-  console.log("🚀 ~ Admin ~ user:", user);
+
   const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
+
   const [openModal, setOpenModal] = useState(false);
   const [modalMode, setModalMode] = useState(null);
   const [id, setId] = useState("");
@@ -35,7 +41,16 @@ const Admin = () => {
   } = useBranchFetch(user?.email);
   console.log("🚀 ~ Admin ~ branchData:", branchData);
 
+  const activitiesData = useQuery({
+    gcTime: 24 * 24 * 60 * 60 * 1000,
+    queryKey: ["activities"],
+    queryFn: () => getActivitiesLogs(branchData.meta.branchId),
+    placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
+  });
+  console.log("🚀 ~ Admin ~ activitiesData:", activitiesData);
+
   //// REFETCH when required data changes
+
   useEffect(() => {
     const refetch = async () => {
       await queryClient.refetchQueries({
@@ -46,6 +61,16 @@ const Admin = () => {
     };
     refetch();
   }, [queryClient, user]);
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "activities",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, branchData]);
 
   //////////////////// REDIRECT TO LOGOUT if not USER
   useEffect(() => {
@@ -129,7 +154,7 @@ const Admin = () => {
                   if (modalMode == "key") {
                     deleteKeyFn(id); ///ID of branch that pretend to delete
                   } else if (modalMode == "branch") {
-                    console.log(modalMode)
+                    console.log(modalMode);
                     removeBranchFn(id);
                   } else {
                     console.log("ERROR");
@@ -167,9 +192,7 @@ const Admin = () => {
                     src={`${user?.picture}`}
                     alt="user-profile"
                   />
-                  <p className="font-bold text-lg text-active">
-                    {user?.name}
-                  </p>
+                  <p className="font-bold text-lg text-active">{user?.name}</p>
                 </summary>
                 <div className="mt-3 leading-6 text-active text-md font-semibold">
                   <p>Email: {user?.email}</p>
@@ -293,7 +316,7 @@ const Admin = () => {
               </div>
             </div>
           </div>
-          <div
+          {/* <div
             id="sec_row"
             className="flex justify-between w-full h-60 p-5 border-t-2 border-active"
           >
@@ -321,18 +344,6 @@ const Admin = () => {
                       d="M23.845 8.125c-1.395-3.701-4.392-6.045-8.92-6.045-5.762 0-9.793 4.279-10.14 9.861-2.779 0.889-4.784 3.723-4.784 6.933 0 3.93 3.089 7.249 6.744 7.249h0.889c0.552 0 1-0.448 1-1s-0.448-1-1-1h-0.889c-2.572 0-4.776-2.404-4.776-5.249 0-2.515 1.763-4.783 3.974-5.163l0.907-0.156-0.081-0.917-0.008-0.011c0-4.871 3.206-8.545 8.162-8.545 3.972 0 6.204 1.957 7.236 5.295l0.213 0.688 0.721 0.015c3.715 0.078 6.971 3.092 6.971 6.837 0 3.408-2.259 7.206-5.679 7.206h-0.285c-0.552 0-1 0.448-1 1s0.448 1 1 1v-0.003c5-0.132 7.883-4.909 7.883-9.203-0.001-4.617-3.619-8.304-8.141-8.791zM20.198 24.233c-0.279-0.292-0.731-0.292-1.010-0l-2.2 2.427v-10.067c0-0.552-0.448-1-1-1s-1 0.448-1 1v10.076l-2.128-2.373c-0.28-0.292-0.732-0.355-1.011-0.063l-0.252 0.138c-0.28 0.293-0.28 0.765 0 1.057l3.61 3.992c0.005 0.005 0.006 0.012 0.011 0.017l0.253 0.265c0.14 0.146 0.324 0.219 0.509 0.218 0.183 0.001 0.368-0.072 0.507-0.218l0.253-0.265c0.005-0.005 0.008-0.011 0.012-0.017l3.701-4.055c0.279-0.292 0.279-0.639 0-0.932z"
                     />
                   </svg>
-                  {/* <svg
-                    fill="#000000"
-                    className="w-8 h-8"
-                    viewBox="0 0 32 32"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2" d="M23.845 8.125c-1.395-3.701-4.392-6.045-8.92-6.045-5.762 0-9.793 4.279-10.14 9.861-2.779 0.889-4.784 3.723-4.784 6.933 0 3.93 3.089 7.249 6.744 7.249h0.889c0.552 0 1-0.448 1-1s-0.448-1-1-1h-0.889c-2.572 0-4.776-2.404-4.776-5.249 0-2.515 1.763-4.783 3.974-5.163l0.907-0.156-0.081-0.917-0.008-0.011c0-4.871 3.206-8.545 8.162-8.545 3.972 0 6.204 1.957 7.236 5.295l0.213 0.688 0.721 0.015c3.715 0.078 6.971 3.092 6.971 6.837 0 3.408-2.259 7.206-5.679 7.206h-0.285c-0.552 0-1 0.448-1 1s0.448 1 1 1v-0.003c5-0.132 7.883-4.909 7.883-9.203-0.001-4.617-3.619-8.304-8.141-8.791zM20.198 24.233c-0.279-0.292-0.731-0.292-1.010-0l-2.2 2.427v-10.067c0-0.552-0.448-1-1-1s-1 0.448-1 1v10.076l-2.128-2.373c-0.28-0.292-0.732-0.355-1.011-0.063l-0.252 0.138c-0.28 0.293-0.28 0.765 0 1.057l3.61 3.992c0.005 0.005 0.006 0.012 0.011 0.017l0.253 0.265c0.14 0.146 0.324 0.219 0.509 0.218 0.183 0.001 0.368-0.072 0.507-0.218l0.253-0.265c0.005-0.005 0.008-0.011 0.012-0.017l3.701-4.055c0.279-0.292 0.279-0.639 0-0.932z"></path>
-                  </svg> */}
                   <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                     <span className="font-semibold">Click to download</span>
                   </p>
@@ -351,13 +362,39 @@ const Admin = () => {
                 </button>
               </label>
             </div>
-          </div>
+          </div> */}
         </div>
         <div
           id="right_col"
           className="mx-7 px-3 w-1/4 max-w-[300px] min-h-[80vh] max-h-[95vh] border-l-2 border-active"
         >
           <span className="font-bold text-3xl text-active">Activities</span>{" "}
+          <br />
+          <br />
+          {activitiesData?.data?.data?.activities?.map((activity) => {
+            return (
+              <details
+                key={activity._id}
+                className="outline-none ring-0 text-text mb-3"
+              >
+                <summary className="flex ring-0 select-none items-center">
+                  <p className="font-semibold text-md">
+                    {activity.process}
+                    <FontAwesomeIcon
+                      icon={faSortDown}
+                      className="ml-2"
+                      color="#0050C8"
+                    />
+                  </p>
+                </summary>
+                <div className="mt-1 ml-1 leading-6 text-md">
+                  <p>
+                    Time: {dateFormat(activity.timestamp, "d/m/yy - h:mm tt")}
+                  </p>
+                </div>
+              </details>
+            );
+          })}
         </div>
       </div>
     </div>

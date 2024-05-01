@@ -242,7 +242,7 @@ const RecordTable = () => {
             {dataQuery && (
               <DownloadBtn
                 data={dataQuery?.data?.data?.products}
-                fileName={"Sale_Records"}
+                fileName={`${branchData?.data?.branch?.companyName} Sale Records`}
               />
             )}
           </div>

@@ -59,7 +59,7 @@ export const POST = async (Request) => {
         { status: 404 }
       );
     }
-    const log = new ActivityLog({
+    const log = new ACTIVITYLOG({
       branch: createdBranch._id,
       process: "Branch Created"
     })
@@ -159,7 +159,7 @@ export const PATCH = async (Request) => {
       );
     }
 
-    const log = new ActivityLog({
+    const log = new ACTIVITYLOG({
       branch: updatedBranch._id,
       process: "Branch Updated"
     })

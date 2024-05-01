@@ -172,11 +172,11 @@ const Setting = () => {
                 </button>
               </div>
             </div>
-            <div id="downloadData" className="w-full h-[15%] ">
+            {/* <div id="downloadData" className="w-full h-[15%] ">
               <button className="w-full h-full border-2 text-3xl text-primary border-active border-dashed rounded-lg cursor-pointer">
                 Download all data
               </button>
-            </div>
+            </div> */}
           </div>
           <div
             id="rightCol"

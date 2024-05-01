@@ -25,6 +25,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { getProduct } from "@/lib/fetch/Product";
+import { getStaff } from "@/lib/fetch/staff";
 
 const Branch = () => {
   const queryClient = useQueryClient();
@@ -32,56 +33,56 @@ const Branch = () => {
 
   const [totalRecords, setTotalRecords] = useState(0);
 
-  const users = [
-    {
-      name: "Myat",
-      permissions: ["read", "write", "delete", "create"],
-      privilege: "owner",
-      control: ["branch1", "branch2", "branch3"],
-    },
-    {
-      name: "John Ray",
-      permissions: ["read", "write"],
-      privilege: "employee",
-      control: ["branch2"],
-    },
-    {
-      name: "Jane Smith",
-      permissions: ["read", "write"],
-      privilege: "employee",
-      control: ["branch2"],
-    },
-    {
-      name: "Alice Johnson",
-      permissions: ["read", "write"],
-      privilege: "employee",
-      control: ["branch3"],
-    },
-    {
-      name: "Michael Brown",
-      permissions: ["read", "write", "delete"],
-      privilege: "manager",
-      control: ["branch1"],
-    },
-    {
-      name: "Emily Davis",
-      permissions: ["read", "write", "delete"],
-      privilege: "manager",
-      control: ["branch2", "branch3"],
-    },
-    {
-      name: "Davis Emrys",
-      permissions: ["read", "write", "delete"],
-      privilege: "manager",
-      control: ["branch2", "branch3"],
-    },
-    {
-      name: "William Wilson",
-      permissions: ["read"],
-      privilege: "Accountants",
-      control: ["branch1", "branch2", "branch3"],
-    },
-  ];
+  // const users = [
+  //   {
+  //     name: "Myat",
+  //     permissions: ["read", "write", "delete", "create"],
+  //     privilege: "owner",
+  //     control: ["branch1", "branch2", "branch3"],
+  //   },
+  //   {
+  //     name: "John Ray",
+  //     permissions: ["read", "write"],
+  //     privilege: "employee",
+  //     control: ["branch2"],
+  //   },
+  //   {
+  //     name: "Jane Smith",
+  //     permissions: ["read", "write"],
+  //     privilege: "employee",
+  //     control: ["branch2"],
+  //   },
+  //   {
+  //     name: "Alice Johnson",
+  //     permissions: ["read", "write"],
+  //     privilege: "employee",
+  //     control: ["branch3"],
+  //   },
+  //   {
+  //     name: "Michael Brown",
+  //     permissions: ["read", "write", "delete"],
+  //     privilege: "manager",
+  //     control: ["branch1"],
+  //   },
+  //   {
+  //     name: "Emily Davis",
+  //     permissions: ["read", "write", "delete"],
+  //     privilege: "manager",
+  //     control: ["branch2", "branch3"],
+  //   },
+  //   {
+  //     name: "Davis Emrys",
+  //     permissions: ["read", "write", "delete"],
+  //     privilege: "manager",
+  //     control: ["branch2", "branch3"],
+  //   },
+  //   {
+  //     name: "William Wilson",
+  //     permissions: ["read"],
+  //     privilege: "Accountants",
+  //     control: ["branch1", "branch2", "branch3"],
+  //   },
+  // ];
   const [search, setSearch] = useState("");
 
   const {
@@ -119,7 +120,7 @@ const Branch = () => {
   useEffect(() => {
     if (branchData && branchData.data && branchData.data.branch) {
       setSelectedBranch(branchData.data.branch.companyName);
-      setSelectedBranchID(branchData.meta.branchId)
+      setSelectedBranchID(branchData.meta.branchId);
     }
   }, [branchData, branchData?.data?.branch?.companyName]);
 
@@ -159,6 +160,18 @@ const Branch = () => {
     // placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
 
+  const staffData = useQuery({
+    // gcTime: 24 * 24 * 60 * 60 * 1000,
+    queryKey: ["staffData"],
+    queryFn: () =>
+      getStaff(
+        selectedBranchID,
+        1,
+        99999
+      ),
+    placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
+  });
+  console.log("🚀 ~ Branch ~ staffData:", staffData)
 
   useEffect(() => {
     const refetch = async () => {
@@ -167,11 +180,15 @@ const Branch = () => {
         type: "active",
         exact: true,
       });
+      await queryClient.refetchQueries({
+        queryKey: ["staffData"],
+        type: "active",
+        exact: true,
+      });
     };
-    console.log("🚀 ~ Branch ~ search:", search?.length)
+    console.log("🚀 ~ Branch ~ search:", search?.length);
 
-    if(search?.length == 0){
-      // queryClient.removeQueries("searchProductData")
+    if (search?.length == 0) {
       refetch();
     }
   }, [queryClient, branchData, selectedBranch, search]);
@@ -338,15 +355,16 @@ const Branch = () => {
         </div>{" "}
         <div id="secRow" className="w-full flex border-t-2 border-blue-600">
           <div id="secRowFirstCol" className="w-1/2">
-            {users.map((user) => {
+            {staffData?.data?.data?.staffs?.map((staff) => {
+              console.log(staff)
               return (
                 <div
-                  id="user"
+                  id="staff"
                   className="grid grid-cols-3 gap-2 h-12 border-b-2 border-primary items-center"
-                  key={user.name}
+                  key={staff?._id}
                 >
-                  <div className="ml-2 col-span-2">{user.name}</div>
-                  <div>{user.privilege}</div>
+                  <div className="ml-2 col-span-2">{staff.name}</div>
+                  <div>{staff.position}</div>
                 </div>
               );
             })}{" "}
@@ -448,7 +466,9 @@ const Branch = () => {
                       <p>Search in search box</p>
                     </td>
                   </tr>
-                ) : ""}
+                ) : (
+                  ""
+                )}
               </tbody>
             </table>
           </div>

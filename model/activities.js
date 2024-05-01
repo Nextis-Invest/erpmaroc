@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const BRANCH = require("./branchData"); // Import the Branch schema
 
-let ActivityLog;
+let ACTIVITYLOG;
 
-if (mongoose.models && mongoose.models.ActivityLog) {
-  ActivityLog = mongoose.models.ActivityLog;
+if (mongoose.models && mongoose.models.ACTIVITYLOG) {
+  ACTIVITYLOG = mongoose.models.ACTIVITYLOG;
 } else {
   const activityLogSchema = new mongoose.Schema({
     branch: {
@@ -22,7 +22,7 @@ if (mongoose.models && mongoose.models.ActivityLog) {
     }
   });
 
-  ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
+  ACTIVITYLOG = mongoose.model('ACTIVITYLOG', activityLogSchema);
 }
 
-module.exports = ActivityLog;
+module.exports = ACTIVITYLOG;

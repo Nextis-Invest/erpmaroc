@@ -29,7 +29,7 @@ const SideBar = () => {
 
   return (
     <div className=" min-w-36 sticky top-0 w-auto min-h-[80vh] h-auto mr-5 flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
-      {/* <Link href="/" className="w-full h-full"> */}{" "}
+      <Link href="/" className="w-full h-full">{" "}
       <Image
         src="/assets/logo.png"
         width={100}
@@ -37,7 +37,7 @@ const SideBar = () => {
         alt="logo"
         className="w-full h-full"
       />
-      {/* </Link> */}
+      </Link>
       <div className="w-full flex flex-col gap-1 mt-10">
         <Link
           href="/"
@@ -89,23 +89,6 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Branches</span>
         </Link>{" "}
-        {/* <Link  href="/invoices"
-          className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
-            pathname === "/invoices"
-              ? "shadow-md shadow-secondary text-active"
-              : ""
-          }`}
-        >
-          <FontAwesomeIcon
-            icon={faReceipt}
-            height={22}
-            width={22}
-            alt="Invoices"
-          />
-          <span className="text-xl ml-2">
-            Invoices
-          </span>
-        </Link>{" "} */}
         <Link
           href="/products"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
@@ -138,7 +121,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Record</span>
         </Link>{" "}
-        <Link
+        {/* <Link
           href="/report"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/report"
@@ -153,7 +136,7 @@ const SideBar = () => {
             alt="report"
           />
           <span className="text-xl ml-2">Report</span>
-        </Link>{" "}
+        </Link>{" "} */}
         <Link
           href="/admin"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${

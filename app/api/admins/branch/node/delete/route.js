@@ -1,5 +1,5 @@
 import { connectToDB } from "@/lib/database/connectToDB";
-import ActivityLog from "@/model/activities";
+import ACTIVITYLOG from "@/model/activities";
 import BRANCH from "@/model/branchData";
 import { NextResponse } from "next/server";
 
@@ -26,7 +26,7 @@ export const PATCH = async (Request) => {
         );
       }
   
-      const log = new ActivityLog({
+      const log = new ACTIVITYLOG({
         branch: branchId,
         process: "Branch Removed"
       })
