@@ -1,11 +1,37 @@
 "use client";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEllipsis,
+  faSortDown,
+  faSortUp,
+} from "@fortawesome/free-solid-svg-icons";
 import Loading from "./Loading";
+import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useBranchFetch } from "@/hooks/useBranchFetch";
+import { Dropdown } from "flowbite-react";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { getProduct } from "@/lib/fetch/Product";
 
 const Branch = () => {
+  const queryClient = useQueryClient();
+  const { user, error, isLoading } = useUser();
+
+  const [totalRecords, setTotalRecords] = useState(0);
+
   const users = [
     {
       name: "Myat",
@@ -42,7 +68,8 @@ const Branch = () => {
       permissions: ["read", "write", "delete"],
       privilege: "manager",
       control: ["branch2", "branch3"],
-    },    {
+    },
+    {
       name: "Davis Emrys",
       permissions: ["read", "write", "delete"],
       privilege: "manager",
@@ -55,16 +82,144 @@ const Branch = () => {
       control: ["branch1", "branch2", "branch3"],
     },
   ];
+  const [search, setSearch] = useState("");
 
-  console.log(users);
+  const {
+    data: branchData,
+    isLoading: fetchingBranch,
+    error: errorInFetchBranch,
+    isSuccess,
+  } = useBranchFetch(user?.email);
+  console.log("🚀 ~ DashBoard ~ branchData:", branchData);
 
-  console.log(users);
+  const [selectedBranch, setSelectedBranch] = useState(
+    branchData?.data?.branch?.companyName || ""
+  );
+  const [selectedBranchID, setSelectedBranchID] = useState(
+    branchData?.meta?.branchId || ""
+  );
+
+  const {
+    data,
+    isLoading: fetchingBranchData,
+    error: errorInFetchBranchdData,
+  } = useBranchDataFetch(branchData?.data?.branch?._id);
+
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "dashboardData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, branchData]);
+
+  useEffect(() => {
+    if (branchData && branchData.data && branchData.data.branch) {
+      setSelectedBranch(branchData.data.branch.companyName);
+      setSelectedBranchID(branchData.meta.branchId)
+    }
+  }, [branchData, branchData?.data?.branch?.companyName]);
+
+  //// REFETCH when required data changes
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: "branchData",
+        type: "active",
+        exact: true,
+      });
+    };
+    refetch();
+  }, [queryClient, user]);
+
+  useEffect(() => {
+    if (data?.data?.dashboardData && selectedBranch) {
+      const branchData = data.data.dashboardData[selectedBranch];
+
+      if (branchData) {
+        const totalRecords = Object.values(branchData).map(
+          (data) => data.totalRecords || 0
+        );
+        console.log("🚀 ~ useEffect ~ totalRecords:", totalRecords);
+
+        setTotalRecords(totalRecords);
+      }
+    }
+  }, [data?.data?.dashboardData, selectedBranch]);
+
+  console.log("🚀 ~ Branch ~ totalRecords:", totalRecords);
+
+  const dataQuery = useQuery({
+    // gcTime: 24 * 24 * 60 * 60 * 1000,
+    queryKey: ["searchProductData", search],
+    queryFn: () => getProduct(selectedBranchID, 1, 9999, search),
+    // placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
+  });
+
+
+  useEffect(() => {
+    const refetch = async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["searchProductData"],
+        type: "active",
+        exact: true,
+      });
+    };
+    console.log("🚀 ~ Branch ~ search:", search?.length)
+
+    if(search?.length == 0){
+      // queryClient.removeQueries("searchProductData")
+      refetch();
+    }
+  }, [queryClient, branchData, selectedBranch, search]);
+
+  const columns = [
+    {
+      accessorKey: "no",
+      id: "no",
+      cell: (info) => <span>{info.row.index + 1}</span>,
+    },
+    {
+      accessorKey: "name",
+      id: "name",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.category,
+      id: "category",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.price,
+      id: "price",
+      cell: (info) => info.getValue(),
+    },
+    {
+      accessorFn: (row) => row.quantity,
+      id: "quantity",
+      cell: (info) => info.getValue(),
+    },
+  ];
+
+  const table = useReactTable({
+    // data: dataQuery.data?.data?.products,
+    data: dataQuery?.data?.data?.products ?? [],
+    columns,
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+    columnResizeMode: "onChange",
+    manualPagination: true,
+  });
 
   var colChartOption = {
     series: [
       {
         name: "Sales",
-        data: [44, 55, 57, 56, 61, 36, 26, 45, 58, 63, 60, 66],
+        data: totalRecords,
       },
     ],
     chart: {
@@ -127,61 +282,177 @@ const Branch = () => {
             series={colChartOption.series}
             type="bar"
             height={400}
-            className="w-full border-b-2 border-primary"
+            className="w-auto flex-grow"
           />
-        </div>{" "}
-        <div id="secRow" className="w-full">
-        {users.map((user) => {
-        return (
           <div
-            id="user"
-            className="grid grid-cols-5 gap-2 h-12 border-b-2 border-primary items-center"
-            key={user.name}
+            id="firstRowSecCol"
+            className="w-auto min-w-52 flex flex-col justify-between"
           >
-            <div className="ml-2">{user.name}</div>
-            <div>{user.privilege}</div>
-            <div className="grid grid-cols-4 gap-4 text-sm">
-              {user.control.map((c) => (
-                <div key={c} className="text-gray-700">
-                  {c}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-4 gap-2 text-sm">
-              {user.permissions.map((permission) => (
-                <div
-                  key={permission}
-                  className={`text-gray-700 text-background text-center p-0.5 px-1 rounded-full ${
-                    permission === "create"
-                      ? "bg-[#34D399]"
-                      : permission === "read"
-                      ? "bg-[#3B82F6]"
-                      : permission === "write"
-                      ? "bg-[#e7a325]"
-                      : permission === "delete"
-                      ? "bg-[#EF4444]"
-                      : "bg-[#6B7280]"
-                  }`}
-                >
-                  {permission}
-                </div>
-              ))}
-            </div>
-
-            <div className=" grid justify-end">
-              <button className="w-10 h-auto" onClick={()=>{alert("Clicked")}}>
-                <FontAwesomeIcon
-                  icon={faEllipsis}
-                  height={22}
-                  width={22}
-                  alt="threeDots"
-                  className="mr-2"
-                />
-              </button>
-            </div>
+            <Dropdown
+              label={selectedBranch || "Select branch"}
+              class="text-white w-full bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex justify-center"
+            >
+              <Dropdown.Item
+                className={` z-40 ${
+                  selectedBranch == branchData?.data?.branch.companyName
+                    ? "text-blue-600"
+                    : ""
+                }`}
+                onClick={() => {
+                  setSelectedBranch(branchData?.data?.branch.companyName);
+                  setSelectedBranchID(branchData?.data?.meta?.branchId);
+                }}
+              >
+                {branchData?.data?.branch.companyName}
+              </Dropdown.Item>
+              {branchData?.data?.branch?.childBranch?.map((branch, index) => {
+                return (
+                  <Dropdown.Item
+                    className={`${
+                      selectedBranch == branch.companyName
+                        ? "text-blue-600"
+                        : ""
+                    }`}
+                    key={index}
+                    onClick={() => {
+                      setSelectedBranch(branch.companyName);
+                      setSelectedBranchID(branch._id);
+                    }}
+                  >
+                    {branch.companyName}
+                  </Dropdown.Item>
+                );
+              })}
+            </Dropdown>
+            <input
+              type="search"
+              id="search-dropdown"
+              className="block p-2 w-full mt-10 focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-lg border border-primary"
+              placeholder={`Search products in ${selectedBranch}`}
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
+              required
+            />
           </div>
-        );
-      })}        </div>
+        </div>{" "}
+        <div id="secRow" className="w-full flex border-t-2 border-blue-600">
+          <div id="secRowFirstCol" className="w-1/2">
+            {users.map((user) => {
+              return (
+                <div
+                  id="user"
+                  className="grid grid-cols-3 gap-2 h-12 border-b-2 border-primary items-center"
+                  key={user.name}
+                >
+                  <div className="ml-2 col-span-2">{user.name}</div>
+                  <div>{user.privilege}</div>
+                </div>
+              );
+            })}{" "}
+          </div>
+          <div id="secRowSecCol products" className="w-1/2">
+            <table className=" w-full max-h-[70vh] overflow-y-scroll text-sm text-left">
+              <thead className="bg-active sticky top-12 z-10 text-background">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        onClick={header.column.getToggleSortingHandler()}
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className="capitalize select-none px-3.5 py-2 border-r-2 border-background"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {
+                          {
+                            asc: (
+                              <FontAwesomeIcon
+                                icon={faSortUp}
+                                className="ml-2"
+                                color="#fff"
+                              />
+                            ),
+                            desc: (
+                              <FontAwesomeIcon
+                                icon={faSortDown}
+                                className="ml-2"
+                                color="#fff"
+                              />
+                            ),
+                          }[header.column.getIsSorted() ?? null]
+                        }
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="w-full h-auto">
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row, i) => (
+                    <tr
+                      key={row._id}
+                      className={`h-10
+                  ${i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"}
+                  `}
+                      onClick={() => {
+                        setProductData(null);
+
+                        console.log(
+                          "🚀 ~ TanStackTable ~ info:",
+                          row.original._id,
+                          setProductData(
+                            dataQuery?.data?.data?.products.find(
+                              (obj) => obj._id === row.original._id
+                            )
+                          ),
+                          toggleSideBar("edit-product")
+                        ); //This will extract ID
+                      }}
+                    >
+                      {row.getVisibleCells().map(
+                        (cell) => (
+                          console.log(cell.column.getSize()),
+                          (
+                            <td
+                              id="cell"
+                              key={cell._id}
+                              className="px-2.5 py-1.5 truncate hover:overflow-visible max-w-32"
+                              data={cell.getValue() || "No data"}
+                              style={{ position: "relative" }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </td>
+                          )
+                        )
+                      )}
+                    </tr>
+                  ))
+                ) : dataQuery.isLoading ? (
+                  <tr className="text-center h-32 overflow-hidden">
+                    <td colSpan={12}>
+                      <Loading size="3x" />
+                    </td>
+                  </tr>
+                ) : dataQuery.isLoadingError ? (
+                  <tr className="text-center h-32">
+                    <td colSpan={12}>
+                      <p>No product found!</p>
+                      <p>Search in search box</p>
+                    </td>
+                  </tr>
+                ) : ""}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Suspense>
     </div>
   );

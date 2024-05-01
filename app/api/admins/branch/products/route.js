@@ -40,8 +40,8 @@ export const POST = async (Request) => {
       branch: branch._id,
     });
     const createdProduct = await newProduct.save();
+    console.log("🚀 ~ POST ~ createdProduct:", createdProduct)
 
-    console.log(createdProduct);
     return NextResponse.json({
       meta: {
         status: 201,
@@ -178,6 +178,21 @@ export const GET = async (req, res) => {
           error: "Product doesn't exist",
         },
       });
+    }
+
+    if(limit == 9999){
+      if(search.length < 1){
+        return NextResponse.json({
+          meta: {
+            status: 201,
+            message:
+              "This must be search operation done by branch.",
+            totalProducts: 0,
+            branchId: branch,
+          },
+          data: [],
+        });
+      }
     }
 
     // Construct query

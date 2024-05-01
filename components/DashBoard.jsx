@@ -14,6 +14,7 @@ const DashBoard = () => {
   //TODO Loading
   // TODO Offline alert
   const queryClient = useQueryClient();
+  const { user, error, isLoading } = useUser();
 
   let months = [
     "January",
@@ -39,7 +40,6 @@ const DashBoard = () => {
     bonus: 0,
     revenue: 0,
   });
-  const { user, error, isLoading } = useUser();
 
   //////////////////// REDIRECT TO LOGOUT if not USER
   useEffect(() => {
@@ -86,7 +86,6 @@ const DashBoard = () => {
   }, [queryClient, user]);
 
   useEffect(() => {
-    // setPieBranch(branchData?.data?.branch?.companyName);
     const refetch = async () => {
       await queryClient.refetchQueries({
         queryKey: "dashboardData",
@@ -106,7 +105,7 @@ const DashBoard = () => {
     let revenue;
 
 
-    const currentMonth = new Date().getMonth() - 1
+    const currentMonth = new Date().getMonth();
     
     for (const branchName in data?.data?.dashboardData) {
       const branch = data?.data?.dashboardData[branchName];

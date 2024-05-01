@@ -74,7 +74,7 @@ const TanStackTable = () => {
   }, [pagination]);
 
   const dataQuery = useQuery({
-    // gcTime: 24 * 24 * 60 * 60 * 1000,
+    gcTime: 24 * 24 * 60 * 60 * 1000,
     queryKey: ["productData", pagination, search],
     queryFn: () =>
       getProduct(
@@ -190,7 +190,7 @@ const TanStackTable = () => {
               <div className="relative w-full">
                 <input
                   type="search"
-                  id="search-dropdown"
+                  id="search"
                   className="block p-2 w-full z-20 focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-e-lg rounded-lg border border-primary"
                   placeholder="Search..."
                   onChange={(e) => {

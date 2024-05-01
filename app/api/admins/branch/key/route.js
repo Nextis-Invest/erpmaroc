@@ -38,7 +38,12 @@ export const PATCH = async (Request) => {
         { status: 404 }
       );
     }
+    const log = new ActivityLog({
+      branch: _id,
+      process: "New Key Generated"
+    })
 
+    const createdLog = await log.save();
     return NextResponse.json({
       meta: {
         status: 201,

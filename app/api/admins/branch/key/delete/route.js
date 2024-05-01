@@ -24,6 +24,13 @@ export const PATCH = async (Request) => {
           { status: 404 }
         );
       }
+
+      const log = new ActivityLog({
+        branch: branchId,
+        process: "Key Removed"
+      })
+
+      const createdLog = await log.save();
   
       return NextResponse.json({
         meta: {

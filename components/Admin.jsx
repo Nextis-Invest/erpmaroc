@@ -261,10 +261,7 @@ const Admin = () => {
                     <div className="ml-2 col-span-2">{branch.companyName}</div>
                     <div>{branch.phone}</div>
                     <div className="col-span-2">{branch.cityName}</div>
-
                     <div className=" grid justify-end">
-                      {/* {branch.length > 0 && ( */}
-                      {/* <div className="w-full flex"> */}{" "}
                       <button
                         className="w-10 h-auto"
                         onClick={() => {
@@ -282,8 +279,6 @@ const Admin = () => {
                         />
                       </button>
                     </div>
-                    {/* )} */}
-                    {/* </div> */}
                   </div>
                 );
               })}

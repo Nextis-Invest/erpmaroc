@@ -53,6 +53,19 @@ export const POST = async (Request) => {
     });
     const createdBranch = await newBranch.save();
 
+    if (!createdBranch) {
+      return NextResponse.json(
+        { error: "Try again." },
+        { status: 404 }
+      );
+    }
+    const log = new ActivityLog({
+      branch: createdBranch._id,
+      process: "Branch Created"
+    })
+
+    const createdLog = await log.save();
+
     console.log(createdBranch);
     return NextResponse.json(
       JSON.stringify({
@@ -146,6 +159,12 @@ export const PATCH = async (Request) => {
       );
     }
 
+    const log = new ActivityLog({
+      branch: updatedBranch._id,
+      process: "Branch Updated"
+    })
+
+    const createdLog = await log.save();
 
     // console.log(createdBranch);
     return NextResponse.json(

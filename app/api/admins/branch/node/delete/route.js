@@ -1,4 +1,5 @@
 import { connectToDB } from "@/lib/database/connectToDB";
+import ActivityLog from "@/model/activities";
 import BRANCH from "@/model/branchData";
 import { NextResponse } from "next/server";
 
@@ -20,11 +21,18 @@ export const PATCH = async (Request) => {
   
       if (!updatedBranch) {
         return NextResponse.json(
-          { error: "Branch with deleted key not found." },
+          { error: "Childbranch not found." },
           { status: 404 }
         );
       }
   
+      const log = new ActivityLog({
+        branch: branchId,
+        process: "Branch Removed"
+      })
+
+      const createdLog = await log.save();
+
       return NextResponse.json({
         meta: {
           status: 201,
@@ -37,7 +45,7 @@ export const PATCH = async (Request) => {
       console.log(error);
       return NextResponse.json(
         {
-          message: "Internal Server Error in delete key route while updating",
+          message: "Internal Server Error in delete node route while updating",
           error: error,
         },
         { status: 500 }
