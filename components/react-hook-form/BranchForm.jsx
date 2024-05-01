@@ -29,7 +29,7 @@ export default function BranchForm({ mode }) {
         type: "active",
         exact: true,
       });
-      window.location.reload();
+      //window.location.reload();
       setIsOpen(false);
     },
   });
@@ -45,7 +45,7 @@ export default function BranchForm({ mode }) {
         type: "active",
         exact: true,
       });
-      window.location.reload();
+      //window.location.reload();
       setIsOpen(false);
     },
   });

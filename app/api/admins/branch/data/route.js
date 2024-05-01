@@ -22,7 +22,11 @@ export const GET = async (req, Request, Response) => {
   const endDate = new Date(
     currentYear,
     currentMonth - 1,
-    currentDate.getDate(), 23, 59, 59, 999
+    currentDate.getDate(),
+    23,
+    59,
+    59,
+    999
   ); // Subtracting 1 from currentMonth to get the correct index
 
   console.log(
@@ -38,65 +42,87 @@ export const GET = async (req, Request, Response) => {
   try {
     await connectToDB();
 
-    let staffData = [];
-    let dashboardData = [];
+    let staffData = {};
+    let dashboardData = {};
 
-    const branches = await BRANCH.findById(branchId).select("childBranch")
-    console.log("🚀 ~ GET ~ branches:", branches)
-    
-    await Promise.all(branches.childBranch.map(async(b)=>{
-      
-      // console.log("🚀 ~ awaitPromise.all ~ childBranch:", b)
-      const branch = await BRANCH.findById(b).select("companyName").lean(); ////Remove _id
-      console.log("🚀 ~ awaitPromise.all ~ branch:", branch)
 
-      const s = await STAFF.aggregate([
-        {
-          $match: {
-            branch: b, // Filter by branch _id
+    const branches = await BRANCH.findById(branchId).select("childBranch");
+    console.log("🚀 ~ GET ~ branches:", branches);
+
+    let b = branches.childBranch
+    b.push(branchId)
+    console.log("🚀 ~ GET ~ b:", b)
+    await Promise.all(
+      b.map(async (b) => {
+        const branch = await BRANCH.findById(b).select("companyName").lean(); ////Remove _id
+
+        const s = await STAFF.aggregate([
+          {
+            $match: {
+              branch: b, // Filter by branch _id
+            },
           },
-        },
-        {
-          $group: {
-            _id: null,
-            totalSalary: { $sum: "$salary" },
-            totalBonus: { $sum: "$bonus" },
+          {
+            $group: {
+              _id: null,
+              totalSalary: { $sum: "$salary" },
+              totalBonus: { $sum: "$bonus" },
+            },
           },
-        },
-      ]);
-  
-      const d = await RECORD.aggregate([
-        {
-          $match: {
-            // branch: id, // Filter by branch _id
-            branch: b, // Filter by branch _id
-            date: { $gte: startDate, $lte: endDate }, // Filter records for the current year and up to the current month
+        ]);
+
+        const d = await RECORD.aggregate([
+          {
+            $match: {
+              branch: b,
+              date: { $gte: startDate, $lte: endDate },
+            },
           },
-        },
-        {
-          $group: {
-            _id: { $month: "$date" }, // Group by month
-            totalRecords: { $sum: 1 }, // Count total records
-            totalSales: { $sum: "$totalPrice" }, // Sum totalPrice
+          {
+            $group: {
+              _id: { $month: "$date" },
+              totalRecords: { $sum: 1 },
+              totalSales: { $sum: "$totalPrice" },
+            },
           },
-        },
-        {
-          $project: {
-            _id: 0, // Exclude _id field
-            month: "$_id", // Rename _id to month
-            totalRecords: 1,
-            totalSales: 1,
+          {
+            $project: {
+              _id: 0,
+              month: "$_id",
+              totalRecords: 1,
+              totalSales: 1,
+            },
           },
-        },
-      ]);
+          {
+            $sort: { month: 1 }
+          }
+        ]);
+        
+        // Generate all months between start and end dates
+        const monthsArray = [];
+        let currentDate = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        while (currentDate <= endDateObj) {
+          const currentMonth = currentDate.getMonth() + 1; // Months are zero-based in JavaScript Date objects
+          monthsArray.push(currentMonth);
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+        
+        // Left outer join with existing aggregation results to include months with zero data
+        const result = monthsArray.map(month => {
+          const existingMonthData = d.find(item => item.month === month);
+          return existingMonthData ? existingMonthData : { month: month, totalRecords: 0, totalSales: 0 };
+        });
+        
+        
 
+        let staff = { [branch.companyName]: { ...s } };
+        let dashboard = { [branch.companyName]: { ...result } };
 
-      staffData.push({ [branch.companyName]: { ...s } });
-      dashboardData.push({ [branch.companyName]: { ...d } });
-      
-    }))
-
-
+        Object.assign(staffData, staff); 
+        Object.assign(dashboardData, dashboard); 
+      })
+    );
 
     if (!dashboardData) {
       return NextResponse.json({
@@ -107,7 +133,6 @@ export const GET = async (req, Request, Response) => {
           error: "Branch doesn't exist",
         },
       });
-
     }
     return NextResponse.json({
       meta: {

@@ -4,7 +4,6 @@ import { DataContext } from "@/Context/DataContext";
 import React, { Suspense, useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import Loading from "./Loading";
-import { ExcelHandler } from "./ExcelHandler";
 import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -12,6 +11,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 const DashBoard = () => {
+  //TODO Loading
+  // TODO Offline alert
   const queryClient = useQueryClient();
 
   let months = [
@@ -28,11 +29,16 @@ const DashBoard = () => {
     "November",
     "December",
   ];
-  const [chartMonths, setChartMonths] = useState([]);
-  const [totalSale, setTotalSale] = useState([]);
+
+  const [pieBranch, setPieBranch] = useState([]);
   const [revenue, setRevenue] = useState([]);
   const [series, setSeries] = useState([]);
-  const [pieChartData, setPieChartData] = useState({salaries:0, bonus:0, revenue:0});
+  const [seriesForColChart, setSeriesForColChart] = useState([]);
+  const [pieChartData, setPieChartData] = useState({
+    salaries: 0,
+    bonus: 0,
+    revenue: 0,
+  });
   const { user, error, isLoading } = useUser();
 
   //////////////////// REDIRECT TO LOGOUT if not USER
@@ -50,6 +56,14 @@ const DashBoard = () => {
     error: errorInFetchBranch,
     isSuccess,
   } = useBranchFetch(user?.email);
+  console.log("🚀 ~ DashBoard ~ branchData:", branchData);
+
+  const [selectedPieBranch, setSelectedPieBranch] = useState(branchData?.data?.branch?.companyName || "");
+  useEffect(() => {
+    if (branchData && branchData.data && branchData.data.branch) {
+      setSelectedPieBranch(branchData.data.branch.companyName);
+    }
+  }, [branchData, branchData?.data?.branch?.companyName]);
 
   const {
     data,
@@ -57,8 +71,6 @@ const DashBoard = () => {
     error: errorInFetchBranchdData,
   } = useBranchDataFetch(branchData?.data?.branch?._id);
 
-  console.log("🚀 ~ DashBoard ~ data:", data?.data?.dashboardData);
-  // console.log("🚀 ~ DashBoard ~ branchData:", branchData);
 
 
   //// REFETCH when required data changes
@@ -74,6 +86,7 @@ const DashBoard = () => {
   }, [queryClient, user]);
 
   useEffect(() => {
+    // setPieBranch(branchData?.data?.branch?.companyName);
     const refetch = async () => {
       await queryClient.refetchQueries({
         queryKey: "dashboardData",
@@ -84,87 +97,83 @@ const DashBoard = () => {
     refetch();
   }, [queryClient, branchData]);
 
-  console.log("🚀 ~ chartController ~ series:", series);
-
-
-
-
-
   ///////////////////Chart Controller Start
 
   useEffect(() => {
-    let newTotalSales = [];
-    let newRevenue = [];
-    let pieChartData = [];
+    let branchNames = []; //This is for label in pie chart
+    let serie = [];
+    let colSeries = [];
+    let revenue;
+
+
+    const currentMonth = new Date().getMonth() - 1
     
-
-    data?.data?.dashboardData.forEach((branch)=>{
-      console.log("🚀 ~ data?.data?.dashboardData,map ~ branch:", data?.data?.dashboardData)
-
-      Object.entries(dashboardData).forEach(([branchName, branchData]) => {
-        console.log("Branch:", branchName);
+    for (const branchName in data?.data?.dashboardData) {
+      const branch = data?.data?.dashboardData[branchName];
+      const dashboardData = data?.data?.dashboardData;
+      const selectedBranchData = dashboardData && dashboardData[selectedPieBranch];
+      const piebranch = selectedBranchData && selectedBranchData[currentMonth];
       
-        // Iterate over each month's data for the current branch
-        Object.keys(branchData).forEach(monthKey => {
-          const monthData = branchData[monthKey];
-          console.log("Month:", monthData.month);
-          console.log("Total Records:", monthData.totalRecords);
-          console.log("Total Sales:", monthData.totalSales);
-        });
-      });
+      console.log("🚀 ~ useEffect ~ branch:", piebranch);
+      
+      const totalSales =
+        Object?.values(branch).map((data) => data.totalSales) || 0;
 
-      // branch.map(
-      //   ({ totalRecords, totalSales, month }) => {
-      //     console.log("🚀 ~ data?.data?.dashboardData.map ~ totalRecords:", totalRecords)
-      //     // const monthNumber = new Date().getMonth() + 1;
-      //     // setChartMonths(months.slice(0, monthNumber)); ///This nolonger need because serirs take all task.
-  
-      //     newRevenue[month - 1] = totalSales; /// totalSale was sum of sale price when come from api
-      //     newTotalSales[month - 1] = totalRecords;
-      //     console.log("🚀 ~ useEffect ~ newRevenue:", newRevenue)
-  
-      //   }
-      // );
-    })
+      const totalRecords = Object.values(branch).map(
+        (data) => data.totalRecords
+      );
 
+      revenue = totalSales;
+      console.log("🚀 ~ useEffect ~ revenue:", revenue)
 
+      let s = {
+        name: branchName,
+        data: totalSales,
+      };
+      let colSerie = {
+        name: branchName,
+        data: totalRecords,
+      };
+      branchNames.push(branchName);
+      serie.push(s);
+      colSeries.push(colSerie);
 
-    setTotalSale(newTotalSales);
-    setRevenue(newRevenue);
-  }, [data?.data]);
-  console.log("🚀 ~ useEffect ~ totalSale:", totalSale);
+    }
+
+    const branch = data?.data?.dashboardData["IGNITE"]?.[currentMonth];
+    // const totalSales =
+    // Object?.values(branch).map((data) => data.totalSales) || 0;
+    revenue = branch?.totalSales
+    console.log("🚀 ~ useEffect ~ revenue:", revenue)
+
+    // console.log("🚀 ~ useEffect ~ totalSales:", totalSales)
+    setPieChartData((prevPieChartData) => ({
+      ...prevPieChartData,
+      revenue: revenue || 0,
+    }));
+    setPieBranch(branchNames);
+    setSeries(serie);
+    setSeriesForColChart(colSeries);
+  }, [branchData, data?.data?.dashboardData, data?.data.staffData, selectedPieBranch]);
 
   useEffect(() => {
     const chartController = () => {
       if (data == null) {
-        return;
+        // return;
       }
-
-      let s = [
-        {
-          name: "Revenue",
-          data: revenue,
-        },
-      ];
-      const monthNumber = new Date().getMonth();
-      console.log("🚀 ~ DashBoard ~ revenue:", revenue[monthNumber])
-
-      setSeries(s);
-      
-      let r = revenue[monthNumber] - (data?.data?.staffData[0]?.totalSalary + data?.data?.staffData[0]?.totalBonus)
-      console.log("🚀 ~ chartController ~ r:", r)
+      console.log("🚀 ~ chartController ~ data?.data?.staffData:", data?.data?.staffData);
 
       setPieChartData((prevPieChartData) => ({
         ...prevPieChartData,
-        salaries: data?.data?.staffData[0]?.totalSalary || 0,
-        bonus: data?.data?.staffData[0]?.totalBonus || 0,
-        revenue: r || 0,
+        salaries: data?.data?.staffData[selectedPieBranch]?.["0"]?.totalSalary || 0,
+        bonus: data?.data?.staffData[selectedPieBranch]?.["0"]?.totalBonus || 0,
+        // revenue: revenue || 0,
       }));
     };
 
     chartController();
-  }, [data, revenue]);
-
+  }, [data, pieBranch, revenue, selectedPieBranch]);
+  console.log("🚀 ~ DashBoard ~ pieBranch:", pieBranch);
 
   ///////////////////Chart Controller End
 
@@ -210,20 +219,8 @@ const DashBoard = () => {
   };
 
   var colChartOption = {
-    series: [
-      {
-        name: "Branch 1",
-        data: totalSale,
-      },
-      // {
-      //   name: "Branch 2",
-      //   data: [76, 85, 101, 98, 87, 36, 26, 45, 105, 91, 114, 94],
-      // },
-      // {
-      //   name: "Branch 3",
-      //   data: [35, 41, 36, 26, 45, 48, 52, 36, 26, 45, 53, 41],
-      // },
-    ],
+    series: seriesForColChart,
+
     chart: {
       type: "bar",
       height: 350,
@@ -270,7 +267,7 @@ const DashBoard = () => {
     tooltip: {
       y: {
         formatter: function (val) {
-          return val + " MMK";
+          return val + " Products sold";
         },
       },
     },
@@ -279,8 +276,8 @@ const DashBoard = () => {
   var pieOptions = {
     chart: {
       type: "donut",
-    },    
-    series: [pieChartData.salaries, pieChartData.bonus, pieChartData.revenue], 
+    },
+    series: [pieChartData.salaries, pieChartData.bonus, pieChartData.revenue],
     labels: ["Salaries", "Bonus", "Revenue"],
     plotOptions: {
       pie: {
@@ -326,7 +323,39 @@ const DashBoard = () => {
                 height={500}
                 className="mt-5 max-h-72"
               />
-              <span className=" absolute bottom-1 right-2">Monthly overview</span>
+              <ul className="flex flex-col gap-2 absolute bottom-0">
+                {pieBranch &&
+                  pieBranch.map((branchName) => (
+                    <li key={Math.random()}>
+                      <input
+                        type="radio"
+                        id={branchName}
+                        name="hosting"
+                        value={branchName}
+                        className="hidden peer"
+                        onChange={(e)=>{
+                          setSelectedPieBranch(e.target.value)
+                          console.log(selectedPieBranch)
+                        }}
+                        // required
+                      />
+                      <label
+                        for={branchName}
+                        className={`inline-flex items-center justify-between w-auto p-2 py-1 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 ${selectedPieBranch === branchName ? "border-blue-600 text-blue-600" : ""}`}
+                        >
+                        <div className="block">
+                          <div className="w-full text-sm font-semibold">
+                            {branchName}
+                          </div>
+                        </div>
+                      </label>
+                    </li>
+                  ))}
+              </ul>
+
+              <span className=" absolute bottom-1 right-2">
+                Monthly overview
+              </span>
             </div>
             <div id="secCol" className="w-2/3 max-h-[300px]">
               {" "}
