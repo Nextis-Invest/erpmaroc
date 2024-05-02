@@ -4,7 +4,10 @@ import { NextResponse, NextRequest } from "next/server";
 
 export const GET = async (NextRequest) => {
   const ip = NextRequest.headers.get("x-forwarded-for");
-  console.log(ip);
+  console.log("🚀 ~ GET ~ ip:", ip)
+
+  // Check if the user is authenticated
+
   try {
     const searchParams = NextRequest.nextUrl.searchParams;
     const mail = searchParams.get("email");

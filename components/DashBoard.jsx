@@ -11,8 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 const DashBoard = () => {
-  //TODO Loading
-  // TODO Offline alert
+
   const queryClient = useQueryClient();
   const { user, error, isLoading } = useUser();
 
@@ -58,7 +57,9 @@ const DashBoard = () => {
   } = useBranchFetch(user?.email);
   console.log("🚀 ~ DashBoard ~ branchData:", branchData);
 
-  const [selectedPieBranch, setSelectedPieBranch] = useState(branchData?.data?.branch?.companyName || "");
+  const [selectedPieBranch, setSelectedPieBranch] = useState(
+    branchData?.data?.branch?.companyName || ""
+  );
   useEffect(() => {
     if (branchData && branchData.data && branchData.data.branch) {
       setSelectedPieBranch(branchData.data.branch.companyName);
@@ -70,8 +71,6 @@ const DashBoard = () => {
     isLoading: fetchingBranchData,
     error: errorInFetchBranchdData,
   } = useBranchDataFetch(branchData?.data?.branch?._id);
-
-
 
   //// REFETCH when required data changes
   useEffect(() => {
@@ -104,17 +103,17 @@ const DashBoard = () => {
     let colSeries = [];
     let revenue;
 
-
     const currentMonth = new Date().getMonth();
-    
+
     for (const branchName in data?.data?.dashboardData) {
       const branch = data?.data?.dashboardData[branchName];
       const dashboardData = data?.data?.dashboardData;
-      const selectedBranchData = dashboardData && dashboardData[selectedPieBranch];
+      const selectedBranchData =
+        dashboardData && dashboardData[selectedPieBranch];
       const piebranch = selectedBranchData && selectedBranchData[currentMonth];
-      
+
       console.log("🚀 ~ useEffect ~ branch:", piebranch);
-      
+
       const totalSales =
         Object?.values(branch).map((data) => data.totalSales) || 0;
 
@@ -123,7 +122,7 @@ const DashBoard = () => {
       );
 
       revenue = totalSales;
-      console.log("🚀 ~ useEffect ~ revenue:", revenue)
+      console.log("🚀 ~ useEffect ~ revenue:", revenue);
 
       let s = {
         name: branchName,
@@ -136,14 +135,13 @@ const DashBoard = () => {
       branchNames.push(branchName);
       serie.push(s);
       colSeries.push(colSerie);
-
     }
 
     const branch = data?.data?.dashboardData["IGNITE"]?.[currentMonth];
     // const totalSales =
     // Object?.values(branch).map((data) => data.totalSales) || 0;
-    revenue = branch?.totalSales
-    console.log("🚀 ~ useEffect ~ revenue:", revenue)
+    revenue = branch?.totalSales;
+    console.log("🚀 ~ useEffect ~ revenue:", revenue);
 
     // console.log("🚀 ~ useEffect ~ totalSales:", totalSales)
     setPieChartData((prevPieChartData) => ({
@@ -153,18 +151,27 @@ const DashBoard = () => {
     setPieBranch(branchNames);
     setSeries(serie);
     setSeriesForColChart(colSeries);
-  }, [branchData, data?.data?.dashboardData, data?.data.staffData, selectedPieBranch]);
+  }, [
+    branchData,
+    data?.data?.dashboardData,
+    data?.data.staffData,
+    selectedPieBranch,
+  ]);
 
   useEffect(() => {
     const chartController = () => {
       if (data == null) {
         // return;
       }
-      console.log("🚀 ~ chartController ~ data?.data?.staffData:", data?.data?.staffData);
+      console.log(
+        "🚀 ~ chartController ~ data?.data?.staffData:",
+        data?.data?.staffData
+      );
 
       setPieChartData((prevPieChartData) => ({
         ...prevPieChartData,
-        salaries: data?.data?.staffData[selectedPieBranch]?.["0"]?.totalSalary || 0,
+        salaries:
+          data?.data?.staffData[selectedPieBranch]?.["0"]?.totalSalary || 0,
         bonus: data?.data?.staffData[selectedPieBranch]?.["0"]?.totalBonus || 0,
         // revenue: revenue || 0,
       }));
@@ -332,16 +339,20 @@ const DashBoard = () => {
                         name="hosting"
                         value={branchName}
                         className="hidden peer"
-                        onChange={(e)=>{
-                          setSelectedPieBranch(e.target.value)
-                          console.log(selectedPieBranch)
+                        onChange={(e) => {
+                          setSelectedPieBranch(e.target.value);
+                          console.log(selectedPieBranch);
                         }}
                         // required
                       />
                       <label
                         for={branchName}
-                        className={`inline-flex items-center justify-between w-auto p-2 py-1 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 ${selectedPieBranch === branchName ? "border-blue-600 text-blue-600" : ""}`}
-                        >
+                        className={`inline-flex items-center justify-between w-auto p-2 py-1 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100 ${
+                          selectedPieBranch === branchName
+                            ? "border-blue-600 text-blue-600"
+                            : ""
+                        }`}
+                      >
                         <div className="block">
                           <div className="w-full text-sm font-semibold">
                             {branchName}

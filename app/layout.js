@@ -5,6 +5,7 @@ import { UserProvider } from "@auth0/nextjs-auth0/client";
 import FormSideBar from "@/components/FormSideBar";
 import { ReactQueryProvider } from "@/Context/QueryClientProvider";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import NetworkStatus from "@/components/NetworkStatus";
 
 export const metadata = {
   title: "Enterprise Resourse Planning System",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
               {" "}
               <main className="max-w-[2000px] mx-auto flex items-start justify-between lg:justify-evenly px-5 py-10">
                 <SideBar />
+                <NetworkStatus/>
                 {children}
                 <ReactQueryDevtools initialIsOpen={false} />
                 <FormSideBar />
