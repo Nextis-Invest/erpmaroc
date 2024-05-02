@@ -73,11 +73,11 @@ const Admin = () => {
   }, [queryClient, branchData]);
 
   //////////////////// REDIRECT TO LOGOUT if not USER
-  useEffect(() => {
-    if (!isLoading && !user) {
-      return redirect("/login");
-    }
-  }, [user, isLoading]);
+  // useEffect(() => {
+  //   if (!isLoading && !user) {
+  //     return redirect("/login");
+  //   }
+  // }, [user, isLoading]);
 
   //////////////////////
 

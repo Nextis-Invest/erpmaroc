@@ -152,12 +152,12 @@ const TanStackTable = () => {
     {
       accessorFn: (row) => row.price,
       id: "price",
-      cell: (info) => info.getValue(),
+      cell: (info) => info.getValue().toLocaleString(),
     },
     {
       accessorFn: (row) => row.quantity,
       id: "quantity",
-      cell: (info) => info.getValue(),
+      cell: (info) => info.getValue().toLocaleString(),
     },
   ];
 

@@ -1,20 +1,17 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
-// import { middleware } from "@/middlewares/ratelimitingMiddleware";
 
-
-//// TODO API security with auth 0
 
 //// TODO Rate Limiting (Optional)
 
 export const GET = async (NextRequest) => {
-  // middleware(NextRequest)
   const ip = NextRequest.headers.get("x-forwarded-for");
-  console.log(ip);
+  console.log("🚀 ~ GET ~ ip:", ip)
   try {
     const searchParams = NextRequest.nextUrl.searchParams;
     const mail = searchParams.get("email");
+    console.log("🚀 ~ GET ~ mail:", mail)
 
     await connectToDB();
     const admin = await ADMIN.findOne({ email: mail });

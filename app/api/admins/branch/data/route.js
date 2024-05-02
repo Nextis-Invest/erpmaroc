@@ -45,6 +45,12 @@ export const GET = async (req, Request, Response) => {
     let staffData = {};
     let dashboardData = {};
 
+// TODO D/M/Y
+// TODO Sell Count cards
+// TODO Right aligh
+// TODO Comma sperator
+// TODO Settings 
+// TODO API security with Auth0
 
     const branches = await BRANCH.findById(branchId).select("childBranch");
     console.log("🚀 ~ GET ~ branches:", branches);

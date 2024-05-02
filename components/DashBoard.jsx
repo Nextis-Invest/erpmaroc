@@ -11,9 +11,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 const DashBoard = () => {
-
   const queryClient = useQueryClient();
-  const { user, error, isLoading } = useUser();
+  const { user, error, isLoading, getAccessTokenSilently } = useUser();
+  console.log("🚀 ~ DashBoard ~ user:", user);
+
 
   let months = [
     "January",
@@ -73,6 +74,7 @@ const DashBoard = () => {
   } = useBranchDataFetch(branchData?.data?.branch?._id);
 
   //// REFETCH when required data changes
+
   useEffect(() => {
     const refetch = async () => {
       await queryClient.refetchQueries({

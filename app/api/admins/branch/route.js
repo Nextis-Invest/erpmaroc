@@ -2,6 +2,9 @@ import BRANCH from "@/model/branchData";
 import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
 
+import { getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0';
+
+
 import { connectToDB } from "@/lib/database/connectToDB";
 
 export const POST = async (Request) => {
@@ -14,8 +17,8 @@ export const POST = async (Request) => {
       cityName,
       streetName,
       websiteUrl,
-      email:managerEmail,
-      branchEmail : email,
+      email: managerEmail,
+      branchEmail: email,
       phone,
     } = body;
     console.log(
@@ -54,29 +57,24 @@ export const POST = async (Request) => {
     const createdBranch = await newBranch.save();
 
     if (!createdBranch) {
-      return NextResponse.json(
-        { error: "Try again." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Try again." }, { status: 404 });
     }
     const log = new ACTIVITYLOG({
       branch: createdBranch._id,
-      process: "Branch Created"
-    })
+      process: "Branch Created",
+    });
 
     const createdLog = await log.save();
 
     console.log(createdBranch);
-    return NextResponse.json(
-      JSON.stringify({
-        meta: {
-          status: 201,
-          manager: createdBranch.manager,
-          branchId: createdBranch._id,
-        },
-        data: { createdBranch },
-      })
-    );
+    return NextResponse.json({
+      meta: {
+        status: 201,
+        manager: createdBranch.manager,
+        branchId: createdBranch._id,
+      },
+      data: { createdBranch },
+    });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
@@ -97,7 +95,7 @@ export const PATCH = async (Request) => {
       streetName,
       websiteUrl,
       email: managerEmail,
-      branchEmail :email,
+      branchEmail: email,
       phone,
     } = body;
     console.log(
@@ -118,10 +116,7 @@ export const PATCH = async (Request) => {
     // console.log("🚀 ~ PATCH ~ existingBranch:", existingBranch)
 
     if (!admin) {
-      return NextResponse.json(
-        { error: "Unauthorized." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
     const updateFields = {};
@@ -129,7 +124,6 @@ export const PATCH = async (Request) => {
     /// This filter unmatched values before actual update to db
     for (const key in body) {
       if (body.hasOwnProperty(key) || existingBranch.hasOwnProperty(key)) {
-
         if (existingBranch[key] !== body[key]) {
           updateFields[key] = body[key];
         }
@@ -148,39 +142,36 @@ export const PATCH = async (Request) => {
       { $set: updateFields },
       { new: true }
     );
-    console.log("🚀 ~ PATCH ~ updateFields:", updateFields)
-    console.log("🚀 ~ PATCH ~ updatedBranch:", updatedBranch)
-    
+    console.log("🚀 ~ PATCH ~ updateFields:", updateFields);
+    console.log("🚀 ~ PATCH ~ updatedBranch:", updatedBranch);
 
     if (!updatedBranch) {
-      return NextResponse.json(
-        { error: "Branch not found." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Branch not found." }, { status: 404 });
     }
 
     const log = new ACTIVITYLOG({
       branch: updatedBranch._id,
-      process: "Branch Updated"
-    })
+      process: "Branch Updated",
+    });
 
     const createdLog = await log.save();
 
     // console.log(createdBranch);
-    return NextResponse.json(
-      {
-        meta: {
-          status: 201,
-          manager: updatedBranch.manager,
-          branchId: updatedBranch._id,
-        },
-        data: { updatedBranch },
-      }
-    );
+    return NextResponse.json({
+      meta: {
+        status: 201,
+        manager: updatedBranch.manager,
+        branchId: updatedBranch._id,
+      },
+      data: { updatedBranch },
+    });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { message: "Internal Server Error in Branch route while updating", error: error },
+      {
+        message: "Internal Server Error in Branch route while updating",
+        error: error,
+      },
       { status: 500 }
     );
   }
@@ -195,19 +186,32 @@ export const GET = async (req, Request, Response) => {
 
   try {
     await connectToDB();
-    const branch = await BRANCH.findOne({ manager: managerEmail }).populate("childBranch");
+    const branch = await BRANCH.findOne({ manager: managerEmail }).populate(
+      "childBranch"
+    );
 
-    if(!branch){
+    if (!branch) {
       return NextResponse.json({
-        "status": "204",
-        "message": "Failed to retrieve branch data",
-        "errorCode": 204,
-        "details": {
-          "error": "Branch doesn't exist",
-        }
-      }
-      )
+        status: "204",
+        message: "Failed to retrieve branch data",
+        errorCode: 204,
+        details: {
+          error: "Branch doesn't exist",
+        },
+      });
     }
+    console.log("🚀 ~ GET ~ branch:", branch.manager)
+
+    // if (branch.manager == managerEmail) {
+    //   return NextResponse.json({
+    //     status: "204",
+    //     message: "Failed to retrieve branch data.",
+    //     errorCode: 204,
+    //     details: {
+    //       error: "Branch doesn't exist",
+    //     },
+    //   });
+    // }
     return NextResponse.json({
       meta: {
         status: 201,
