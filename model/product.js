@@ -19,6 +19,7 @@ if (mongoose.models && mongoose.models.PRODUCT) {
       },
       price: {
         type: Number,
+        min: 0, 
         required: true,
       },
       quantity: {

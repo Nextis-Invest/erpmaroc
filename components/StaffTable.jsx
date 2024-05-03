@@ -240,7 +240,7 @@ const StaffTable = () => {
           </div>
         </div>
       </div>
-      <table className=" w-full max-h-[70vh] h-[60vh] overflow-y-scroll text-left">
+      <table className=" w-full max-h-[70vh] h-[60vh] overflow-y-scroll text-right">
         <thead className="bg-active sticky top-12 z-10 text-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>

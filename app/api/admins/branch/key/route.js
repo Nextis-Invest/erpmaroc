@@ -1,6 +1,8 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import { generateRandomString } from "@/lib/keyGenerator";
+import ACTIVITYLOG from "@/model/activities";
 import BRANCH from "@/model/branchData";
+import { getSession } from "@auth0/nextjs-auth0";
 import { NextResponse } from "next/server";
 
 //////////  /api/admins/branch/key
@@ -15,6 +17,20 @@ export const PATCH = async (Request) => {
 
     if (!existingBranch) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != existingBranch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to generate new key.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
     }
 
     const generateKey = generateRandomString(20);

@@ -4,7 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 
 import { connectToDB } from "@/lib/database/connectToDB";
 import PRODUCT from "@/model/product";
-// import { parse } from "next/dist/build/swc";
+import { getSession } from "@auth0/nextjs-auth0";
 
 /// /api/admins/branch/products
 export const POST = async (Request) => {
@@ -23,13 +23,28 @@ export const POST = async (Request) => {
     );
     await connectToDB();
     const branch = await BRANCH.findOne({ manager: email }); //check whether the branch was exist with given mananger email
-
+    
     if (!branch) {
       return NextResponse.json(
         { error: "Branch doesn't exist." },
         { status: 404 }
       );
     }
+    
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != branch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to add product.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
+    }
+
     const newProduct = new PRODUCT({
       name: name,
       description: description,

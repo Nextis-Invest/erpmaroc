@@ -2,23 +2,38 @@ import { connectToDB } from "@/lib/database/connectToDB";
 import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
 
-export const GET = async (NextRequest) => {
-  const ip = NextRequest.headers.get("x-forwarded-for");
-  console.log("🚀 ~ GET ~ ip:", ip)
+// import { getAccessToken } from '@auth0/nextjs-auth0';
 
-  // Check if the user is authenticated
+// export async function GET() {
+//   const { accessToken } = await getAccessToken();
+//   return NextResponse.json({ foo: 'bar' });
+// }
 
-  try {
-    const searchParams = NextRequest.nextUrl.searchParams;
-    const mail = searchParams.get("email");
+// app/api/protected/route.js
+import { withApiAuthRequired, getSession } from '@auth0/nextjs-auth0';
 
-    await connectToDB();
-    const admin = await ADMIN.findOne({ email: mail });
-    return new NextResponse([admin]);
-  } catch (error) {
-    throw error;
-  }
-};
+export const GET = withApiAuthRequired(async function myApiRoute(req) {
+  const res = new NextResponse();
+  const session = await getSession(req, res);
+  return NextResponse.json({data: session });
+});
+
+// export const GET = async (NextRequest, req) => {
+//   const ip = NextRequest.headers.get("x-forwarded-for");
+//   console.log("🚀 ~ GET ~ ip:", ip)
+
+
+//   try {
+//     const searchParams = NextRequest.nextUrl.searchParams;
+//     const mail = searchParams.get("email");
+
+//     await connectToDB();
+//     const admin = await ADMIN.findOne({ email: mail });
+//     return new NextResponse([admin]);
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 export const PUT = async (NextRequest, NextResponse) => {
   try {

@@ -4,6 +4,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { connectToDB } from "@/lib/database/connectToDB";
 import STAFF from "@/model/staffs";
 import ACTIVITYLOG from "@/model/activities";
+import { getSession } from "@auth0/nextjs-auth0";
 // import { parse } from "next/dist/build/swc";
 
 /// /api/admins/branch/staffs
@@ -32,6 +33,22 @@ export const POST = async (Request) => {
         { status: 404 }
       );
     }
+
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != branch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to update.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
+    }
+
     const newStaff = new STAFF({
       name: name,
       position: position,
@@ -113,6 +130,21 @@ export const PATCH = async (Request) => {
       );
     }
 
+    const existingBranch = await BRANCH.findOne({ _id: existingStaff.branch });
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != existingBranch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to update.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
+    }
     const updateFields = {};
 
     /// This filter unmatched values before actual update to db
@@ -251,12 +283,33 @@ export const DELETE = async (req) => {
     console.log("💂 Removing Staff", _id);
     await connectToDB();
 
+    const existingStaff = await STAFF.findById(_id);
+
+
+    const existingBranch = await BRANCH.findOne({ _id: existingStaff.branch });
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != existingBranch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to remove staff.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
+    }
+
     const deletedStaff = await STAFF.findByIdAndDelete(_id);
     console.log("🚀 ~ PATCH ~ deletedStaff:", deletedStaff);
 
     if (!deletedStaff) {
       return NextResponse.json({ error: "Staff not found." }, { status: 404 });
     }
+
+
 
     const log = new ACTIVITYLOG({
       branch: deletedStaff.branch,

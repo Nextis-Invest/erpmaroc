@@ -1,6 +1,8 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import { generateRandomString } from "@/lib/keyGenerator";
+import ACTIVITYLOG from "@/model/activities";
 import BRANCH from "@/model/branchData";
+import { getSession } from "@auth0/nextjs-auth0";
 import { NextResponse } from "next/server";
 
 //////////  /api/admins/branch/node
@@ -10,6 +12,23 @@ export const PATCH = async (Request) => {
     const { _id, key } = body;
     console.log("🗝️ Adding branch", _id, key);
     await connectToDB();
+
+    const existingBranch = await BRANCH.findOne({ _id: _id });
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != existingBranch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to update.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
+    }
+
     const childBranch = await BRANCH.findOne({ keys: { $elemMatch: { key: key } } });
     console.log("🚀 ~ PATCH ~ childBranch:", childBranch)
 

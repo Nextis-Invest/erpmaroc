@@ -1,6 +1,7 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import ACTIVITYLOG from "@/model/activities";
 import BRANCH from "@/model/branchData";
+import { getSession } from "@auth0/nextjs-auth0";
 import { NextResponse } from "next/server";
 
 export const PATCH = async (Request) => {
@@ -10,7 +11,21 @@ export const PATCH = async (Request) => {
       console.log("🧩 removing Node", _id, branchId);
       await connectToDB();
   
+      const existingBranch = await BRANCH.findOne({ _id: branchId });
 
+      const res = new NextResponse();
+      const session = await getSession(res);
+  
+      if(session.user.email != existingBranch.manager){
+        return NextResponse.json({
+          status: 401,
+          message: "Failed to update.",
+          errorCode: 401,
+          details: {
+            error: "Unauthourized",
+          },
+        });
+      }
   
       const updatedBranch = await BRANCH.findOneAndUpdate(
         {_id: branchId},

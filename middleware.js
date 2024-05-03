@@ -1,14 +1,7 @@
-// // // import { NextResponse } from "next/server";
-
-// export function middleware (){
-     
-// }
-
-// // export {default} from "next-auth/middleware"
-
-// // export const config = {matcher: ["/", "/admin"]}
-
+// import { getAccessToken } from "@auth0/nextjs-auth0";
+import { NextResponse } from "next/server";
 import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge'
+import { getAccessToken } from "@auth0/nextjs-auth0/edge";
 
 export const config = {
     matcher: [
@@ -17,4 +10,19 @@ export const config = {
     ]
 }
 
+
+export async function middleware(req){
+    const res = new NextResponse();
+    // console.log("🚀 ~ middleware ~ res:", res)
+    // const { accessToken } = await getAccessToken(req, res);
+    // console.log("🚀 ~ middleware ~ accessToken:", accessToken)
+    console.log("💂💂Middleware")
+    // console.log("🚀 ~ middleware ~ res:", req)
+    return NextResponse.next()
+}
+
+
+
 export default withMiddlewareAuthRequired()
+
+

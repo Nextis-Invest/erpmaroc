@@ -1,6 +1,8 @@
 import { connectToDB } from "@/lib/database/connectToDB";
+import BRANCH from "@/model/branchData";
 import PRODUCT from "@/model/product";
 import RECORD from "@/model/record";
+import { getSession } from "@auth0/nextjs-auth0";
 import { NextResponse } from "next/server";
 
 export const PATCH = async (Request) => {
@@ -23,6 +25,22 @@ export const PATCH = async (Request) => {
         { error: "Product didn't found." },
         { status: 401 }
       );
+    }
+
+    const existingBranch = await BRANCH.findOne({ _id: existingProduct.branch });
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+
+    if(session.user.email != existingBranch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
     }
 
     let afterSaleQuantity = existingProduct.quantity - quantity;

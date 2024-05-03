@@ -2,8 +2,16 @@ import { connectToDB } from "@/lib/database/connectToDB";
 import BRANCH from "@/model/branchData";
 import RECORD from "@/model/record";
 import STAFF from "@/model/staffs";
+import { getSession } from "@auth0/nextjs-auth0";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
+
+
+// TODO D/M/Y
+// TODO Sell Count cards
+// TODO Settings 
+// TODO PWS change
+// TODO Yearly report
 
 ////////    api/admins/branch/data?id="_id"
 export const GET = async (req, Request, Response) => {
@@ -45,12 +53,20 @@ export const GET = async (req, Request, Response) => {
     let staffData = {};
     let dashboardData = {};
 
-// TODO D/M/Y
-// TODO Sell Count cards
-// TODO Right aligh
-// TODO Comma sperator
-// TODO Settings 
-// TODO API security with Auth0
+const res = new NextResponse();
+const session = await getSession(res);
+
+if(session.user.email != branchId){
+  return NextResponse.json({
+    status: 401,
+    message: "Failed to Retrive.",
+    errorCode: 401,
+    details: {
+      error: "Unauthourized",
+    },
+  });
+}
+
 
     const branches = await BRANCH.findById(branchId).select("childBranch");
     console.log("🚀 ~ GET ~ branches:", branches);

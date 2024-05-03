@@ -30,12 +30,15 @@ if (mongoose.models.STAFF) {
     },salary: {
       type: Number,
       required: true,
+      min: 0, 
     },
     bonus: {
       type: Number,
+      min: 0, 
     },
     dayOff: {
       default: 0,
+      min: 0, 
       type: Number,
     },
     address: {
