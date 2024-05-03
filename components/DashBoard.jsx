@@ -9,12 +9,14 @@ import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
+import Card from "./Card";
+
+/// TODO Sale are count of doc but it need to fix with quantity of product sold
 
 const DashBoard = () => {
   const queryClient = useQueryClient();
   const { user, error, isLoading, getAccessTokenSilently } = useUser();
   console.log("🚀 ~ DashBoard ~ user:", user);
-
 
   let months = [
     "January",
@@ -156,7 +158,7 @@ const DashBoard = () => {
   }, [
     branchData,
     data?.data?.dashboardData,
-    data?.data.staffData,
+    data?.data?.staffData,
     selectedPieBranch,
   ]);
 
@@ -305,6 +307,7 @@ const DashBoard = () => {
           id="chart"
           className="drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none"
         >
+
           <div id="firstRow" className="w-full flex items-start">
             <div id="firstCol" className="w-full">
               {" "}
@@ -314,9 +317,14 @@ const DashBoard = () => {
                 // series={chartOptions.series}
                 type={chartOptions.chart.type}
                 height={320}
-                className="w-full border-b-2 border-primary"
+                className="w-full "
               />
             </div>
+          </div>
+          <div id="cards" className="w-full flex justify-between h-32 gap-10">
+            <Card />
+            <Card />
+            <Card />
           </div>
           <div id="secondRow" className="flex items-center">
             <div
@@ -338,7 +346,7 @@ const DashBoard = () => {
                       <input
                         type="radio"
                         id={branchName}
-                        name="hosting"
+                        name="branch"
                         value={branchName}
                         className="hidden peer"
                         onChange={(e) => {

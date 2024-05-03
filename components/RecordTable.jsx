@@ -163,12 +163,12 @@ const RecordTable = () => {
     {
       accessorFn: (row) => row.totalPrice,
       id: "totalPrice",
-      cell: (info) => info.getValue(),
+      cell: (info) => info.getValue().toLocaleString(),
     },
     {
       accessorFn: (row) => row.date,
       id: "date",
-      cell: (info) => dateFormat(info.getValue(), "paddedShortDate"),
+      cell: (info) => dateFormat(info.getValue(), "d/mm/yy"),
     },
   ];
 
@@ -248,7 +248,7 @@ const RecordTable = () => {
           </div>
         </div>
       </div>
-      <table className=" w-full max-h-[70vh] h-[60vh] overflow-y-scroll text-left">
+      <table className=" w-full max-h-[70vh] h-[60vh] overflow-y-scroll text-center">
         <thead className="bg-active sticky top-12 z-10 text-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>

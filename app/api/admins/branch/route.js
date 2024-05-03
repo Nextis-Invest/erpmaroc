@@ -243,18 +243,9 @@ export const GET = async (req, Request, Response) => {
       });
     }
 
+
     console.log("🚀 ~ GET ~ branch:", branch.manager)
 
-    // if (branch.manager == managerEmail) {
-    //   return NextResponse.json({
-    //     status: "204",
-    //     message: "Failed to retrieve branch data.",
-    //     errorCode: 204,
-    //     details: {
-    //       error: "Branch doesn't exist",
-    //     },
-    //   });
-    // }
     return NextResponse.json({
       meta: {
         status: 201,

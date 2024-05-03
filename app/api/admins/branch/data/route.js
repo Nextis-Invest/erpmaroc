@@ -53,30 +53,35 @@ export const GET = async (req, Request, Response) => {
     let staffData = {};
     let dashboardData = {};
 
-const res = new NextResponse();
-const session = await getSession(res);
 
-if(session.user.email != branchId){
-  return NextResponse.json({
-    status: 401,
-    message: "Failed to Retrive.",
-    errorCode: 401,
-    details: {
-      error: "Unauthourized",
-    },
-  });
-}
 
 
     const branches = await BRANCH.findById(branchId).select("childBranch");
-    console.log("🚀 ~ GET ~ branches:", branches);
+    const branch = await BRANCH.findById(branchId);
+    // console.log("🚀 ~ GET ~ branches:", branches);
+
+    const res = new NextResponse();
+    const session = await getSession(res);
+    console.log("🚀 ~ GET ~ session:", session.user.email)
+    
+    if(session.user.email != branch.manager){
+      return NextResponse.json({
+        status: 401,
+        message: "Failed to Retrive.",
+        errorCode: 401,
+        details: {
+          error: "Unauthourized",
+        },
+      });
+    }
 
     let b = branches.childBranch
     b.push(branchId)
-    console.log("🚀 ~ GET ~ b:", b)
     await Promise.all(
       b.map(async (b) => {
         const branch = await BRANCH.findById(b).select("companyName").lean(); ////Remove _id
+
+
 
         const s = await STAFF.aggregate([
           {
