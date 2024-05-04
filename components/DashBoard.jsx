@@ -9,13 +9,11 @@ import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
-import Card from "./Card";
 
-/// TODO Sale are count of doc but it need to fix with quantity of product sold
 
 const DashBoard = () => {
   const queryClient = useQueryClient();
-  const { user, error, isLoading, getAccessTokenSilently } = useUser();
+  const { user, error, isLoading } = useUser();
   console.log("🚀 ~ DashBoard ~ user:", user);
 
   let months = [
@@ -268,7 +266,7 @@ const DashBoard = () => {
     },
     yaxis: {
       title: {
-        text: "Branch Sales",
+        text: "Customers",
       },
     },
     fill: {
@@ -307,6 +305,7 @@ const DashBoard = () => {
           id="chart"
           className="drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none"
         >
+          {isLoading || fetchingBranch || fetchingBranchData && (<Loading size="5x" />)}
 
           <div id="firstRow" className="w-full flex items-start">
             <div id="firstCol" className="w-full">
@@ -321,11 +320,7 @@ const DashBoard = () => {
               />
             </div>
           </div>
-          <div id="cards" className="w-full flex justify-between h-32 gap-10">
-            <Card />
-            <Card />
-            <Card />
-          </div>
+
           <div id="secondRow" className="flex items-center">
             <div
               id="firstCol"

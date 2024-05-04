@@ -7,8 +7,11 @@ import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Modal } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import Loading from "../Loading";
 
 export default function BranchForm({ mode }) {
+
+  const [loading, setLoading] = useState(false)
   const [staffToEdit, setStaffToEdit] = useState({});
   const [openModal, setOpenModal] = useState(false);
 
@@ -36,6 +39,7 @@ export default function BranchForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -52,6 +56,7 @@ export default function BranchForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });  
@@ -68,6 +73,7 @@ export default function BranchForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -88,6 +94,7 @@ export default function BranchForm({ mode }) {
   } = useForm();
 
   const onSubmit = async (data) => {
+    setLoading(true)
     const d = {
       ...data,
       _id: staffToEdit?._id,
@@ -132,6 +139,7 @@ export default function BranchForm({ mode }) {
               <Button
                 color="failure"
                 onClick={() => {
+                  setLoading(true)
                   removeStaffFn(staffToEdit._id)
                   setOpenModal(false);
 
@@ -153,13 +161,15 @@ export default function BranchForm({ mode }) {
       </Modal>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+        className="flex flex-col relative rounded-xl p-5 bg-[#eeeeee]"
       >
         <span className="font-bold text-3xl text-active">
           {mode == "edit" ? "Edit staff info" : "Add staff"}
         </span>
 
         {/* register your input into the hook by invoking the "register" function */}
+        {loading && <Loading size="3x" classes="left-[42%] top-[40%] " />}
+
         <input
           className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
           defaultValue={staffToEdit?.name}
@@ -242,7 +252,7 @@ export default function BranchForm({ mode }) {
         />
 
         <button
-          disabled={isLoading || isSubmitting}
+          disabled={isLoading || isSubmitting || loading}
           className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
           type="submit"
         >
@@ -251,7 +261,7 @@ export default function BranchForm({ mode }) {
       </form>
       {mode == "edit" && (
         <div className="flex flex-col rounded-xl mb-5">
-          <button onClick={()=>{
+          <button disabled={loading} onClick={()=>{
             setOpenModal(true)
           }} className="p-3 font-semibold text-background rounded-lg bg-[#c22525] hover:bg-warning">
             Remove this staff

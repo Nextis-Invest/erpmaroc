@@ -5,8 +5,9 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import Loading from "../Loading";
 
 export default function BranchForm({ mode }) {
   const queryClient = useQueryClient();
@@ -17,6 +18,7 @@ export default function BranchForm({ mode }) {
   const { branchData, isOpen, setIsOpen, setBranchData, toggleSideBar } =
     useContext(DataContext);
 
+    const [loading, setLoading] = useState(false)
 
   const createBranchMutation = useMutation({
     mutationFn: async (d) => createBranch(d),
@@ -30,6 +32,7 @@ export default function BranchForm({ mode }) {
         exact: true,
       });
       //window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -46,6 +49,7 @@ export default function BranchForm({ mode }) {
         exact: true,
       });
       //window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -58,6 +62,7 @@ export default function BranchForm({ mode }) {
   } = useForm();
 
   const onSubmit = async (data) => {
+    setLoading(true)
     const d = {
       ...data,
       ...user,
@@ -85,13 +90,14 @@ export default function BranchForm({ mode }) {
     /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+      className="flex flex-col relative rounded-xl p-5 bg-[#eeeeee]"
     >
       <span className="font-bold text-3xl text-active">
         {mode == "edit" ? "Edit Branch" : "Create Branch"}
       </span>
 
       {/* register your input into the hook by invoking the "register" function */}
+      {loading && <Loading size="3x" classes="left-[42%]" />}
       <input
         className="bg-gray-50 border mt-3 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
         defaultValue={data?.data?.branch?.companyName}
@@ -191,7 +197,7 @@ export default function BranchForm({ mode }) {
       )}
 
       <button
-        disabled={isLoading || isSubmitting}
+        disabled={isLoading || isSubmitting || loading}
         className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
         type="submit"
       >

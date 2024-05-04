@@ -78,11 +78,6 @@ const Setting = () => {
           </div>
         </div>
       )}
-      {isLoading && (
-        <div className="w-full h-[70vh] flex items-center justify-center">
-          <Loading size="3x" />
-        </div>
-      )}
 
       {user && (
         <div
@@ -161,6 +156,7 @@ const Setting = () => {
               <div className="w-full flex">
                 {" "}
                 <button
+                disabled={!user || !data}
                   className="bg-active text-background ml-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
                   onClick={() =>
                     toggleSideBar(

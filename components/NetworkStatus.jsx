@@ -2,7 +2,6 @@
 import { faWifi3 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useNetworkStatus from "check-user-network-status";
-import Image from "next/image";
 import React from "react";
 const NetworkStatus = () => {
   const networkStatus = useNetworkStatus();
@@ -20,13 +19,6 @@ const NetworkStatus = () => {
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
           alt="dashboard"
         />
-        {/* <Image
-        src="/assets/offline.png"
-        width={100}
-        height={100}
-        alt="logo"
-        className="w-full h-full"
-      /> */}
       </div>
     );
   }

@@ -1,11 +1,15 @@
 import Image from "next/image";
 import SideBar from "../components/SideBar";
 import DashBoard from "../components/DashBoard";
+import { Suspense } from "react";
+import Loading from "@/components/Loading";
 
 export default function Home() {
   return (
     <section id="dashboard" className="grow min-w-[80%] h-full">
-      <DashBoard />
+      <Suspense fallback={<Loading size="5x" />}>
+        <DashBoard />
+      </Suspense>
     </section>
-  )
+  );
 }

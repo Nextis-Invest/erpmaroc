@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import Loading from "../Loading";
 
 export default function ProductForm({ mode }) {
   const [productToEdit, setproductToEdit] = useState({});
@@ -21,6 +22,7 @@ export default function ProductForm({ mode }) {
     formState: { errors, isLoading, isSubmitting, isSubmitSuccessful },
   } = useForm();
 
+  const [loading, setLoading] = useState(false)
   const { user, error } = useUser();
   const { productData, isOpen, setIsOpen, setProductData, toggleSideBar } =
     useContext(DataContext);
@@ -66,6 +68,7 @@ export default function ProductForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -82,6 +85,7 @@ export default function ProductForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false)
       setIsOpen(false);
     },
   });
@@ -98,12 +102,14 @@ export default function ProductForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false)
       setIsOpen(false);
     },
   });
 
   const sell = async (data) => {
     console.log("🚀 ~ onSubmit ~ sellForm:", sellForm, "🚩", mode);
+    setLoading(true)
     const d = {
       _id: productData._id,
       quantity :data.soldQuantity
@@ -118,6 +124,7 @@ export default function ProductForm({ mode }) {
   };
   const onSubmit = async (data) => {
     console.log("🚀 ~ onSubmit ~ sellForm:", sellForm, "🚩", mode);
+    setLoading(true)
     const d = {
       email: user.email,
       _id: productData?._id,
@@ -192,10 +199,13 @@ export default function ProductForm({ mode }) {
         <form
           id="form"
           onSubmit={handleSubmit(sell)}
-          className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+          className="flex flex-col relative rounded-xl p-5 bg-[#eeeeee]"
         >
           <span className="font-bold text-3xl text-active">Sell</span>
+          {loading && <Loading size="3x" classes="left-[42%] top-[40%] " />}
+
           <div className="w-full flex items-center justify-center">
+
             <input
               className="bg-gray-50 border mt-3 ml-1 mb-1 border-gray-500 text-gray-900 text-md font-semibold rounded-l-lg focus:ring-primary focus:outline-none focus:border-primary block w-full p-2"
               defaultValue="1"
@@ -256,11 +266,13 @@ export default function ProductForm({ mode }) {
         <form
           id="form"
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+          className="flex flex-col relative rounded-xl p-5 bg-[#eeeeee]"
         >
           <span className="font-bold text-3xl text-active">
             {mode == "edit" ? "Edit Product" : "Create Product"}
           </span>
+
+          {loading && <Loading size="3x" classes="left-[42%]" />}
 
           {/* register your input into the hook by invoking the "register" function */}
           <input
@@ -326,7 +338,7 @@ export default function ProductForm({ mode }) {
           />
 
           <button
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting || loading}
             className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
             type="submit"
           >

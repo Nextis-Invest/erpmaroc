@@ -3,13 +3,15 @@ import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { addBranch, createBranch, generateKey, updateBranch } from "@/lib/fetch/Branch";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import Loading from "../Loading";
 
 export default function KeyAndNodeForm({ mode }) {
   const queryClient = useQueryClient()
 
-  const { user, error, isLoading:loadingAdmin } = useUser();
+  const [loading, setLoading] = useState(false)
+  const { user, error } = useUser();
   const { branchData, setBranchData, isOpen, setIsOpen, toggleSideBar } =
     useContext(DataContext);
 
@@ -32,6 +34,7 @@ export default function KeyAndNodeForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -48,6 +51,7 @@ export default function KeyAndNodeForm({ mode }) {
         exact: true,
       });
       // window.location.reload();
+      setLoading(false);
       setIsOpen(false);
     },
   });
@@ -61,6 +65,7 @@ export default function KeyAndNodeForm({ mode }) {
   } = useForm();
 
   const onSubmit = async (data) => {
+    setLoading(true)
     const d = {
       _id: branchDataFromUseBranchFetch?.data?.branch?._id,
       ...data,
@@ -89,13 +94,14 @@ export default function KeyAndNodeForm({ mode }) {
     /* "handleSubmit" will validate your inputs before invoking "onSubmit" */
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col rounded-xl p-5 bg-[#eeeeee]"
+      className="flex flex-col relative rounded-xl p-5 bg-[#eeeeee]"
     >
-      <span className="font-bold text-3xl text-active">
+      <span className="font-bold text-3xl mb-5 text-active">
         {mode == "key" ? "Generate new key" : "Add sub-branch"}
       </span>
 
       {/* register your input into the hook by invoking the "register" function */}
+      {loading && <Loading size="3x" classes="left-[42%] top-[35%]" />}
 
       {mode == "key" ? (
         <>
@@ -141,7 +147,7 @@ export default function KeyAndNodeForm({ mode }) {
       )}
 
       <button
-        disabled={isLoading || isSubmitting}
+        disabled={isLoading || isSubmitting || loading}
         className="bg-active text-background mx-auto text-sm p-2.5 px-3 my-5 rounded-lg font-bold"
         type="submit"
       >

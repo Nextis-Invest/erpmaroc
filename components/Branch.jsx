@@ -26,63 +26,17 @@ import {
 } from "@tanstack/react-table";
 import { getProduct } from "@/lib/fetch/Product";
 import { getStaff } from "@/lib/fetch/staff";
+import Card from "./Card";
 
 const Branch = () => {
   const queryClient = useQueryClient();
   const { user, error, isLoading } = useUser();
 
   const [totalRecords, setTotalRecords] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalSales, setTotalSales] = useState(0);
 
-  // const users = [
-  //   {
-  //     name: "Myat",
-  //     permissions: ["read", "write", "delete", "create"],
-  //     privilege: "owner",
-  //     control: ["branch1", "branch2", "branch3"],
-  //   },
-  //   {
-  //     name: "John Ray",
-  //     permissions: ["read", "write"],
-  //     privilege: "employee",
-  //     control: ["branch2"],
-  //   },
-  //   {
-  //     name: "Jane Smith",
-  //     permissions: ["read", "write"],
-  //     privilege: "employee",
-  //     control: ["branch2"],
-  //   },
-  //   {
-  //     name: "Alice Johnson",
-  //     permissions: ["read", "write"],
-  //     privilege: "employee",
-  //     control: ["branch3"],
-  //   },
-  //   {
-  //     name: "Michael Brown",
-  //     permissions: ["read", "write", "delete"],
-  //     privilege: "manager",
-  //     control: ["branch1"],
-  //   },
-  //   {
-  //     name: "Emily Davis",
-  //     permissions: ["read", "write", "delete"],
-  //     privilege: "manager",
-  //     control: ["branch2", "branch3"],
-  //   },
-  //   {
-  //     name: "Davis Emrys",
-  //     permissions: ["read", "write", "delete"],
-  //     privilege: "manager",
-  //     control: ["branch2", "branch3"],
-  //   },
-  //   {
-  //     name: "William Wilson",
-  //     permissions: ["read"],
-  //     privilege: "Accountants",
-  //     control: ["branch1", "branch2", "branch3"],
-  //   },
-  // ];
+
   const [search, setSearch] = useState("");
 
   const {
@@ -139,7 +93,10 @@ const Branch = () => {
   useEffect(() => {
     if (data?.data?.dashboardData && selectedBranch) {
       const branchData = data.data.dashboardData[selectedBranch];
+      const dailyData = data.data.dailyData[selectedBranch];
+      console.log("🚀 ~ useEffect ~ dailyData[0].totalPrices:", dailyData[0])
 
+      
       if (branchData) {
         const totalRecords = Object.values(branchData).map(
           (data) => data.totalRecords || 0
@@ -147,11 +104,13 @@ const Branch = () => {
         console.log("🚀 ~ useEffect ~ totalRecords:", totalRecords);
 
         setTotalRecords(totalRecords);
+        setTotalRevenue(dailyData[0].totalPrices);
+        setTotalSales(dailyData[0].totalQuantities);
+
+
       }
     }
-  }, [data?.data?.dashboardData, selectedBranch]);
-
-  console.log("🚀 ~ Branch ~ totalRecords:", totalRecords);
+  }, [data?.data?.dailyData, data?.data?.dashboardData, selectedBranch]);
 
   const dataQuery = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
@@ -163,15 +122,10 @@ const Branch = () => {
   const staffData = useQuery({
     // gcTime: 24 * 24 * 60 * 60 * 1000,
     queryKey: ["staffData"],
-    queryFn: () =>
-      getStaff(
-        selectedBranchID,
-        1,
-        99999
-      ),
+    queryFn: () => getStaff(selectedBranchID, 1, 99999),
     placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
-  console.log("🚀 ~ Branch ~ staffData:", staffData)
+  console.log("🚀 ~ Branch ~ staffData:", staffData);
 
   useEffect(() => {
     const refetch = async () => {
@@ -294,6 +248,8 @@ const Branch = () => {
     <div className="w-full min-h-[80vh] h-auto flex flex-col content-center drop-shadow-md shadow-md shadow-secondary rounded-lg p-5">
       <Suspense fallback={<Loading size="3x" />}>
         <div id="firstRow" className="w-full h-1/2 flex items-start">
+        {isLoading || fetchingBranch || fetchingBranchData ? (<Loading size="5x" />) : null}
+
           <Chart
             options={colChartOption}
             series={colChartOption.series}
@@ -303,7 +259,7 @@ const Branch = () => {
           />
           <div
             id="firstRowSecCol"
-            className="w-auto min-w-52 flex flex-col justify-between"
+            className="min-w-52 w-auto h-auto min-h-80 flex flex-col justify-start gap-2"
           >
             <Dropdown
               label={selectedBranch || "Select branch"}
@@ -343,20 +299,36 @@ const Branch = () => {
             </Dropdown>
             <input
               type="search"
-              id="search-dropdown"
-              className="block p-2 w-full mt-10 focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-lg border border-primary"
+              id="branchSearch"
+              className="block p-2 h-10 w-full focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-lg border border-primary"
               placeholder={`Search products in ${selectedBranch}`}
               onChange={(e) => {
                 setSearch(e.target.value);
               }}
               required
             />
+            <div
+              id="cards"
+              className="w-full flex flex-col justify-between h-auto"
+            >
+              <Card
+                color="green-400"
+                title="Revenue"
+                timeFrame="Today"
+                value={totalRevenue}
+              />
+              <Card
+                color="yellow-400"
+                title="Sales"
+                timeFrame="Today"
+                value={totalSales}
+              />
+            </div>
           </div>
         </div>{" "}
         <div id="secRow" className="w-full flex border-t-2 border-blue-600">
           <div id="secRowFirstCol" className="w-1/2">
             {staffData?.data?.data?.staffs?.map((staff) => {
-              console.log(staff)
               return (
                 <div
                   id="staff"

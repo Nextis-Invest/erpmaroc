@@ -73,11 +73,11 @@ const Admin = () => {
   }, [queryClient, branchData]);
 
   //////////////////// REDIRECT TO LOGOUT if not USER
-  // useEffect(() => {
-  //   if (!isLoading && !user) {
-  //     return redirect("/login");
-  //   }
-  // }, [user, isLoading]);
+  useEffect(() => {
+    if (!isLoading && !user) {
+      return redirect("/login");
+    }
+  }, [user, isLoading]);
 
   //////////////////////
 
@@ -203,6 +203,7 @@ const Admin = () => {
         )}
       </div>{" "}
       <div className="w-full min-w-[70vw] min-h-[80vh] flex">
+
         <div id="left_col" className=" w-3/4 flex flex-col justify-start">
           <div id="first_row" className="w-full h-2/3">
             <div id="keys" className="active">
@@ -272,6 +273,8 @@ const Admin = () => {
                 </button>
               </div>
             </div>
+            {isLoading || fetchingBranch ? (<div className="w-full h-20 relative"><Loading size="4x" /></div>) : null}
+
             <div id="branches" className="mt-3 pb-5">
               <span className="font-bold text-3xl text-active">Branches</span>
               {branchData?.data?.branch?.childBranch?.map((branch, index) => {
@@ -316,53 +319,7 @@ const Admin = () => {
               </div>
             </div>
           </div>
-          {/* <div
-            id="sec_row"
-            className="flex justify-between w-full h-60 p-5 border-t-2 border-active"
-          >
-            <div id="sec_row_left_col" className="w-2/5">
-              <ExcelHandler />
-            </div>
-            <div id="sec_row_right_col" className="w-2/5">
-              <label
-                for="export-file"
-                className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg
-                    className="w-9 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 32 32"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M23.845 8.125c-1.395-3.701-4.392-6.045-8.92-6.045-5.762 0-9.793 4.279-10.14 9.861-2.779 0.889-4.784 3.723-4.784 6.933 0 3.93 3.089 7.249 6.744 7.249h0.889c0.552 0 1-0.448 1-1s-0.448-1-1-1h-0.889c-2.572 0-4.776-2.404-4.776-5.249 0-2.515 1.763-4.783 3.974-5.163l0.907-0.156-0.081-0.917-0.008-0.011c0-4.871 3.206-8.545 8.162-8.545 3.972 0 6.204 1.957 7.236 5.295l0.213 0.688 0.721 0.015c3.715 0.078 6.971 3.092 6.971 6.837 0 3.408-2.259 7.206-5.679 7.206h-0.285c-0.552 0-1 0.448-1 1s0.448 1 1 1v-0.003c5-0.132 7.883-4.909 7.883-9.203-0.001-4.617-3.619-8.304-8.141-8.791zM20.198 24.233c-0.279-0.292-0.731-0.292-1.010-0l-2.2 2.427v-10.067c0-0.552-0.448-1-1-1s-1 0.448-1 1v10.076l-2.128-2.373c-0.28-0.292-0.732-0.355-1.011-0.063l-0.252 0.138c-0.28 0.293-0.28 0.765 0 1.057l3.61 3.992c0.005 0.005 0.006 0.012 0.011 0.017l0.253 0.265c0.14 0.146 0.324 0.219 0.509 0.218 0.183 0.001 0.368-0.072 0.507-0.218l0.253-0.265c0.005-0.005 0.008-0.011 0.012-0.017l3.701-4.055c0.279-0.292 0.279-0.639 0-0.932z"
-                    />
-                  </svg>
-                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to download</span>
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Staff, Proudcts, Charts.
-                  </p>
-                </div>
-                <button
-                  id="export-file"
-                  className="hidden"
-                  onClick={() => {
-                    alert("Clicked");
-                  }}
-                >
-                  export to EXCEL file
-                </button>
-              </label>
-            </div>
-          </div> */}
+
         </div>
         <div
           id="right_col"
@@ -371,6 +328,7 @@ const Admin = () => {
           <span className="font-bold text-3xl text-active">Activities</span>{" "}
           <br />
           <br />
+          {isLoading || fetchingBranch || activitiesData?.isLoading ? (<div className="relative mt-[12vh]"><Loading size="3x" /></div>) : null}
           {activitiesData?.data?.data?.activities?.map((activity) => {
             return (
               <details

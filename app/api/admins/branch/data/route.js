@@ -7,11 +7,7 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 
-// TODO D/M/Y
-// TODO Sell Count cards
-// TODO Settings 
 // TODO PWS change
-// TODO Yearly report
 
 ////////    api/admins/branch/data?id="_id"
 export const GET = async (req, Request, Response) => {
@@ -52,6 +48,7 @@ export const GET = async (req, Request, Response) => {
 
     let staffData = {};
     let dashboardData = {};
+    let dailyData = {};
 
 
 
@@ -80,8 +77,6 @@ export const GET = async (req, Request, Response) => {
     await Promise.all(
       b.map(async (b) => {
         const branch = await BRANCH.findById(b).select("companyName").lean(); ////Remove _id
-
-
 
         const s = await STAFF.aggregate([
           {
@@ -124,6 +119,24 @@ export const GET = async (req, Request, Response) => {
             $sort: { month: 1 }
           }
         ]);
+
+        const dl = await RECORD.aggregate([
+          {
+            $match: {
+              date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }, // Match records for today
+              branch: b,
+            }
+          },
+          {
+            $group: {
+              _id: { $dateToString: { format: "%d-%m-%Y", date: "$date" } }, // Group by date
+              totalPrices: { $sum: "$totalPrice" }, // Calculate total price for each date
+              totalQuantities: { $sum: "$quantity" } // Calculate total quantity for each date
+            }
+          }
+        ]);
+
+
         
         // Generate all months between start and end dates
         const monthsArray = [];
@@ -145,11 +158,15 @@ export const GET = async (req, Request, Response) => {
 
         let staff = { [branch.companyName]: { ...s } };
         let dashboard = { [branch.companyName]: { ...result } };
+        let daily = { [branch.companyName]: { ...dl } };
 
         Object.assign(staffData, staff); 
         Object.assign(dashboardData, dashboard); 
+        Object.assign(dailyData, daily); 
       })
+      
     );
+
 
     if (!dashboardData) {
       return NextResponse.json({
@@ -169,6 +186,7 @@ export const GET = async (req, Request, Response) => {
       data: {
         dashboardData,
         staffData,
+        dailyData
       },
     });
   } catch (error) {
