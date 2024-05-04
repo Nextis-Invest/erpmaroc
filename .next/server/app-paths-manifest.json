@@ -1,0 +1,9 @@
+{
+  "/products/page": "app/products/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/settings/page": "app/settings/page.js",
+  "/page": "app/page.js",
+  "/staffs/page": "app/staffs/page.js",
+  "/api/admins/branch/staffs/route": "app/api/admins/branch/staffs/route.js",
+  "/api/admins/branch/route": "app/api/admins/branch/route.js"
+}
