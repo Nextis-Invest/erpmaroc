@@ -295,16 +295,12 @@ const TanStackTable = () => {
                 onClick={() => {
                   setProductData(null);
 
-                  // // console.log(
-                  // // "🚀 ~ TanStackTable ~ info:",
-                  // // row.original._id,
-                  // // setProductData(
-                  // // dataQuery?.data?.data?.products.find(
-                  // // (obj) => obj._id === row.original._id
-                  // // )
-                  // // ),
-                  // // toggleSideBar("edit-product")
-                  // // ); //This will extract ID
+                  setProductData(
+                  dataQuery?.data?.data?.products.find(
+                  (obj) => obj._id === row.original._id
+                  )
+                  ),
+                  toggleSideBar("edit-product")
                 }}
               >
                 {row.getVisibleCells().map(

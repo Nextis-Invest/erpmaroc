@@ -7,7 +7,6 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 
-// TODO PWS change
 
 ////////    api/admins/branch/data?id="_id"
 export const GET = async (req, Request, Response) => {

@@ -22,6 +22,9 @@ import {
 import { deleteKey, getActivitiesLogs, removeBranch } from "@/lib/fetch/Branch";
 import Loading from "./Loading";
 import { ElfsightWidget } from "react-elfsight-widget";
+
+// TODO Adding same branch
+
 const Admin = () => {
   const queryClient = useQueryClient();
 
