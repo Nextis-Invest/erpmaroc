@@ -246,7 +246,7 @@ const Branch = () => {
   };
   return (
     <div className="w-full min-h-[80vh] h-auto flex flex-col content-center drop-shadow-md shadow-md shadow-secondary rounded-lg p-5">
-      <Suspense fallback={<Loading size="3x" />}>
+      {/* <Suspense fallback={<Loading size="3x" />}> */}
         <div id="firstRow" className="w-full h-1/2 flex items-start">
         {isLoading || fetchingBranch || fetchingBranchData ? (<Loading size="5x" />) : null}
 
@@ -445,7 +445,7 @@ const Branch = () => {
             </table>
           </div>
         </div>
-      </Suspense>
+      {/* </Suspense> */}
     </div>
   );
 };

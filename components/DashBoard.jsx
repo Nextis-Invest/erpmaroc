@@ -299,7 +299,7 @@ const DashBoard = () => {
     },
   };
   return (
-    <Suspense fallback={<Loading size="3x" />}>
+    // <Suspense fallback={<Loading size="3x" />}>
       <div className="w-full h-full ">
         <div
           id="chart"
@@ -385,7 +385,7 @@ const DashBoard = () => {
         </div>
         {/* <ExcelHandler /> */}
       </div>
-    </Suspense>
+    // </Suspense>
   );
 };
 
