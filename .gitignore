@@ -17,8 +17,6 @@
 /out/
 .next/cache/webpack/client-development/
 
-# other rules...
-
 # production
 /build
 
