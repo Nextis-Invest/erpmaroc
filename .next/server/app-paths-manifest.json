@@ -1,7 +1,0 @@
-{
-  "/api/auth/[auth0]/route": "app/api/auth/[auth0]/route.js",
-  "/page": "app/page.js",
-  "/icon.ico/route": "app/icon.ico/route.js",
-  "/api/admins/branch/route": "app/api/admins/branch/route.js",
-  "/api/admins/branch/data/route": "app/api/admins/branch/data/route.js"
-}

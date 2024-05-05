@@ -1,5 +1,4 @@
-import Image from "next/image";
-import SideBar from "../components/SideBar";
+
 import DashBoard from "../components/DashBoard";
 import { Suspense } from "react";
 import Loading from "@/components/Loading";

@@ -44,7 +44,13 @@ const StaffTable = () => {
   const [filtering, setFiltering] = useState("");
 
   const getPaginationFromLocalStorage = () => {
-    const paginationData = localStorage.getItem("pagination");
+    
+    let paginationData;
+    
+    if (typeof window !== 'undefined') {
+      paginationData = localStorage.getItem("pagination")
+    }
+
     if (paginationData) {
       return JSON.parse(paginationData);
     } else {
@@ -57,7 +63,11 @@ const StaffTable = () => {
   ///////////////////////
 
   useEffect(() => {
-    localStorage.setItem("pagination", JSON.stringify(pagination));
+        
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("pagination", JSON.stringify(pagination));
+    }
+
   }, [pagination]);
 
   const {
@@ -331,7 +341,11 @@ const StaffTable = () => {
             <tr className="text-center h-32">
               <td colSpan={12}>
                 <p>No Staff Found!</p>
-                <p onClick={() => window.location.reload()}>Refresh</p>
+                <p onClick={() => {
+                    if (window) {
+                      window.location.reload();
+                    }
+                  }}>Refresh</p>
               </td>
             </tr>
           )}

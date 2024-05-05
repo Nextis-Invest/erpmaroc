@@ -52,12 +52,17 @@ const TanStackTable = () => {
     isSuccess,
   } = useBranchFetch(user?.email);
 
-  console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
+  // console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
 
-  console.log("🚀 ~ TanStackTable ~ user:", user);
+  // console.log("🚀 ~ TanStackTable ~ user:", user);
 
   const getPaginationFromLocalStorage = () => {
-    const paginationData = localStorage.getItem("pagination");
+    let paginationData;
+
+    if (typeof window !== "undefined") {
+      paginationData = localStorage.getItem("pagination");
+    }
+
     if (paginationData) {
       return JSON.parse(paginationData);
     } else {
@@ -70,7 +75,9 @@ const TanStackTable = () => {
   ///////////////////////
 
   useEffect(() => {
-    localStorage.setItem("pagination", JSON.stringify(pagination));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pagination", JSON.stringify(pagination));
+    }
   }, [pagination]);
 
   const dataQuery = useQuery({
@@ -115,7 +122,7 @@ const TanStackTable = () => {
   }, [user, Authenticating]);
   /////////////////////
 
-  // console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
+  // // console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
 
   const columns = [
     {
@@ -288,16 +295,16 @@ const TanStackTable = () => {
                 onClick={() => {
                   setProductData(null);
 
-                  console.log(
-                    "🚀 ~ TanStackTable ~ info:",
-                    row.original._id,
-                    setProductData(
-                      dataQuery?.data?.data?.products.find(
-                        (obj) => obj._id === row.original._id
-                      )
-                    ),
-                    toggleSideBar("edit-product")
-                  ); //This will extract ID
+                  // console.log(
+                  // "🚀 ~ TanStackTable ~ info:",
+                  // row.original._id,
+                  // setProductData(
+                  // dataQuery?.data?.data?.products.find(
+                  // (obj) => obj._id === row.original._id
+                  // )
+                  // ),
+                  // toggleSideBar("edit-product")
+                  // ); //This will extract ID
                 }}
               >
                 {row.getVisibleCells().map(
@@ -331,7 +338,15 @@ const TanStackTable = () => {
             <tr className="text-center h-32">
               <td colSpan={12}>
                 <p>No Product Found!</p>
-                <p onClick={() => window.location.reload()}>Refresh</p>
+                <p
+                  onClick={() => {
+                    if (window) {
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  Refresh
+                </p>
               </td>
             </tr>
           )}

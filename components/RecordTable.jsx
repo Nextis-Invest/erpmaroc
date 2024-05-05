@@ -50,7 +50,13 @@ const RecordTable = () => {
   const [filtering, setFiltering] = useState("");
 
   const getPaginationFromLocalStorage = () => {
-    const paginationData = localStorage.getItem("pagination");
+
+    let paginationData;
+    
+    if (typeof window !== 'undefined') {
+      paginationData = localStorage.getItem("pagination")
+    }
+
     if (paginationData) {
       return JSON.parse(paginationData);
     } else {
@@ -63,7 +69,11 @@ const RecordTable = () => {
   ///////////////////////
 
   useEffect(() => {
-    localStorage.setItem("pagination", JSON.stringify(pagination));
+        
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("pagination", JSON.stringify(pagination));
+    }
+
   }, [pagination]);
 
   const {
