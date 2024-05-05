@@ -66,6 +66,12 @@ const Branch = () => {
   } = useBranchDataFetch(branchData?.data?.branch?._id);
 
   useEffect(() => {
+    if (!isLoading && !user) {
+      return redirect("/login");
+    }
+  }, [user, isLoading]);
+
+  useEffect(() => {
     const refetch = async () => {
       await queryClient.refetchQueries({
         queryKey: "dashboardData",
