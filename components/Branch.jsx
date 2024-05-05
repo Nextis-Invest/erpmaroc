@@ -105,7 +105,7 @@ const Branch = () => {
     if (data?.data?.dashboardData && selectedBranch) {
       const branchData = data.data.dashboardData[selectedBranch];
       const dailyData = data.data.dailyData[selectedBranch];
-      console.log("🚀 ~ useEffect ~ dailyData[0].totalPrices:", dailyData[0]);
+      console.log("🚀 ~ useEffect ~ dailyData[0]?.totalPrices:", dailyData[0]);
 
       if (branchData) {
         const totalRecords = Object.values(branchData).map(
@@ -114,8 +114,8 @@ const Branch = () => {
         console.log("🚀 ~ useEffect ~ totalRecords:", totalRecords);
 
         setTotalRecords(totalRecords);
-        setTotalRevenue(dailyData[0].totalPrices);
-        setTotalSales(dailyData[0].totalQuantities);
+        setTotalRevenue(dailyData[0]?.totalPrices);
+        setTotalSales(dailyData[0]?.totalQuantities);
       }
     }
   }, [data?.data?.dailyData, data?.data?.dashboardData, selectedBranch]);
