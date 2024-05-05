@@ -22,10 +22,10 @@ const Setting = () => {
     error: errorInFetchBranch,
     isSuccess,
   } = useBranchFetch(user?.email);
-  console.log("🚀 ~ Setting ~ react query data:", data);
-  console.log("🚀 ~ Setting ~ errorInFetchBranch:", errorInFetchBranch);
-  console.log("🚀 ~ Setting ~ fetchingBranch:", fetchingBranch);
-  console.log("🚀 ~ Setting ~ isSuccess:", isSuccess);
+  // console.log("🚀 ~ Setting ~ react query data:", data);
+  // console.log("🚀 ~ Setting ~ errorInFetchBranch:", errorInFetchBranch);
+  // console.log("🚀 ~ Setting ~ fetchingBranch:", fetchingBranch);
+  // console.log("🚀 ~ Setting ~ isSuccess:", isSuccess);
 
   //// REFETCH when required data changes
   useEffect(() => {

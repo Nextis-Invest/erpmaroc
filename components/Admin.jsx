@@ -39,7 +39,7 @@ const Admin = () => {
     error: errorInFetchBranch,
     isSuccess,
   } = useBranchFetch(user?.email);
-  console.log("🚀 ~ Admin ~ branchData:", branchData);
+  // console.log("🚀 ~ Admin ~ branchData:", branchData);
 
   const activitiesData = useQuery({
     gcTime: 24 * 24 * 60 * 60 * 1000,
@@ -47,7 +47,7 @@ const Admin = () => {
     queryFn: () => getActivitiesLogs(branchData.meta.branchId),
     placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
   });
-  // console.log("🚀 ~ Admin ~ activitiesData:", activitiesData);
+  // // console.log("🚀 ~ Admin ~ activitiesData:", activitiesData);
 
   //// REFETCH when required data changes
 

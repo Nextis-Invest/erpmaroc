@@ -52,9 +52,9 @@ const TanStackTable = () => {
     isSuccess,
   } = useBranchFetch(user?.email);
 
-  // console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
+  // // console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
 
-  // console.log("🚀 ~ TanStackTable ~ user:", user);
+  // // console.log("🚀 ~ TanStackTable ~ user:", user);
 
   const getPaginationFromLocalStorage = () => {
     let paginationData;
@@ -122,7 +122,7 @@ const TanStackTable = () => {
   }, [user, Authenticating]);
   /////////////////////
 
-  // // console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
+  // // // console.log("🚀 ~ TanStackTable ~ dataQuery:", dataQuery);
 
   const columns = [
     {
@@ -295,16 +295,16 @@ const TanStackTable = () => {
                 onClick={() => {
                   setProductData(null);
 
-                  // console.log(
-                  // "🚀 ~ TanStackTable ~ info:",
-                  // row.original._id,
-                  // setProductData(
-                  // dataQuery?.data?.data?.products.find(
-                  // (obj) => obj._id === row.original._id
-                  // )
-                  // ),
-                  // toggleSideBar("edit-product")
-                  // ); //This will extract ID
+                  // // console.log(
+                  // // "🚀 ~ TanStackTable ~ info:",
+                  // // row.original._id,
+                  // // setProductData(
+                  // // dataQuery?.data?.data?.products.find(
+                  // // (obj) => obj._id === row.original._id
+                  // // )
+                  // // ),
+                  // // toggleSideBar("edit-product")
+                  // // ); //This will extract ID
                 }}
               >
                 {row.getVisibleCells().map(
