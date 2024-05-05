@@ -143,7 +143,7 @@ const DashBoard = () => {
       colSeries.push(colSerie);
     }
 
-    const branch = data?.data?.dashboardData["IGNITE"]?.[currentMonth];
+    const branch = data?.data?.dashboardData[selectedPieBranch]?.[currentMonth];
     // const totalSales =
     // Object?.values(branch).map((data) => data.totalSales) || 0;
     revenue = branch?.totalSales;
