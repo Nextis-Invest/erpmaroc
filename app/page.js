@@ -6,9 +6,9 @@ import Loading from "@/components/Loading";
 export default function Home() {
   return (
     <section id="dashboard" className="grow min-w-[80%] h-full">
-      {/* <Suspense fallback={<Loading size="5x" />}> */}
+      <Suspense fallback={<Loading size="5x" />}>
         <DashBoard />
-      {/* </Suspense> */}
+      </Suspense>
     </section>
   );
 }
