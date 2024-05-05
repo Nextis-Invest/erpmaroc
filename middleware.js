@@ -12,6 +12,7 @@ const ratelimit = new Ratelimit({
 export const config = {
   matcher: [
     "/((?!privacy-policy|_next/static|_next/image|favicon.ico|$).*)", //this protect api routes
+    "/api/auth/.*", // Allow api route that responsible for auth
     // '/((?!api|privacy-policy|_next/static|_next/image|favicon.ico|$).*)', //This doesn't protect api routes
   ],
 };
