@@ -10,7 +10,7 @@ import KeyAndNodeForm from "./react-hook-form/KeyAndNodeForm";
 
 const FormSideBar = () => {
   const { isOpen, formMode,setIsOpen } = useContext(DataContext);
-console.log("mode = "+formMode)
+// console.log("mode = "+formMode)
   return (
     <>
       <Drawer className="min-w-[400px]  max-w-[500px] z-50" open={isOpen} onClose={()=>{setIsOpen(false)}} position="right">

@@ -82,9 +82,9 @@ const RecordTable = () => {
     error: errorInFetchBranch,
     isSuccess,
   } = useBranchFetch(user?.email);
-  console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
+  // console.log("🚀 ~ TanStackTable ~ branchData:", branchData);
 
-  console.log("🚀 ~ TanStackTable ~ user:", user);
+  // console.log("🚀 ~ TanStackTable ~ user:", user);
   ///////////////////////
 
   //// REFETCH when required data changes

@@ -2,7 +2,11 @@
 
 import { DataContext } from "@/Context/DataContext";
 import React, { Suspense, useContext, useEffect, useState } from "react";
-import Chart from "react-apexcharts";
+// import Chart from "react-apexcharts";
+import dynamic from 'next/dynamic';
+
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+
 import Loading from "./Loading";
 import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
