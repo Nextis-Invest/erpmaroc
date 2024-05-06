@@ -29,14 +29,18 @@ const SideBar = () => {
 
   return (
     <div className=" min-w-36 sticky top-0 w-auto min-h-[80vh] h-auto mr-5 flex flex-col drop-shadow-md shadow-md shadow-secondary rounded-lg p-5 select-none">
-      <Link href="/" className="w-full h-full">{" "}
-      <Image
-        src="/assets/logo.png"
-        width={100}
-        height={100}
-        alt="logo"
-        className="w-full h-full"
-      />
+      <Link href="/" passHref>
+        <a className="logo-link">
+          <Image
+            src="/assets/logo.png"
+            width={100}
+            height={100}
+            alt="logo"
+            loading="lazy" // Lazy load the image
+            priority // Preload the image
+            className="logo-image"
+          />
+        </a>
       </Link>
       <div className="w-full flex flex-col gap-1 mt-10">
         <Link
@@ -56,7 +60,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Dashboard</span>
         </Link>{" "}
-        <Link
+        <Link prefetch  
           href="/staffs"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/staffs"
@@ -73,7 +77,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Staffs</span>
         </Link>{" "}
-        <Link
+        <Link  prefetch
           href="/branches"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/branches"
@@ -89,7 +93,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Branches</span>
         </Link>{" "}
-        <Link
+        <Link prefetch
           href="/products"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/products"
@@ -105,7 +109,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Products</span>
         </Link>{" "}
-        <Link
+        <Link prefetch
           href="/record"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/record"
@@ -121,7 +125,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Record</span>
         </Link>{" "}
-        {/* <Link
+        {/* <Link prefetch
           href="/report"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/report"
@@ -137,7 +141,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Report</span>
         </Link>{" "} */}
-        <Link
+        <Link prefetch
           href="/admin"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/admin"
@@ -153,7 +157,7 @@ const SideBar = () => {
           />
           <span className="text-xl ml-2">Admin</span>
         </Link>{" "}
-        <Link
+        <Link prefetch
           href="/settings"
           className={`flex items-center pr-8 pl-2 py-2 rounded-lg hover:shadow-md ${
             pathname === "/settings"
