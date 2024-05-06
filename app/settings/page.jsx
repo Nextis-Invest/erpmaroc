@@ -3,7 +3,7 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div className='flex min-w-[80%] w-auto h-full'>
+    <div className='flex min-w-[80%] relative w-auto h-full'>
       <Setting/>
     </div>
   )

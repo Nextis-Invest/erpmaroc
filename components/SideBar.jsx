@@ -38,7 +38,7 @@ const SideBar = () => {
             alt="logo"
             loading="lazy" // Lazy load the image
             priority // Preload the image
-            className="logo-image"
+            className="logo-image w-full h-full"
           />
         </a>
       </Link>
