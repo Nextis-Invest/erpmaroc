@@ -434,7 +434,7 @@ const Branch = () => {
                   </tr>
                 ))
               ) : dataQuery.isLoading ? (
-                <tr className="text-center h-32 overflow-hidden">
+                <tr className="text-center relative h-32 overflow-hidden">
                   <td colSpan={12}>
                     <Loading size="3x" />
                   </td>
