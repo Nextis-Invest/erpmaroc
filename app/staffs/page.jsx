@@ -4,7 +4,7 @@ import Staff from "../../components/Staff";
 
 const page = () => {
   return (
-    <div className="flex flex-col min-w-[80%] h-full">
+    <div className="flex flex-col relative min-w-[80%] h-full">
         <Staff />
     </div>
   );
