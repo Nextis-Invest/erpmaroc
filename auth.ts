@@ -1,0 +1,164 @@
+import NextAuth from "next-auth"
+import Google from "next-auth/providers/google"
+import Credentials from "next-auth/providers/credentials"
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
+import clientPromise from "@/lib/database/mongodb"
+import bcrypt from "bcryptjs"
+import { connectToDB } from "@/lib/database/connectToDB"
+import type { NextAuthConfig } from "next-auth"
+
+// Import your admin model
+import ADMIN from "@/model/admin"
+import MagicLinkToken from "@/model/magicLinkToken"
+
+export const authConfig: NextAuthConfig = {
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        await connectToDB()
+
+        try {
+          // Check in admin collection
+          const admin = await ADMIN.findOne({ email: credentials.email })
+
+          if (!admin) {
+            return null
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            admin.password
+          )
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: admin._id.toString(),
+            email: admin.email,
+            name: admin.name || admin.email,
+            role: admin.role || "admin",
+          }
+        } catch (error) {
+          console.error("Auth error:", error)
+          return null
+        }
+      },
+    }),
+    Credentials({
+      id: "magic-link",
+      name: "magic-link",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        token: { label: "Token", type: "text" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.token) {
+          return null
+        }
+
+        await connectToDB()
+
+        try {
+          // Verify magic link token
+          const magicLinkToken = await MagicLinkToken.findOne({
+            email: credentials.email,
+            token: credentials.token,
+            used: false
+          })
+
+          if (!magicLinkToken) {
+            return null
+          }
+
+          // Get user
+          const admin = await ADMIN.findOne({ email: credentials.email })
+
+          if (!admin) {
+            return null
+          }
+
+          // Mark token as used
+          magicLinkToken.used = true
+          await magicLinkToken.save()
+
+          return {
+            id: admin._id.toString(),
+            email: admin.email,
+            name: admin.name || admin.email,
+            role: admin.role || "admin",
+          }
+        } catch (error) {
+          console.error("Magic link auth error:", error)
+          return null
+        }
+      },
+    }),
+  ],
+  adapter: MongoDBAdapter(clientPromise),
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+    signUp: "/register",
+    error: "/auth/error",
+  },
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      return true
+    },
+    async redirect({ url, baseUrl }) {
+      // Always redirect to dashboard after successful authentication
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/`
+      }
+      // Allow callback URLs and auth-related URLs
+      if (url.startsWith(baseUrl)) {
+        // Don't redirect auth-related URLs
+        if (url.includes('/auth/') || url.includes('/api/auth/')) {
+          return url
+        }
+        // For any other URL starting with baseUrl, redirect to dashboard
+        return `${baseUrl}/`
+      }
+      // For relative URLs, redirect to dashboard
+      if (url.startsWith('/')) {
+        return `${baseUrl}/`
+      }
+      // Default to dashboard
+      return `${baseUrl}/`
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session?.user) {
+        session.user.role = token.role as string
+        session.user.id = token.id as string
+      }
+      return session
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authConfig)
