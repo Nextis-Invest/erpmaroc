@@ -1,7 +1,7 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import ACTIVITYLOG from "@/model/activities";
 import BRANCH from "@/model/branchData";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export const GET = async (req, res) => {
@@ -17,10 +17,9 @@ export const GET = async (req, res) => {
 
     const branchExist = await BRANCH.findOne({ _id: branch });
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
-    if(session.user.email != branchExist.manager){
+    if(!session || session.user.email != branchExist.manager){
       return NextResponse.json({
         status: 401,
         message: "Failed to retrive.",

@@ -21,7 +21,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { DataContext } from "@/Context/DataContext";
 import Loading from "./Loading";
@@ -37,7 +37,9 @@ const StaffTable = () => {
     isOpen,
     toggleSideBar,
   } = useContext(DataContext);
-  const { user, error, isLoading: Authenticating } = useUser();
+  const { data: session, status } = useSession();
+  const Authenticating = status === "loading";
+  const user = session?.user;
 
   const [search, setSearch] = useState();
   const [sorting, setSorting] = useState([]);

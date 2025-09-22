@@ -1,6 +1,6 @@
 import { DataContext } from "@/Context/DataContext";
 import { createBranch, updateBranch } from "@/lib/fetch/Branch";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import {
   useMutation,
   useQueryClient,
@@ -14,7 +14,8 @@ export default function BranchForm({ mode }) {
   const data = queryClient.getQueryData("branchData");
   console.log("🚀 ~ BranchForm ~ data:", data);
 
-  const { user, error } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { branchData, isOpen, setIsOpen, setBranchData, toggleSideBar } =
     useContext(DataContext);
 

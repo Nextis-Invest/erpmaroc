@@ -2,7 +2,7 @@
 import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { getBranch } from "@/lib/fetch/Branch";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import React, { useContext, useEffect } from "react";
@@ -12,7 +12,9 @@ import { ElfsightWidget } from "react-elfsight-widget";
 const Setting = () => {
   const queryClient = useQueryClient();
 
-  const { user, error, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const user = session?.user;
   const { branchData, setBranchData, isOpen, toggleSideBar } =
     useContext(DataContext);
 

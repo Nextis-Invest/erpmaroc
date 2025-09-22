@@ -1,7 +1,7 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import ACTIVITYLOG from "@/model/activities";
 import BRANCH from "@/model/branchData";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export const PATCH = async (Request) => {
@@ -13,10 +13,9 @@ export const PATCH = async (Request) => {
   
       const existingBranch = await BRANCH.findOne({ _id: branchId });
 
-      const res = new NextResponse();
-      const session = await getSession(res);
+      const session = await auth();
   
-      if(session.user.email != existingBranch.manager){
+      if(!session || session.user.email != existingBranch.manager){
         return NextResponse.json({
           status: 401,
           message: "Failed to update.",

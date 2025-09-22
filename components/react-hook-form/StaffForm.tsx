@@ -1,7 +1,7 @@
 import { DataContext } from "@/Context/DataContext";
 import { createBranch, updateBranch } from "@/lib/fetch/Branch";
 import { createStaff, removeStaff, updateStaff } from "@/lib/fetch/staff";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -19,7 +19,8 @@ export default function BranchForm({ mode }) {
   const data = queryClient.getQueryData("branchData");
   console.log("🚀 ~ BranchForm ~ data:", data);
 
-  const { user, error } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { productData, isOpen, setIsOpen, setProductData, toggleSideBar } =
     useContext(DataContext);
   useEffect(() => {

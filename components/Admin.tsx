@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis, faSortDown } from "@fortawesome/free-solid-svg-icons";
 import { redirect } from "next/navigation";
 import Image from "next/image";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import dateFormat from "dateformat";
@@ -28,7 +28,9 @@ import { ElfsightWidget } from "react-elfsight-widget";
 const Admin = () => {
   const queryClient = useQueryClient();
 
-  const { user, error, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const user = session?.user;
 
   const { data, isOpen, toggleSideBar, setFormMode } = useContext(DataContext);
 

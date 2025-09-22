@@ -3,7 +3,7 @@
 import { DataContextProvider } from "@/Context/DataContext";
 import SideBar from "../components/SideBar";
 import "./globals.css";
-import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { SessionProvider } from "next-auth/react";
 import FormSideBar from "@/components/FormSideBar";
 import { ReactQueryProvider } from "@/Context/QueryClientProvider";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-background">
-        <UserProvider>
+        <SessionProvider>
           <ReactQueryProvider>
             <DataContextProvider>
               {isAuthPage ? (
@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
               )}
             </DataContextProvider>
           </ReactQueryProvider>
-        </UserProvider>
+        </SessionProvider>
       </body>
     </html>
   );

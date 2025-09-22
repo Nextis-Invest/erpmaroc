@@ -10,14 +10,16 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 import Loading from "./Loading";
 import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 
 const DashBoard = () => {
   const queryClient = useQueryClient();
-  const { user, error, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const user = session?.user;
   console.log("🚀 ~ DashBoard ~ user:", user);
 
   let months = [

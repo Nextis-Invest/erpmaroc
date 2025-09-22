@@ -1,6 +1,6 @@
 import { DataContext } from "@/Context/DataContext";
 import { createProduct, sellProduct, updateProduct } from "@/lib/fetch/Product";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,7 +23,8 @@ export default function ProductForm({ mode }) {
   } = useForm();
 
   const [loading, setLoading] = useState(false)
-  const { user, error } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { productData, isOpen, setIsOpen, setProductData, toggleSideBar } =
     useContext(DataContext);
 

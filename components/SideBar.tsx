@@ -12,9 +12,10 @@ import {
   Warehouse,
   ShieldAlert,
   Settings,
-  LogOut
+  LogOut,
+  UserCog
 } from "lucide-react";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession, signOut } from "next-auth/react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,7 +30,7 @@ import {
 
 const SideBar = () => {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   const menuItems = [
     {
@@ -41,6 +42,11 @@ const SideBar = () => {
       title: "Staffs",
       url: "/staffs",
       icon: Users,
+    },
+    {
+      title: "HR",
+      url: "/hr",
+      icon: UserCog,
     },
     {
       title: "Branches",
@@ -106,7 +112,7 @@ const SideBar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {user && (
+      {session && (
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -114,10 +120,10 @@ const SideBar = () => {
                 asChild
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >
-                <a href="/api/auth/logout">
+                <button onClick={() => signOut({ callbackUrl: '/login' })}>
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
-                </a>
+                </button>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

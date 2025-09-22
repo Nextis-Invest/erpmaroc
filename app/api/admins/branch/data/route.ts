@@ -2,7 +2,7 @@ import { connectToDB } from "@/lib/database/connectToDB";
 import BRANCH from "@/model/branchData";
 import RECORD from "@/model/record";
 import STAFF from "@/model/staffs";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth } from "@/auth";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
@@ -56,11 +56,10 @@ export const GET = async (req, Request, Response) => {
     const branch = await BRANCH.findById(branchId);
     // console.log("🚀 ~ GET ~ branches:", branches);
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
     console.log("🚀 ~ GET ~ session:", session.user.email)
     
-    if(session.user.email != branch.manager){
+    if(!session || session.user.email != branch.manager){
       return NextResponse.json({
         status: 401,
         message: "Failed to Retrive.",

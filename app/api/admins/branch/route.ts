@@ -2,7 +2,7 @@ import BRANCH from "@/model/branchData";
 import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
 import { connectToDB } from "@/lib/database/connectToDB";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth } from "@/auth";
 import ACTIVITYLOG from "@/model/activities";
 
 export const POST = async (Request) => {
@@ -41,10 +41,9 @@ export const POST = async (Request) => {
       );
     }
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
-    if(session.user.email != managerEmail){
+    if(!session || session.user.email != managerEmail){
       return NextResponse.json({
         status: 401,
         message: "Failed to update.",
@@ -129,10 +128,9 @@ export const PATCH = async (Request) => {
     const existingBranch = await BRANCH.findOne({ manager: managerEmail });
     // console.log("🚀 ~ PATCH ~ existingBranch:", existingBranch)
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
-    if(session.user.email != existingBranch.manager){
+    if(!session || session.user.email != existingBranch.manager){
       return NextResponse.json({
         status: 401,
         message: "Failed to update.",
@@ -229,10 +227,9 @@ export const GET = async (req, Request, Response) => {
       });
     }
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
-    if(session.user.email != branch.manager){
+    if(!session || session.user.email != branch.manager){
       return NextResponse.json({
         status: 401,
         message: "Failed to retrieve branch data",

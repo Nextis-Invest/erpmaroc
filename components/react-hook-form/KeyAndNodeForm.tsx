@@ -1,7 +1,7 @@
 import { DataContext } from "@/Context/DataContext";
 import { useBranchFetch } from "@/hooks/useBranchFetch";
 import { addBranch, createBranch, generateKey, updateBranch } from "@/lib/fetch/Branch";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,8 @@ export default function KeyAndNodeForm({ mode }) {
   const queryClient = useQueryClient()
 
   const [loading, setLoading] = useState(false)
-  const { user, error } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { branchData, setBranchData, isOpen, setIsOpen, toggleSideBar } =
     useContext(DataContext);
 

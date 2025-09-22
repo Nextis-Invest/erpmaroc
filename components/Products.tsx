@@ -3,15 +3,17 @@
 import React, { useContext } from "react";
 import { DataContext } from "@/Context/DataContext";
 import { redirect } from "next/navigation";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
 import TanStackTable from "./TanstackTable";
 
 const Products = () => {
-  const { user, error, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const user = session?.user;
 
   const { branchData, setBranchData } = useContext(DataContext);
   
-  if (error) {
+  if (!isLoading && !user) {
     return redirect("/login");
   }
   return (

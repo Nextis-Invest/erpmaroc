@@ -15,7 +15,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Loading from "./Loading";
 import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 import {
   keepPreviousData,
   useQuery,
@@ -36,7 +37,9 @@ import Card from "./Card";
 
 const Branch = () => {
   const queryClient = useQueryClient();
-  const { user, error, isLoading } = useUser();
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const user = session?.user;
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);

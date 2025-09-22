@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth } from "@/auth";
 import { connectToDB } from "@/lib/database/connectToDB";
 import Employee from "@/model/hr/employee";
 import Department from "@/model/hr/department";
@@ -126,8 +126,7 @@ export const GET = async (req: NextRequest) => {
 
     await connectToDB();
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json(

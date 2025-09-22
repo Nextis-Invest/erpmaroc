@@ -6,6 +6,9 @@ import { Users, Building2, Calendar, Clock, BarChart3, Settings } from 'lucide-r
 import HRDashboard from '@/components/hr/HRDashboard';
 import EmployeeTable from '@/components/hr/EmployeeTable';
 import LeaveManagement from '@/components/hr/LeaveManagement';
+import DepartmentManagement from '@/components/hr/DepartmentManagement';
+import AttendanceTracking from '@/components/hr/AttendanceTracking';
+import HRReports from '@/components/hr/HRReports';
 import { useCurrentView, useHRActions } from '@/stores/hrStore';
 
 const HRPage = () => {
@@ -77,14 +80,7 @@ const HRPage = () => {
           </TabsContent>
 
           <TabsContent value="departments" className="space-y-6">
-            <div className="bg-white rounded-lg p-8 text-center">
-              <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Department Management</h3>
-              <p className="text-gray-600 mb-4">
-                Organize your workforce into departments and manage hierarchies.
-              </p>
-              <p className="text-sm text-blue-600">Coming Soon</p>
-            </div>
+            <DepartmentManagement />
           </TabsContent>
 
           <TabsContent value="leaves" className="space-y-6">
@@ -92,25 +88,11 @@ const HRPage = () => {
           </TabsContent>
 
           <TabsContent value="attendance" className="space-y-6">
-            <div className="bg-white rounded-lg p-8 text-center">
-              <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Attendance Tracking</h3>
-              <p className="text-gray-600 mb-4">
-                Monitor employee attendance, check-ins, and working hours.
-              </p>
-              <p className="text-sm text-blue-600">Coming Soon</p>
-            </div>
+            <AttendanceTracking />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-6">
-            <div className="bg-white rounded-lg p-8 text-center">
-              <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">HR Reports & Analytics</h3>
-              <p className="text-gray-600 mb-4">
-                Generate comprehensive reports and insights about your workforce.
-              </p>
-              <p className="text-sm text-blue-600">Coming Soon</p>
-            </div>
+            <HRReports />
           </TabsContent>
         </Tabs>
       </div>

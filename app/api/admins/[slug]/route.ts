@@ -2,21 +2,17 @@ import { connectToDB } from "@/lib/database/connectToDB";
 import ADMIN from "@/model/admin";
 import { NextResponse, NextRequest } from "next/server";
 
-// import { getAccessToken } from '@auth0/nextjs-auth0';
-
-// export async function GET() {
-//   const { accessToken } = await getAccessToken();
-//   return NextResponse.json({ foo: 'bar' });
-// }
 
 // app/api/protected/route.js
-import { withApiAuthRequired, getSession } from '@auth0/nextjs-auth0';
+import { auth } from "@/auth";
 
-export const GET = withApiAuthRequired(async function myApiRoute(req) {
-  const res = new NextResponse();
-  const session = await getSession(req, res);
+export const GET = async function myApiRoute(req) {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   return NextResponse.json({data: session });
-});
+};
 
 // export const GET = async (NextRequest, req) => {
 //   const ip = NextRequest.headers.get("x-forwarded-for");

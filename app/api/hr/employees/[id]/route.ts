@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth } from "@/auth";
 import { connectToDB } from "@/lib/database/connectToDB";
 import Employee from "@/model/hr/employee";
 import ACTIVITYLOG from "@/model/activities";
@@ -46,8 +46,7 @@ export const GET = async (req: NextRequest, { params }: { params: { id: string }
 
     await connectToDB();
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -110,8 +109,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
 
     await connectToDB();
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -185,8 +183,7 @@ export const DELETE = async (req: NextRequest, { params }: { params: { id: strin
 
     await connectToDB();
 
-    const res = new NextResponse();
-    const session = await getSession(res);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json(
