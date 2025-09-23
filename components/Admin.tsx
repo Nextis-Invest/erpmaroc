@@ -21,7 +21,6 @@ import {
 } from "@tanstack/react-query";
 import { deleteKey, getActivitiesLogs, removeBranch } from "@/lib/fetch/Branch";
 import Loading from "./Loading";
-import { ElfsightWidget } from "react-elfsight-widget";
 
 // TODO Adding same branch
 
@@ -137,7 +136,6 @@ const Admin = () => {
   return (
     <div>
       {" "}
-      <ElfsightWidget widgetID="37253bd0-8f3f-4ad0-b767-14378fccb86c" />
       <Modal
         show={openModal}
         size="md"

@@ -12,8 +12,7 @@ import {
   ShieldAlert,
   Settings,
   LogOut,
-  UserCog,
-  Calculator
+  UserCog
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -42,11 +41,6 @@ const SideBar = () => {
       title: "RH",
       url: "/hr",
       icon: UserCog,
-    },
-    {
-      title: "Paie",
-      url: "/payroll",
-      icon: Calculator,
     },
     {
       title: "Succursales",

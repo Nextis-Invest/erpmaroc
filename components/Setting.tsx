@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 import Loading from "./Loading";
 import { useQueryClient } from "@tanstack/react-query";
-import { ElfsightWidget } from "react-elfsight-widget";
 const Setting = () => {
   const queryClient = useQueryClient();
 
@@ -52,7 +51,6 @@ const Setting = () => {
 
   return (
     <div className="w-full h-full">
-      <ElfsightWidget widgetID="37253bd0-8f3f-4ad0-b767-14378fccb86c" />
 
       {user && (
         <div
