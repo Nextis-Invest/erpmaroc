@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { useEffect, useState, useMemo } from 'react';
+import { shallow } from 'zustand/shallow';
 
 // Types for HR store
 export interface Employee {
@@ -113,7 +115,7 @@ interface HRStore {
   // UI State
   isLoading: boolean;
   error: string | null;
-  currentView: 'dashboard' | 'employees' | 'departments' | 'teams' | 'leaves' | 'attendance' | 'reports';
+  currentView: 'dashboard' | 'employees' | 'departments' | 'teams' | 'leaves' | 'attendance' | 'reports' | 'payroll';
 
   // Filters and pagination
   employeeFilters: {
@@ -329,44 +331,124 @@ export const useHRStore = create<HRStore>()(
   )
 );
 
-// Selector hooks for better performance
-export const useEmployees = () => useHRStore((state) => state.employees);
-export const useSelectedEmployee = () => useHRStore((state) => state.selectedEmployee);
-export const useDepartments = () => useHRStore((state) => state.departments);
-export const useTeams = () => useHRStore((state) => state.teams);
-export const useLeaveRequests = () => useHRStore((state) => state.leaveRequests);
-export const useAnalytics = () => useHRStore((state) => state.analytics);
-export const useHRLoading = () => useHRStore((state) => state.isLoading);
-export const useHRError = () => useHRStore((state) => state.error);
-export const useCurrentView = () => useHRStore((state) => state.currentView);
-export const useEmployeeFilters = () => useHRStore((state) => state.employeeFilters);
-export const usePagination = () => useHRStore((state) => state.pagination);
+// Helper hook to handle SSR/hydration
+const useStore = <T,>(selector: (state: HRStore) => T, fallback: T): T => {
+  const [hydrated, setHydrated] = useState(false);
+  const value = useHRStore(selector);
 
-// Action hooks
-export const useHRActions = () => useHRStore((state) => ({
-  setEmployees: state.setEmployees,
-  addEmployee: state.addEmployee,
-  updateEmployee: state.updateEmployee,
-  removeEmployee: state.removeEmployee,
-  setSelectedEmployee: state.setSelectedEmployee,
-  setDepartments: state.setDepartments,
-  addDepartment: state.addDepartment,
-  updateDepartment: state.updateDepartment,
-  setTeams: state.setTeams,
-  addTeam: state.addTeam,
-  updateTeam: state.updateTeam,
-  setLeaveRequests: state.setLeaveRequests,
-  addLeaveRequest: state.addLeaveRequest,
-  updateLeaveRequest: state.updateLeaveRequest,
-  setAnalytics: state.setAnalytics,
-  setCurrentView: state.setCurrentView,
-  setLoading: state.setLoading,
-  setError: state.setError,
-  setEmployeeFilters: state.setEmployeeFilters,
-  setPagination: state.setPagination,
-  resetFilters: state.resetFilters,
-}));
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
-// Computed selector hooks
-export const useActiveEmployees = () => useHRStore((state) => state.getActiveEmployees());
-export const usePendingLeaveRequests = () => useHRStore((state) => state.getPendingLeaveRequests());
+  return hydrated ? value : fallback;
+};
+
+// Selector hooks for better performance with SSR safety
+export const useEmployees = () => useStore((state) => state.employees, []);
+export const useSelectedEmployee = () => useStore((state) => state.selectedEmployee, null);
+export const useDepartments = () => useStore((state) => state.departments, []);
+export const useTeams = () => useStore((state) => state.teams, []);
+export const useLeaveRequests = () => useStore((state) => state.leaveRequests, []);
+export const useAnalytics = () => useStore((state) => state.analytics, null);
+export const useHRLoading = () => useStore((state) => state.isLoading, false);
+export const useHRError = () => useStore((state) => state.error, null);
+export const useCurrentView = () => useStore((state) => state.currentView, 'dashboard' as const);
+export const useEmployeeFilters = () => useStore((state) => state.employeeFilters, initialState.employeeFilters);
+export const usePagination = () => useStore((state) => state.pagination, initialState.pagination);
+
+// Action hooks with SSR safety and stable selector
+export const useHRActions = () => {
+  const [hydrated, setHydrated] = useState(false);
+
+  // Use shallow comparison to prevent re-renders
+  const actions = useHRStore(
+    (state) => ({
+      setEmployees: state.setEmployees,
+      addEmployee: state.addEmployee,
+      updateEmployee: state.updateEmployee,
+      removeEmployee: state.removeEmployee,
+      setSelectedEmployee: state.setSelectedEmployee,
+      setDepartments: state.setDepartments,
+      addDepartment: state.addDepartment,
+      updateDepartment: state.updateDepartment,
+      setTeams: state.setTeams,
+      addTeam: state.addTeam,
+      updateTeam: state.updateTeam,
+      setLeaveRequests: state.setLeaveRequests,
+      addLeaveRequest: state.addLeaveRequest,
+      updateLeaveRequest: state.updateLeaveRequest,
+      setAnalytics: state.setAnalytics,
+      setCurrentView: state.setCurrentView,
+      setLoading: state.setLoading,
+      setError: state.setError,
+      setEmployeeFilters: state.setEmployeeFilters,
+      setPagination: state.setPagination,
+      resetFilters: state.resetFilters,
+    }),
+    shallow
+  );
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Memoize no-op functions to prevent re-creation
+  const noOpActions = useMemo(() => ({
+    setEmployees: () => {},
+    addEmployee: () => {},
+    updateEmployee: () => {},
+    removeEmployee: () => {},
+    setSelectedEmployee: () => {},
+    setDepartments: () => {},
+    addDepartment: () => {},
+    updateDepartment: () => {},
+    setTeams: () => {},
+    addTeam: () => {},
+    updateTeam: () => {},
+    setLeaveRequests: () => {},
+    addLeaveRequest: () => {},
+    updateLeaveRequest: () => {},
+    setAnalytics: () => {},
+    setCurrentView: () => {},
+    setLoading: () => {},
+    setError: () => {},
+    setEmployeeFilters: () => {},
+    setPagination: () => {},
+    resetFilters: () => {},
+  }), []);
+
+  return hydrated ? actions : noOpActions;
+};
+
+// Computed selector hooks with SSR safety
+export const useActiveEmployees = () => {
+  const [hydrated, setHydrated] = useState(false);
+
+  // Get the function first, then call it - this prevents infinite loops
+  const getActiveEmployees = useHRStore((state) => state.getActiveEmployees);
+  const activeEmployees = useMemo(() => {
+    return hydrated ? getActiveEmployees() : [];
+  }, [hydrated, getActiveEmployees]);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  return activeEmployees;
+};
+
+export const usePendingLeaveRequests = () => {
+  const [hydrated, setHydrated] = useState(false);
+
+  // Get the function first, then call it - this prevents infinite loops
+  const getPendingLeaveRequests = useHRStore((state) => state.getPendingLeaveRequests);
+  const pendingRequests = useMemo(() => {
+    return hydrated ? getPendingLeaveRequests() : [];
+  }, [hydrated, getPendingLeaveRequests]);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  return pendingRequests;
+};

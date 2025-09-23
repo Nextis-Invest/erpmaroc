@@ -1,7 +1,6 @@
 import { connectToDB } from "@/lib/database/connectToDB";
 import BRANCH from "@/model/branchData";
 import RECORD from "@/model/record";
-import STAFF from "@/model/staffs";
 import { auth } from "@/auth";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
@@ -45,7 +44,6 @@ export const GET = async (req, Request, Response) => {
   try {
     await connectToDB();
 
-    let staffData = {};
     let dashboardData = {};
     let dailyData = {};
 
@@ -76,20 +74,6 @@ export const GET = async (req, Request, Response) => {
       b.map(async (b) => {
         const branch = await BRANCH.findById(b).select("companyName").lean(); ////Remove _id
 
-        const s = await STAFF.aggregate([
-          {
-            $match: {
-              branch: b, // Filter by branch _id
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalSalary: { $sum: "$salary" },
-              totalBonus: { $sum: "$bonus" },
-            },
-          },
-        ]);
 
         const d = await RECORD.aggregate([
           {
@@ -154,12 +138,10 @@ export const GET = async (req, Request, Response) => {
         
         
 
-        let staff = { [branch.companyName]: { ...s } };
         let dashboard = { [branch.companyName]: { ...result } };
         let daily = { [branch.companyName]: { ...dl } };
 
-        Object.assign(staffData, staff); 
-        Object.assign(dashboardData, dashboard); 
+        Object.assign(dashboardData, dashboard);
         Object.assign(dailyData, daily); 
       })
       
@@ -183,7 +165,6 @@ export const GET = async (req, Request, Response) => {
       },
       data: {
         dashboardData,
-        staffData,
         dailyData
       },
     });

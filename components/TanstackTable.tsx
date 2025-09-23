@@ -100,7 +100,7 @@ const TanStackTable = () => {
   useEffect(() => {
     const refetch = async () => {
       await queryClient.refetchQueries({
-        queryKey: "branchData",
+        queryKey: ["branchData"],
         type: "active",
         exact: true,
       });
@@ -163,7 +163,10 @@ const TanStackTable = () => {
     {
       accessorFn: (row) => row.price,
       id: "price",
-      cell: (info) => info.getValue().toLocaleString(),
+      cell: (info) => new Intl.NumberFormat('fr-MA', {
+        style: 'currency',
+        currency: 'MAD'
+      }).format(info.getValue()),
     },
     {
       accessorFn: (row) => row.quantity,

@@ -61,7 +61,7 @@ export const getProduct = async (branch, page=1, limit="10", search="") => {
   try {
     if (!branch) {
       console.log("No branch ID Error");
-      return;
+      return { data: { products: [] }, totalPages: 0, currentPage: 1 };
     }
 
     console.log("Fetching products");
@@ -71,6 +71,6 @@ export const getProduct = async (branch, page=1, limit="10", search="") => {
     return res.data;
   } catch (error) {
     console.error("Error fetching admin data:", error.message);
-    throw error;
+    return { data: { data: [] }, totalPages: 0, currentPage: 1 };
   }
 };

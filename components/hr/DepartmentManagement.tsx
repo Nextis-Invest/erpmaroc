@@ -12,11 +12,11 @@ import {
   Edit,
   Trash2,
   Users,
-  DollarSign,
+  Banknote,
   Search,
   MoreVertical
 } from 'lucide-react';
-import { useDepartments, useHRActions } from '@/stores/hrStore';
+import { useDepartments, useHRActions } from '@/stores/hrStoreHooks';
 import {
   Dialog,
   DialogContent,
@@ -104,9 +104,12 @@ const DepartmentCard = ({ department, onEdit, onDelete }: {
       </div>
       {department.budget && (
         <div className="flex items-center space-x-2">
-          <DollarSign className="w-4 h-4 text-gray-400" />
+          <Banknote className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-600">
-            ${department.budget.toLocaleString()} budget
+            {new Intl.NumberFormat('fr-MA', {
+              style: 'currency',
+              currency: 'MAD'
+            }).format(department.budget)} budget
           </span>
         </div>
       )}

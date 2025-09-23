@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Users, Building2, UserCheck, Calendar, TrendingUp, Clock } from 'lucide-react';
-import { useHRStore, useAnalytics, useHRActions } from '@/stores/hrStore';
+import { useHRStore, useAnalytics, useHRActions } from '@/stores/hrStoreHooks';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -32,7 +32,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, color = "blue" }: {
           {trend && (
             <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               <TrendingUp className={`w-4 h-4 mr-1 ${trend.isPositive ? '' : 'rotate-180'}`} />
-              <span>{Math.abs(trend.value)}% from last month</span>
+              <span>{Math.abs(trend.value)}% par rapport au mois dernier</span>
             </div>
           )}
         </div>
@@ -47,7 +47,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, color = "blue" }: {
 // Recent Activities Component
 const RecentActivities = ({ activities }: { activities: any[] }) => (
   <Card className="p-6">
-    <h3 className="text-lg font-semibold mb-4">Recent Activities</h3>
+    <h3 className="text-lg font-semibold mb-4">Activités Récentes</h3>
     <div className="space-y-4">
       {activities.slice(0, 5).map((activity, index) => (
         <div key={index} className="flex items-start space-x-3">
@@ -69,7 +69,7 @@ const RecentActivities = ({ activities }: { activities: any[] }) => (
 // Upcoming Birthdays Component
 const UpcomingBirthdays = ({ birthdays }: { birthdays: any[] }) => (
   <Card className="p-6">
-    <h3 className="text-lg font-semibold mb-4">Upcoming Birthdays</h3>
+    <h3 className="text-lg font-semibold mb-4">Anniversaires à Venir</h3>
     <div className="space-y-3">
       {birthdays.slice(0, 5).map((birthday, index) => (
         <div key={index} className="flex items-center justify-between">
@@ -81,7 +81,7 @@ const UpcomingBirthdays = ({ birthdays }: { birthdays: any[] }) => (
           </div>
           <div className="text-right">
             <p className="text-sm text-blue-600 font-medium">
-              {birthday.daysUntil === 0 ? 'Today!' : `${birthday.daysUntil} days`}
+              {birthday.daysUntil === 0 ? 'Aujourd\'hui!' : `${birthday.daysUntil} jours`}
             </p>
           </div>
         </div>
@@ -93,22 +93,22 @@ const UpcomingBirthdays = ({ birthdays }: { birthdays: any[] }) => (
 // Leave Requests Widget
 const LeaveRequestsWidget = ({ leaveStats }: { leaveStats: any }) => (
   <Card className="p-6">
-    <h3 className="text-lg font-semibold mb-4">Leave Requests</h3>
+    <h3 className="text-lg font-semibold mb-4">Demandes de Congés</h3>
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-600">Total Requests</span>
+        <span className="text-sm text-gray-600">Demandes Totales</span>
         <span className="text-sm font-medium">{leaveStats.totalRequests}</span>
       </div>
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-600">Pending</span>
+        <span className="text-sm text-gray-600">En Attente</span>
         <span className="text-sm font-medium text-yellow-600">{leaveStats.pendingRequests}</span>
       </div>
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-600">Approved</span>
+        <span className="text-sm text-gray-600">Approuvées</span>
         <span className="text-sm font-medium text-green-600">{leaveStats.approvedRequests}</span>
       </div>
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-600">Rejected</span>
+        <span className="text-sm text-gray-600">Rejetées</span>
         <span className="text-sm font-medium text-red-600">{leaveStats.rejectedRequests}</span>
       </div>
     </div>
@@ -118,13 +118,13 @@ const LeaveRequestsWidget = ({ leaveStats }: { leaveStats: any }) => (
 // Department Distribution Chart
 const DepartmentDistribution = ({ distribution }: { distribution: any[] }) => (
   <Card className="p-6">
-    <h3 className="text-lg font-semibold mb-4">Department Distribution</h3>
+    <h3 className="text-lg font-semibold mb-4">Répartition par Département</h3>
     <div className="space-y-3">
       {distribution.map((dept, index) => (
         <div key={index} className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">{dept.department}</span>
-            <span className="text-sm font-medium">{dept.count} employees</span>
+            <span className="text-sm font-medium">{dept.count} employés</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
@@ -141,23 +141,23 @@ const DepartmentDistribution = ({ distribution }: { distribution: any[] }) => (
 // Attendance Overview Component
 const AttendanceOverview = ({ attendanceOverview }: { attendanceOverview: any }) => (
   <Card className="p-6">
-    <h3 className="text-lg font-semibold mb-4">Today's Attendance</h3>
+    <h3 className="text-lg font-semibold mb-4">Présence d&apos;Aujourd&apos;hui</h3>
     <div className="grid grid-cols-2 gap-4">
       <div className="text-center">
         <p className="text-2xl font-bold text-green-600">{attendanceOverview.present}</p>
-        <p className="text-sm text-gray-600">Present</p>
+        <p className="text-sm text-gray-600">Présents</p>
       </div>
       <div className="text-center">
         <p className="text-2xl font-bold text-red-600">{attendanceOverview.absent}</p>
-        <p className="text-sm text-gray-600">Absent</p>
+        <p className="text-sm text-gray-600">Absents</p>
       </div>
       <div className="text-center">
         <p className="text-2xl font-bold text-yellow-600">{attendanceOverview.late}</p>
-        <p className="text-sm text-gray-600">Late</p>
+        <p className="text-sm text-gray-600">En Retard</p>
       </div>
       <div className="text-center">
         <p className="text-2xl font-bold text-blue-600">{attendanceOverview.remote}</p>
-        <p className="text-sm text-gray-600">Remote</p>
+        <p className="text-sm text-gray-600">À Distance</p>
       </div>
     </div>
   </Card>
@@ -211,34 +211,34 @@ const HRDashboard = () => {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">HR Dashboard</h1>
-        <p className="text-gray-600">Welcome to your Human Resources management center</p>
+        <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord RH</h1>
+        <p className="text-gray-600">Bienvenue dans votre centre de gestion des Ressources Humaines</p>
       </div>
 
       {/* Key Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Total Employees"
+          title="Total Employés"
           value={analytics.totalEmployees}
           icon={Users}
           trend={{ value: 12, isPositive: true }}
           color="blue"
         />
         <StatsCard
-          title="Active Employees"
+          title="Employés Actifs"
           value={analytics.activeEmployees}
           icon={UserCheck}
           trend={{ value: 8, isPositive: true }}
           color="green"
         />
         <StatsCard
-          title="Departments"
+          title="Départements"
           value={analytics.departmentCount}
           icon={Building2}
           color="purple"
         />
         <StatsCard
-          title="Pending Leaves"
+          title="Congés en Attente"
           value={analytics.pendingLeaveRequests}
           icon={Calendar}
           trend={{ value: 5, isPositive: false }}
@@ -268,23 +268,23 @@ const HRDashboard = () => {
 
         {/* Quick Actions */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold mb-4">Actions Rapides</h3>
           <div className="grid grid-cols-2 gap-3">
             <button className="p-3 text-left bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
               <Users className="w-5 h-5 text-blue-600 mb-2" />
-              <p className="text-sm font-medium">Add Employee</p>
+              <p className="text-sm font-medium">Ajouter Employé</p>
             </button>
             <button className="p-3 text-left bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
               <Calendar className="w-5 h-5 text-green-600 mb-2" />
-              <p className="text-sm font-medium">Approve Leaves</p>
+              <p className="text-sm font-medium">Approuver Congés</p>
             </button>
             <button className="p-3 text-left bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
               <Building2 className="w-5 h-5 text-purple-600 mb-2" />
-              <p className="text-sm font-medium">Manage Teams</p>
+              <p className="text-sm font-medium">Gérer Équipes</p>
             </button>
             <button className="p-3 text-left bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">
               <Clock className="w-5 h-5 text-yellow-600 mb-2" />
-              <p className="text-sm font-medium">Attendance</p>
+              <p className="text-sm font-medium">Présence</p>
             </button>
           </div>
         </Card>

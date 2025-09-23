@@ -1,50 +1,40 @@
-"use client"
-
 import { DataContextProvider } from "@/Context/DataContext";
-import SideBar from "../components/SideBar";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import FormSideBar from "@/components/FormSideBar";
 import { ReactQueryProvider } from "@/Context/QueryClientProvider";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import NetworkStatus from "@/components/NetworkStatus";
-import { usePathname } from "next/navigation";
 import { SidebarProvider } from "@/components/SidebarWithZustand";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { HRStoreProvider } from "@/stores/hrStoreProvider";
+import ClientLayoutWrapper from "./ClientLayoutWrapper";
+import type { Metadata } from "next";
 
-export default function RootLayout({ children }) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+export const metadata: Metadata = {
+  title: 'ERP Maroc - Système de Gestion de Paie',
+  description: 'Système ERP pour la gestion de paie marocaine avec calculs CNSS, AMO et IR',
+  keywords: ['ERP', 'Paie', 'Maroc', 'CNSS', 'AMO', 'IR', 'Dirham'],
+};
 
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="bg-background">
+      <body className="bg-background" suppressHydrationWarning={true}>
         <SessionProvider>
           <ReactQueryProvider>
             <DataContextProvider>
-              {isAuthPage ? (
-                // Auth pages layout without sidebar
-                <main className="min-h-screen">
-                  {children}
-                </main>
-              ) : (
-                // Regular layout with sidebar
+              <HRStoreProvider>
                 <SidebarProvider defaultOpen={true}>
-                  <div className="flex min-h-screen w-full">
-                    <SideBar />
-                    <SidebarInset>
-                      <div className="flex flex-col flex-1">
-                        <NetworkStatus/>
-                        <main className="flex-1 p-6">
-                          {children}
-                        </main>
-                        <FormSideBar />
-                      </div>
-                    </SidebarInset>
-                    <ReactQueryDevtools initialIsOpen={false} />
-                  </div>
+                  <ClientLayoutWrapper>
+                    {children}
+                  </ClientLayoutWrapper>
+                  <ReactQueryDevtools initialIsOpen={false} />
                 </SidebarProvider>
-              )}
+              </HRStoreProvider>
             </DataContextProvider>
           </ReactQueryProvider>
         </SessionProvider>

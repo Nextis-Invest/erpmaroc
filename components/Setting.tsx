@@ -62,13 +62,21 @@ const Setting = () => {
           <div className="max-w-lg mx-auto">
             <details className=" outline-none ring-0">
               <summary className="flex gap-2 items-center justify-end text-sm leading-6 text-slate-900 ring-0 font-semibold select-none">
-                <Image
-                  width={40}
-                  height={40}
-                  className="rounded-sm"
-                  src={`${user?.picture}`}
-                  alt="user-profile"
-                />
+                {user?.picture ? (
+                  <Image
+                    width={40}
+                    height={40}
+                    className="rounded-sm"
+                    src={user.picture}
+                    alt="user-profile"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-sm bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-600 font-semibold">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
+                  </div>
+                )}
                 <p className="font-bold my-2 text-lg text-active">
                   {user?.name}
                 </p>

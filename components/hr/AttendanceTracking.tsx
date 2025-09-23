@@ -18,7 +18,7 @@ import {
   AlertCircle,
   Users
 } from 'lucide-react';
-import { useAttendance, useHRActions } from '@/stores/hrStore';
+import { useAttendance, useHRActions } from '@/stores/hrStoreHooks';
 import {
   Dialog,
   DialogContent,
@@ -305,8 +305,13 @@ const CheckInForm = ({ onCheckIn }: { onCheckIn: (data: any) => void }) => {
 const AttendanceTracking = () => {
   const attendance = useAttendance();
   const { setAttendance, setLoading } = useHRActions();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Set the date after mount to avoid hydration mismatch
+  useEffect(() => {
+    setSelectedDate(new Date().toISOString().split('T')[0]);
+  }, []);
   const [statusFilter, setStatusFilter] = useState('all');
 
   const [attendanceStats, setAttendanceStats] = useState<AttendanceStats>({
@@ -482,7 +487,7 @@ const AttendanceTracking = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <CheckInForm onCheckIn={handleCheckIn} />
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Today's Quick Stats</h3>
+              <h3 className="text-lg font-semibold mb-4">Today&apos;s Quick Stats</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Attendance Rate</span>

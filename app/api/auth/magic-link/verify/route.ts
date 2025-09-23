@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/database/connectToDB";
 import ADMIN from "@/model/admin";
 import MagicLinkToken from "@/model/magicLinkToken";
-import { signIn } from "@/auth";
 
 export async function GET(request: Request) {
   try {
@@ -49,33 +48,11 @@ export async function GET(request: Request) {
       );
     }
 
-    // Mark token as used before attempting sign-in
-    magicLinkToken.used = true;
-    await magicLinkToken.save();
-
-    // Use NextAuth v5 direct sign-in with magic link credentials
-    try {
-      const result = await signIn("magic-link", {
-        email: user.email,
-        token: token,
-        redirect: false
-      });
-
-      if (result?.error) {
-        console.error("NextAuth sign-in error:", result.error);
-        return NextResponse.redirect(
-          new URL("/login?error=sign-in-failed", request.url)
-        );
-      }
-
-      // Successful sign-in, redirect to dashboard
-      return NextResponse.redirect(new URL("/", request.url));
-    } catch (signInError) {
-      console.error("Sign-in process error:", signInError);
-      return NextResponse.redirect(
-        new URL("/login?error=auth-failed", request.url)
-      );
-    }
+    // Don't mark token as used here - let the credentials provider handle it
+    // Redirect to the client-side callback page to handle authentication
+    return NextResponse.redirect(
+      new URL(`/auth/magic-link-callback?token=${encodeURIComponent(token)}&email=${encodeURIComponent(user.email)}`, request.url)
+    );
   } catch (error) {
     console.error("Magic link verification error:", error);
     return NextResponse.redirect(

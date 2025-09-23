@@ -3,6 +3,7 @@ import { DataContext } from "@/Context/DataContext";
 import { faPlusSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useContext } from "react";
+import dynamic from 'next/dynamic';
 
 const AddNewProductBtn = ({mode}) => {
   const { setProductData, setBranchData, isOpen, toggleSideBar } =
@@ -13,6 +14,7 @@ const AddNewProductBtn = ({mode}) => {
         setProductData(null);
         toggleSideBar(mode);
       }}
+      suppressHydrationWarning
     >
       {" "}
       <FontAwesomeIcon

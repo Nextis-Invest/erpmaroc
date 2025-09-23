@@ -9,12 +9,16 @@ export const useBranchFetch = (email) => {
 
   return useQuery({
     gcTime: 24 * 24 *60 * 60 * 1000,
-    queryKey: "branchData",
+    queryKey: ["branchData", email],
     retry: 10,
-    queryFn: () => getBranch(email),
-    onSuccess(data) {
-        console.log("🚀 ~ onSuccess ~ sueBranch data:", data)
-        setBranchData(data);
+    queryFn: async () => {
+      const result = await getBranch(email);
+      if (result) {
+        console.log("🚀 ~ queryFn ~ branchData:", result);
+        setBranchData(result);
+      }
+      return result || null;
     },
+    enabled: !!email,
   });
 };

@@ -1,72 +1,77 @@
 "use client";
 import React, { Suspense, useEffect, useState } from "react";
-// import Chart from "react-apexcharts";
-
-import dynamic from 'next/dynamic';
-
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faEllipsis,
-  faSortDown,
-  faSortUp,
+  faFilter,
+  faMapMarkerAlt,
+  faPhone,
+  faEnvelope,
+  faUsers,
+  faStore,
+  faBuilding,
+  faGlobe,
+  faChartBar,
+  faEye,
+  faSearch,
+  faTh,
+  faList
 } from "@fortawesome/free-solid-svg-icons";
-import Loading from "./Loading";
-import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { useBranchFetch } from "@/hooks/useBranchFetch";
-import { Dropdown } from "flowbite-react";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { getProduct } from "@/lib/fetch/Product";
-import { getStaff } from "@/lib/fetch/staff";
-import Card from "./Card";
+import { useAllBranches } from "@/hooks/useAllBranches";
+import { useBranchDataFetch } from "@/hooks/useBranchDataFetch";
+
+// Shadcn UI Components
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Loading from "./Loading";
+
+interface Branch {
+  _id: string;
+  companyName: string;
+  cityName: string;
+  stateName: string;
+  countryName: string;
+  streetName: string;
+  branchEmail: string;
+  phone: string;
+  websiteUrl: string;
+  manager: string;
+  childBranch?: Branch[];
+}
 
 const Branch = () => {
-  const queryClient = useQueryClient();
   const { data: session, status } = useSession();
   const isLoading = status === "loading";
   const user = session?.user;
 
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalSales, setTotalSales] = useState(0);
+  // États pour les filtres
+  const [selectedRegion, setSelectedRegion] = useState<string>("all");
+  const [selectedCity, setSelectedCity] = useState<string>("all");
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const [search, setSearch] = useState("");
-
+  // Hook pour récupérer toutes les succursales
   const {
-    data: branchData,
-    isLoading: fetchingBranch,
-    error: errorInFetchBranch,
-    isSuccess,
-  } = useBranchFetch(user?.email);
-  console.log("🚀 ~ DashBoard ~ branchData:", branchData);
+    data: allBranchesData,
+    isLoading: fetchingAllBranches,
+    error: errorFetchingBranches,
+  } = useAllBranches(selectedRegion, selectedCity, user?.email);
 
-  const [selectedBranch, setSelectedBranch] = useState(
-    branchData?.data?.branch?.companyName || ""
-  );
-  const [selectedBranchID, setSelectedBranchID] = useState(
-    branchData?.meta?.branchId || ""
-  );
-
+  // Hook pour récupérer les données de la succursale sélectionnée
   const {
-    data,
+    data: branchAnalytics,
     isLoading: fetchingBranchData,
-    error: errorInFetchBranchdData,
-  } = useBranchDataFetch(branchData?.data?.branch?._id);
+  } = useBranchDataFetch(selectedBranch?._id);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -74,389 +79,460 @@ const Branch = () => {
     }
   }, [user, isLoading]);
 
-  useEffect(() => {
-    const refetch = async () => {
-      await queryClient.refetchQueries({
-        queryKey: "dashboardData",
-        type: "active",
-        exact: true,
-      });
-    };
-    refetch();
-  }, [queryClient, branchData]);
+  // Récupération des données
+  const branches: Branch[] = allBranchesData?.data?.branches || [];
+  const summary = allBranchesData?.data?.summary || { total: 0, byRegion: {}, byCity: {} };
 
+  // Filtrage par terme de recherche
+  const filteredBranches = branches.filter(branch =>
+    branch.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.cityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.stateName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Extraction des régions et villes uniques
+  const regions = Object.keys(summary.byRegion);
+  const cities = Object.keys(summary.byCity);
+
+  // Sélection automatique de la première succursale si aucune n'est sélectionnée
   useEffect(() => {
-    if (branchData && branchData.data && branchData.data.branch) {
-      setSelectedBranch(branchData.data.branch.companyName);
-      setSelectedBranchID(branchData.meta.branchId);
+    if (!selectedBranch && filteredBranches.length > 0) {
+      setSelectedBranch(filteredBranches[0]);
     }
-  }, [branchData, branchData?.data?.branch?.companyName]);
+  }, [filteredBranches, selectedBranch]);
 
-  //// REFETCH when required data changes
-  useEffect(() => {
-    const refetch = async () => {
-      await queryClient.refetchQueries({
-        queryKey: "branchData",
-        type: "active",
-        exact: true,
-      });
-    };
-    refetch();
-  }, [queryClient, user]);
+  // Rendu des statistiques rapides
+  const renderQuickStats = () => (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Succursales</CardTitle>
+          <FontAwesomeIcon icon={faStore} className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{summary.total}</div>
+          <p className="text-xs text-muted-foreground">Actuel</p>
+        </CardContent>
+      </Card>
 
-  useEffect(() => {
-    if (data?.data?.dashboardData && selectedBranch) {
-      const branchData = data.data.dashboardData[selectedBranch];
-      const dailyData = data.data.dailyData[selectedBranch];
-      console.log("🚀 ~ useEffect ~ dailyData[0]?.totalPrices:", dailyData[0]);
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Régions</CardTitle>
+          <FontAwesomeIcon icon={faMapMarkerAlt} className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{regions.length}</div>
+          <p className="text-xs text-muted-foreground">Couvertes</p>
+        </CardContent>
+      </Card>
 
-      if (branchData) {
-        const totalRecords = Object.values(branchData).map(
-          (data) => data.totalRecords || 0
-        );
-        console.log("🚀 ~ useEffect ~ totalRecords:", totalRecords);
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Villes</CardTitle>
+          <FontAwesomeIcon icon={faBuilding} className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{cities.length}</div>
+          <p className="text-xs text-muted-foreground">Couvertes</p>
+        </CardContent>
+      </Card>
 
-        setTotalRecords(totalRecords);
-        setTotalRevenue(dailyData[0]?.totalPrices);
-        setTotalSales(dailyData[0]?.totalQuantities);
-      }
-    }
-  }, [data?.data?.dailyData, data?.data?.dashboardData, selectedBranch]);
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Sélectionnée</CardTitle>
+          <FontAwesomeIcon icon={faEye} className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{selectedBranch ? "1" : "0"}</div>
+          <p className="text-xs text-muted-foreground">Actuelle</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
-  const dataQuery = useQuery({
-    // gcTime: 24 * 24 * 60 * 60 * 1000,
-    queryKey: ["searchProductData", search],
-    queryFn: () => getProduct(selectedBranchID, 1, 9999, search),
-    // placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
-  });
+  // Rendu des filtres
+  const renderFilters = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <FontAwesomeIcon icon={faFilter} className="mr-2 h-4 w-4" />
+          Filtres et Recherche
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Recherche */}
+          <div className="space-y-2">
+            <Label htmlFor="search">Rechercher</Label>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faSearch}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+              />
+              <Input
+                id="search"
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Nom, ville, région..."
+                className="pl-10"
+              />
+            </div>
+          </div>
 
-  const staffData = useQuery({
-    gcTime: 24 * 24 * 60 * 60 * 1000,
-    queryKey: ["staffData"],
-    queryFn: () => getStaff(selectedBranchID, 1, 99999),
-    placeholderData: keepPreviousData, // don't have 0 rows flash while changing pages/loading next page
-  });
-  console.log("🚀 ~ Branch ~ staffData:", staffData);
+          {/* Filtre par région */}
+          <div className="space-y-2">
+            <Label>Région</Label>
+            <Select value={selectedRegion} onValueChange={(value) => {
+              setSelectedRegion(value);
+              setSelectedCity("all");
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une région" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les régions ({summary.total})</SelectItem>
+                {regions.map(region => (
+                  <SelectItem key={region} value={region}>
+                    {region} ({summary.byRegion[region]})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-  useEffect(() => {
-    const refetch = async () => {
-      await queryClient.refetchQueries({
-        queryKey: ["searchProductData"],
-        type: "active",
-        exact: true,
-      });
-      await queryClient.refetchQueries({
-        queryKey: ["staffData"],
-        type: "active",
-        exact: true,
-      });
-    };
-    console.log("🚀 ~ Branch ~ search:", search?.length);
+          {/* Filtre par ville */}
+          <div className="space-y-2">
+            <Label>Ville</Label>
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une ville" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les villes</SelectItem>
+                {cities.map(city => (
+                  <SelectItem key={city} value={city}>
+                    {city} ({summary.byCity[city]})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-    if (search?.length == 0) {
-      refetch();
-    }
-  }, [queryClient, branchData, selectedBranch, search]);
-
-  const columns = [
-    {
-      accessorKey: "no",
-      id: "no",
-      cell: (info) => <span>{info.row.index + 1}</span>,
-    },
-    {
-      accessorKey: "name",
-      id: "name",
-      cell: (info) => info.getValue(),
-    },
-    {
-      accessorFn: (row) => row.category,
-      id: "category",
-      cell: (info) => info.getValue(),
-    },
-    {
-      accessorFn: (row) => row.price,
-      id: "price",
-      cell: (info) => info.getValue(),
-    },
-    {
-      accessorFn: (row) => row.quantity,
-      id: "quantity",
-      cell: (info) => info.getValue(),
-    },
-  ];
-
-  const table = useReactTable({
-    // data: dataQuery.data?.data?.products,
-    data: dataQuery?.data?.data?.products ?? [],
-    columns,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getCoreRowModel: getCoreRowModel(),
-    columnResizeMode: "onChange",
-    manualPagination: true,
-  });
-
-  var colChartOption = {
-    series: [
-      {
-        name: "Sales",
-        data: totalRecords,
-      },
-    ],
-    chart: {
-      type: "bar",
-      height: 350,
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "55%",
-        endingShape: "rounded",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
-    },
-    xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-    },
-    yaxis: {
-      title: {
-        text: "Sales",
-      },
-    },
-    fill: {
-      opacity: 1,
-    },
-    tooltip: {
-      y: {
-        formatter: function (val) {
-          return val + " MMK";
-        },
-      },
-    },
-  };
-  return (
-    <div className="w-full min-h-[80vh] h-auto flex flex-col content-center drop-shadow-md shadow-md shadow-secondary rounded-lg p-5">
-      {/* <Suspense fallback={<Loading size="3x" />}> */}
-      <div id="firstRow" className="w-full h-1/2 flex items-start">
-        {isLoading || fetchingBranch || fetchingBranchData ? (
-          <Loading size="5x" />
-        ) : null}
-
-        <Chart
-          options={colChartOption}
-          series={colChartOption.series}
-          type="bar"
-          height={400}
-          className="w-auto flex-grow"
-        />
-        <div
-          id="firstRowSecCol"
-          className="min-w-52 w-auto h-auto min-h-80 flex flex-col justify-start gap-2"
-        >
-          <Dropdown
-            label={selectedBranch || "Select branch"}
-            class="text-white w-full bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex justify-center"
-          >
-            <Dropdown.Item
-              className={` z-40 ${
-                selectedBranch == branchData?.data?.branch.companyName
-                  ? "text-blue-600"
-                  : ""
-              }`}
-              onClick={() => {
-                setSelectedBranch(branchData?.data?.branch.companyName);
-                setSelectedBranchID(branchData?.data?.meta?.branchId);
-              }}
-            >
-              {branchData?.data?.branch.companyName}
-            </Dropdown.Item>
-            {branchData?.data?.branch?.childBranch?.map((branch, index) => {
-              return (
-                <Dropdown.Item
-                  className={`${
-                    selectedBranch == branch.companyName ? "text-blue-600" : ""
-                  }`}
-                  key={index}
-                  onClick={() => {
-                    setSelectedBranch(branch.companyName);
-                    setSelectedBranchID(branch._id);
-                  }}
-                >
-                  {branch.companyName}
-                </Dropdown.Item>
-              );
-            })}
-          </Dropdown>
-          <input
-            type="search"
-            id="branchSearch"
-            className="block p-2 h-10 w-full focus:outline-none text-sm text-gray-900 bg-gray-50 rounded-lg border border-primary"
-            placeholder={`Search products in ${selectedBranch}`}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
-            required
-          />
-          <div
-            id="cards"
-            className="w-full flex flex-col justify-between h-auto"
-          >
-            <Card
-              color="green-400"
-              title="Revenue"
-              timeFrame="Today"
-              value={totalRevenue}
-            />
-            <Card
-              color="yellow-400"
-              title="Sales"
-              timeFrame="Today"
-              value={totalSales}
-            />
+          {/* Mode d'affichage */}
+          <div className="space-y-2">
+            <Label>Affichage</Label>
+            <div className="flex space-x-2">
+              <Button
+                variant={viewMode === "grid" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="flex-1"
+              >
+                <FontAwesomeIcon icon={faTh} className="mr-2 h-4 w-4" />
+                Grille
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="flex-1"
+              >
+                <FontAwesomeIcon icon={faList} className="mr-2 h-4 w-4" />
+                Liste
+              </Button>
+            </div>
           </div>
         </div>
-      </div>{" "}
-      <div id="secRow" className="w-full flex border-t-2 border-blue-600">
-        <div id="secRowFirstCol" className="w-1/2">
-          {staffData?.data?.data?.staffs?.map((staff) => {
-            return (
-              <div
-                id="staff"
-                className="grid grid-cols-3 gap-2 h-12 border-b-2 border-primary items-center"
-                key={staff?._id}
-              >
-                <div className="ml-2 col-span-2">{staff.name}</div>
-                <div>{staff.position}</div>
-              </div>
-            );
-          })}{" "}
-        </div>
-        <div id="secRowSecCol products" className="w-1/2">
-          <table className=" w-full max-h-[70vh] overflow-y-scroll text-sm text-left">
-            <thead className="bg-active sticky top-12 z-10 text-background">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className="capitalize select-none px-3.5 py-2 border-r-2 border-background"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {
-                        {
-                          asc: (
-                            <FontAwesomeIcon
-                              icon={faSortUp}
-                              className="ml-2"
-                              color="#fff"
-                            />
-                          ),
-                          desc: (
-                            <FontAwesomeIcon
-                              icon={faSortDown}
-                              className="ml-2"
-                              color="#fff"
-                            />
-                          ),
-                        }[header.column.getIsSorted() ?? null]
-                      }
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="w-full h-auto">
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row, i) => (
-                  <tr
-                    key={row._id}
-                    className={`h-10
-                  ${i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"}
-                  `}
-                    onClick={() => {
-                      setProductData(null);
+      </CardContent>
+    </Card>
+  );
 
-                      console.log(
-                        "🚀 ~ TanStackTable ~ info:",
-                        row.original._id,
-                        setProductData(
-                          dataQuery?.data?.data?.products.find(
-                            (obj) => obj._id === row.original._id
-                          )
-                        ),
-                        toggleSideBar("edit-product")
-                      ); //This will extract ID
+  // Rendu d'une carte de succursale
+  const renderBranchCard = (branch: Branch, isSelected: boolean = false) => (
+    <Card
+      key={branch._id}
+      className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+        isSelected ? "ring-2 ring-primary border-primary" : "hover:border-primary/50"
+      }`}
+      onClick={() => setSelectedBranch(branch)}
+    >
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <FontAwesomeIcon
+              icon={faStore}
+              className={`h-5 w-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`}
+            />
+            <div>
+              <CardTitle className="text-lg">{branch.companyName}</CardTitle>
+              <CardDescription className="flex items-center">
+                <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-1 h-3 w-3" />
+                {branch.cityName}, {branch.stateName}
+              </CardDescription>
+            </div>
+          </div>
+          {isSelected && <Badge>Sélectionnée</Badge>}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center">
+            <FontAwesomeIcon icon={faBuilding} className="mr-2 h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{branch.streetName}</span>
+          </div>
+          <div className="flex items-center">
+            <FontAwesomeIcon icon={faPhone} className="mr-2 h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{branch.phone}</span>
+          </div>
+          <div className="flex items-center">
+            <FontAwesomeIcon icon={faEnvelope} className="mr-2 h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{branch.branchEmail}</span>
+          </div>
+          {branch.websiteUrl && (
+            <div className="flex items-center">
+              <FontAwesomeIcon icon={faGlobe} className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span className="text-primary hover:underline">{branch.websiteUrl}</span>
+            </div>
+          )}
+        </div>
+
+        {branch.childBranch && branch.childBranch.length > 0 && (
+          <>
+            <Separator className="my-4" />
+            <div className="flex items-center text-sm text-muted-foreground">
+              <FontAwesomeIcon icon={faUsers} className="mr-2 h-4 w-4" />
+              <span>{branch.childBranch.length} succursale(s) secondaire(s)</span>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // Rendu en mode liste (Table)
+  const renderBranchTable = () => (
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Succursale</TableHead>
+              <TableHead>Localisation</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Succursales liées</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredBranches.map((branch) => (
+              <TableRow
+                key={branch._id}
+                className={`cursor-pointer ${
+                  selectedBranch?._id === branch._id ? "bg-muted/50" : ""
+                }`}
+                onClick={() => setSelectedBranch(branch)}
+              >
+                <TableCell>
+                  <div className="flex items-center space-x-3">
+                    <FontAwesomeIcon icon={faStore} className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">{branch.companyName}</div>
+                      <div className="text-sm text-muted-foreground">{branch.manager}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div>{branch.cityName}</div>
+                  <div className="text-sm text-muted-foreground">{branch.stateName}</div>
+                </TableCell>
+                <TableCell>
+                  <div>{branch.phone}</div>
+                  <div className="text-sm text-muted-foreground">{branch.branchEmail}</div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {branch.childBranch?.length || 0} succursales
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedBranch(branch);
                     }}
                   >
-                    {row.getVisibleCells().map(
-                      (cell) => (
-                        console.log(cell.column.getSize()),
-                        (
-                          <td
-                            id="cell"
-                            key={cell._id}
-                            className="px-2.5 py-1.5 truncate hover:overflow-visible max-w-32"
-                            data={cell.getValue() || "No data"}
-                            style={{ position: "relative" }}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-                        )
-                      )
-                    )}
-                  </tr>
-                ))
-              ) : dataQuery.isLoading ? (
-                <tr className="text-center relative h-32 overflow-hidden">
-                  <td colSpan={12}>
-                    <Loading size="3x" />
-                  </td>
-                </tr>
-              ) : dataQuery.isLoadingError ? (
-                <tr className="text-center h-32">
-                  <td colSpan={12}>
-                    <p>No product found!</p>
-                    <p>Search in search box</p>
-                  </td>
-                </tr>
+                    <FontAwesomeIcon icon={faEye} className="mr-2 h-4 w-4" />
+                    Voir détails
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+
+  // Rendu des détails de la succursale sélectionnée
+  const renderBranchDetails = () => {
+    if (!selectedBranch) return null;
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FontAwesomeIcon icon={faChartBar} className="mr-2 h-5 w-5" />
+            Détails - {selectedBranch.companyName}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Informations détaillées */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Informations générales</h3>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <FontAwesomeIcon icon={faBuilding} className="mt-1 h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <div className="font-medium">Adresse complète</div>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedBranch.streetName}, {selectedBranch.cityName}, {selectedBranch.stateName}, {selectedBranch.countryName}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <FontAwesomeIcon icon={faUsers} className="mt-1 h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <div className="font-medium">Gestionnaire</div>
+                    <div className="text-sm text-muted-foreground">{selectedBranch.manager}</div>
+                  </div>
+                </div>
+                {selectedBranch.childBranch && selectedBranch.childBranch.length > 0 && (
+                  <div className="flex items-start space-x-3">
+                    <FontAwesomeIcon icon={faStore} className="mt-1 h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">Succursales liées</div>
+                      <div className="text-sm text-muted-foreground flex flex-wrap gap-1 mt-1">
+                        {selectedBranch.childBranch.map((child, index) => (
+                          <Badge key={index} variant="outline">
+                            {child.companyName}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Analytics placeholder */}
+            <div className="bg-muted/50 rounded-lg p-6 flex items-center justify-center">
+              {fetchingBranchData ? (
+                <Loading size="2x" />
               ) : (
-                ""
+                <div className="text-center text-muted-foreground">
+                  <FontAwesomeIcon icon={faChartBar} className="h-12 w-12 mb-2" />
+                  <p className="font-medium">Analyses et statistiques</p>
+                  <p className="text-sm">Disponibles prochainement</p>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {/* En-tête */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Gestion des Succursales</h1>
+        <p className="text-muted-foreground">
+          Visualisez et gérez toutes vos succursales par région et ville
+        </p>
       </div>
-      {/* </Suspense> */}
+
+      {isLoading || fetchingAllBranches ? (
+        <div className="flex justify-center items-center h-64">
+          <Loading size="5x" />
+        </div>
+      ) : errorFetchingBranches ? (
+        <Alert variant="destructive">
+          <AlertDescription>
+            Erreur lors du chargement des succursales. Veuillez réessayer.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          {/* Statistiques rapides */}
+          {renderQuickStats()}
+
+          {/* Filtres */}
+          {renderFilters()}
+
+          {/* Affichage des succursales */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">
+                Succursales ({filteredBranches.length})
+              </h2>
+              {selectedBranch && (
+                <Badge variant="outline">
+                  Sélectionnée: {selectedBranch.companyName}
+                </Badge>
+              )}
+            </div>
+
+            {filteredBranches.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <FontAwesomeIcon icon={faStore} className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    Aucune succursale trouvée avec les filtres actuels.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "grid" | "list")}>
+                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+                  <TabsTrigger value="grid">
+                    <FontAwesomeIcon icon={faTh} className="mr-2 h-4 w-4" />
+                    Vue Grille
+                  </TabsTrigger>
+                  <TabsTrigger value="list">
+                    <FontAwesomeIcon icon={faList} className="mr-2 h-4 w-4" />
+                    Vue Liste
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="grid" className="mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredBranches.map((branch) =>
+                      renderBranchCard(branch, selectedBranch?._id === branch._id)
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="list" className="mt-4">
+                  {renderBranchTable()}
+                </TabsContent>
+              </Tabs>
+            )}
+          </div>
+
+          {/* Détails de la succursale sélectionnée */}
+          {selectedBranch && (
+            <div className="space-y-4">
+              <Separator />
+              {renderBranchDetails()}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

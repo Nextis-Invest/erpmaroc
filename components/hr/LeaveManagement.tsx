@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, CheckCircle, XCircle, Plus, Filter } from 'lucide-react';
-import { useLeaveRequests, useHRActions } from '@/stores/hrStore';
+import { useLeaveRequests, useHRActions } from '@/stores/hrStoreHooks';
 
 // Status Badge Component
 const LeaveStatusBadge = ({ status }: { status: string }) => {
@@ -59,7 +59,7 @@ const LeaveRequestCard = ({ request, onApprove, onReject }: {
 
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">Type:</span>
+          <span className="font-medium">Type :</span>
           <Badge variant="outline">{request.leaveType.name}</Badge>
         </div>
         <div className="flex items-center gap-2 text-sm">
@@ -67,10 +67,10 @@ const LeaveRequestCard = ({ request, onApprove, onReject }: {
           <span>
             {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
           </span>
-          <Badge variant="secondary">{request.numberOfDays} days</Badge>
+          <Badge variant="secondary">{request.numberOfDays} jours</Badge>
         </div>
         <div className="text-sm">
-          <span className="font-medium">Reason:</span>
+          <span className="font-medium">Raison :</span>
           <p className="text-gray-600 mt-1">{request.reason}</p>
         </div>
       </div>
@@ -83,7 +83,7 @@ const LeaveRequestCard = ({ request, onApprove, onReject }: {
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="w-4 h-4 mr-1" />
-            Approve
+            Approuver
           </Button>
           <Button
             size="sm"
@@ -92,7 +92,7 @@ const LeaveRequestCard = ({ request, onApprove, onReject }: {
             className="text-red-600 border-red-200 hover:bg-red-50"
           >
             <XCircle className="w-4 h-4 mr-1" />
-            Reject
+            Rejeter
           </Button>
         </div>
       )}
@@ -112,14 +112,14 @@ const LeaveBalanceCard = ({ employee, balances }: { employee: any; balances: any
           <div key={index} className="flex justify-between items-center">
             <div>
               <p className="text-sm font-medium">{balance.leaveType}</p>
-              <p className="text-xs text-gray-500">Annual quota: {balance.entitled}</p>
+              <p className="text-xs text-gray-500">Quota annuel : {balance.entitled}</p>
             </div>
             <div className="text-right">
               <p className="text-sm font-semibold text-green-600">
-                {balance.available} available
+                {balance.available} disponibles
               </p>
               <p className="text-xs text-gray-500">
-                {balance.taken} used
+                {balance.taken} utilisés
               </p>
             </div>
           </div>
@@ -212,12 +212,12 @@ const LeaveManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Leave Management</h2>
-          <p className="text-gray-600">Manage employee leave requests and balances</p>
+          <h2 className="text-2xl font-bold text-gray-900">Gestion des Congés</h2>
+          <p className="text-gray-600">Gérez les demandes de congés et les soldes des employés</p>
         </div>
         <Button size="sm">
           <Plus className="w-4 h-4 mr-2" />
-          New Leave Request
+          Nouvelle Demande de Congé
         </Button>
       </div>
 
@@ -229,7 +229,7 @@ const LeaveManagement = () => {
               <Clock className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-sm text-gray-600">En Attente</p>
               <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
             </div>
           </div>
@@ -241,7 +241,7 @@ const LeaveManagement = () => {
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Approved</p>
+              <p className="text-sm text-gray-600">Approuvées</p>
               <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
             </div>
           </div>
@@ -253,7 +253,7 @@ const LeaveManagement = () => {
               <XCircle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Rejected</p>
+              <p className="text-sm text-gray-600">Rejetées</p>
               <p className="text-2xl font-bold text-red-600">{rejectedCount}</p>
             </div>
           </div>
@@ -265,7 +265,7 @@ const LeaveManagement = () => {
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Requests</p>
+              <p className="text-sm text-gray-600">Demandes Totales</p>
               <p className="text-2xl font-bold text-blue-600">{leaveRequests.length}</p>
             </div>
           </div>
@@ -275,9 +275,9 @@ const LeaveManagement = () => {
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="requests">Leave Requests</TabsTrigger>
-          <TabsTrigger value="balances">Leave Balances</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+          <TabsTrigger value="requests">Demandes de Congés</TabsTrigger>
+          <TabsTrigger value="balances">Soldes de Congés</TabsTrigger>
+          <TabsTrigger value="calendar">Vue Calendrier</TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests" className="space-y-4">
@@ -286,21 +286,21 @@ const LeaveManagement = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search by employee name or leave type..."
+                  placeholder="Rechercher par nom d'employé ou type de congé..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Filtrer par statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">Tous les Statuts</SelectItem>
+                  <SelectItem value="pending">En Attente</SelectItem>
+                  <SelectItem value="approved">Approuvé</SelectItem>
+                  <SelectItem value="rejected">Rejeté</SelectItem>
+                  <SelectItem value="cancelled">Annulé</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -321,11 +321,11 @@ const LeaveManagement = () => {
               <div className="col-span-full">
                 <Card className="p-8 text-center">
                   <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Leave Requests Found</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune Demande de Congé Trouvée</h3>
                   <p className="text-gray-600">
                     {searchQuery || filterStatus !== 'all'
-                      ? 'Try adjusting your filters to see more results.'
-                      : 'No leave requests have been submitted yet.'}
+                      ? 'Essayez d\'ajuster vos filtres pour voir plus de résultats.'
+                      : 'Aucune demande de congé n\'a encore été soumise.'}
                   </p>
                 </Card>
               </div>
@@ -348,11 +348,11 @@ const LeaveManagement = () => {
         <TabsContent value="calendar" className="space-y-4">
           <Card className="p-8 text-center">
             <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Leave Calendar</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Calendrier des Congés</h3>
             <p className="text-gray-600 mb-4">
-              View all approved leaves in a calendar format to manage team availability.
+              Voir tous les congés approuvés dans un format calendrier pour gérer la disponibilité de l&apos;équipe.
             </p>
-            <p className="text-sm text-blue-600">Coming Soon</p>
+            <p className="text-sm text-blue-600">Bientôt Disponible</p>
           </Card>
         </TabsContent>
       </Tabs>

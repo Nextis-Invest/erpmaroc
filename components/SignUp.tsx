@@ -197,7 +197,7 @@ export default function SignUpPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="company">Nom de l'entreprise</Label>
+                                <Label htmlFor="company">Nom de l&apos;entreprise</Label>
                                 <Input
                                     id="company"
                                     name="company"
@@ -273,9 +273,9 @@ export default function SignUpPage() {
                                     htmlFor="terms"
                                     className="text-sm font-normal cursor-pointer"
                                 >
-                                    J'accepte les{' '}
+                                    J&apos;accepte les{' '}
                                     <Link href="/terms" className="text-primary hover:underline">
-                                        Conditions d'utilisation
+                                        Conditions d&apos;utilisation
                                     </Link>{' '}
                                     et la{' '}
                                     <Link href="/privacy" className="text-primary hover:underline">
@@ -306,7 +306,7 @@ export default function SignUpPage() {
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
                                     <span className="bg-card px-2 text-muted-foreground">
-                                        Ou s'inscrire avec
+                                        Ou s&apos;inscrire avec
                                     </span>
                                 </div>
                             </div>
@@ -335,7 +335,7 @@ export default function SignUpPage() {
                                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                                     />
                                 </svg>
-                                S'inscrire avec Google
+                                S&apos;inscrire avec Google
                             </Button>
 
                             <p className="text-center text-sm text-muted-foreground">

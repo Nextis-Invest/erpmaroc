@@ -408,6 +408,184 @@ export const mockEmployees = [
     documents: [],
     createdAt: new Date('2020-01-10'),
     updatedAt: new Date('2024-01-15')
+  },
+  {
+    _id: generateObjectId(),
+    employeeId: "EMP006",
+    firstName: "Fatima",
+    lastName: "Alami",
+    email: "fatima.alami@company.com",
+    personalEmail: "fatima.alami@gmail.com",
+    phone: "+212612345688",
+    position: "Accountant",
+    department: mockDepartments[3]._id, // Finance & Accounting
+    team: null,
+    manager: null,
+    employmentType: "full-time",
+    status: "active",
+    hireDate: new Date('2023-05-01'),
+    confirmationDate: new Date('2023-11-01'),
+    birthDate: new Date('1987-12-15'),
+    salary: 32000,
+    bonus: 3000,
+    allowances: [
+      { type: "Transport", amount: 1800 },
+      { type: "Medical", amount: 800 }
+    ],
+    gender: "female",
+    maritalStatus: "married",
+    nationality: "Moroccan",
+    nationalId: "KL123456",
+    address: {
+      street: "345 Ibn Battuta Street",
+      city: "Salé",
+      state: "Rabat-Salé-Kénitra",
+      country: "Morocco",
+      postalCode: "11000"
+    },
+    emergencyContact: {
+      name: "Hassan Alami",
+      relationship: "Spouse",
+      phone: "+212612345689",
+      address: "345 Ibn Battuta Street, Salé"
+    },
+    bankAccount: {
+      bankName: "Banque Populaire du Maroc",
+      accountNumber: "123456789012345678901234",
+      accountType: "Current",
+      routingNumber: "016"
+    },
+    skills: ["Accounting", "Financial Analysis", "Excel", "SAP", "Tax Compliance"],
+    education: [
+      {
+        degree: "Master's in Accounting and Finance",
+        institution: "ISCAE Casablanca",
+        year: 2011,
+        field: "Accounting and Finance"
+      }
+    ],
+    documents: [],
+    createdAt: new Date('2023-05-01'),
+    updatedAt: new Date('2024-01-15')
+  },
+  {
+    _id: generateObjectId(),
+    employeeId: "EMP007",
+    firstName: "Omar",
+    lastName: "Benkirane",
+    email: "omar.benkirane@company.com",
+    personalEmail: "omar.benkirane@outlook.com",
+    phone: "+212612345690",
+    position: "Operations Coordinator",
+    department: mockDepartments[4]._id, // Operations
+    team: null,
+    manager: null,
+    employmentType: "full-time",
+    status: "active",
+    hireDate: new Date('2022-11-15'),
+    confirmationDate: new Date('2023-05-15'),
+    birthDate: new Date('1991-08-22'),
+    salary: 28000,
+    bonus: 2000,
+    allowances: [
+      { type: "Transport", amount: 2000 },
+      { type: "Travel", amount: 500 }
+    ],
+    gender: "male",
+    maritalStatus: "single",
+    nationality: "Moroccan",
+    nationalId: "MN789012",
+    address: {
+      street: "678 Hassan V Avenue",
+      city: "Agadir",
+      state: "Souss-Massa",
+      country: "Morocco",
+      postalCode: "80000"
+    },
+    emergencyContact: {
+      name: "Meryem Benkirane",
+      relationship: "Sister",
+      phone: "+212612345691",
+      address: "678 Hassan V Avenue, Agadir"
+    },
+    bankAccount: {
+      bankName: "BMCE Bank",
+      accountNumber: "987654321098765432109876",
+      accountType: "Savings",
+      routingNumber: "011"
+    },
+    skills: ["Operations Management", "Project Coordination", "Supply Chain", "Process Improvement"],
+    education: [
+      {
+        degree: "Bachelor's in Business Operations",
+        institution: "ENCG Agadir",
+        year: 2014,
+        field: "Operations Management"
+      }
+    ],
+    documents: [],
+    createdAt: new Date('2022-11-15'),
+    updatedAt: new Date('2024-01-15')
+  },
+  {
+    _id: generateObjectId(),
+    employeeId: "EMP008",
+    firstName: "Aicha",
+    lastName: "Tazi",
+    email: "aicha.tazi@company.com",
+    personalEmail: "aicha.tazi@yahoo.com",
+    phone: "+212612345692",
+    position: "Marketing Specialist",
+    department: mockDepartments[2]._id, // Sales & Marketing
+    team: null,
+    manager: null,
+    employmentType: "full-time",
+    status: "active",
+    hireDate: new Date('2024-01-08'),
+    confirmationDate: new Date('2024-07-08'),
+    birthDate: new Date('1993-04-10'),
+    salary: 36000,
+    bonus: 4000,
+    allowances: [
+      { type: "Transport", amount: 1500 },
+      { type: "Marketing", amount: 2000 },
+      { type: "Medical", amount: 500 }
+    ],
+    gender: "female",
+    maritalStatus: "single",
+    nationality: "Moroccan",
+    nationalId: "OP345678",
+    address: {
+      street: "890 Moulay Youssef Boulevard",
+      city: "Meknes",
+      state: "Fez-Meknes",
+      country: "Morocco",
+      postalCode: "50000"
+    },
+    emergencyContact: {
+      name: "Youssef Tazi",
+      relationship: "Father",
+      phone: "+212612345693",
+      address: "890 Moulay Youssef Boulevard, Meknes"
+    },
+    bankAccount: {
+      bankName: "Attijariwafa Bank",
+      accountNumber: "456789012345678901234567",
+      accountType: "Current",
+      routingNumber: "007"
+    },
+    skills: ["Digital Marketing", "Content Creation", "Social Media", "Google Analytics", "Brand Management"],
+    education: [
+      {
+        degree: "Master's in Marketing and Communication",
+        institution: "ENCG Meknes",
+        year: 2016,
+        field: "Marketing and Communication"
+      }
+    ],
+    documents: [],
+    createdAt: new Date('2024-01-08'),
+    updatedAt: new Date('2024-01-15')
   }
 ];
 
@@ -861,8 +1039,10 @@ export const mockAnalytics = {
     { month: 'Jun', hires: 3 }
   ],
   departmentDistribution: [
-    { department: 'IT', count: 3, percentage: 60 },
-    { department: 'HR', count: 1, percentage: 20 },
-    { department: 'Sales', count: 1, percentage: 20 }
+    { department: 'IT', count: 3, percentage: 37.5 },
+    { department: 'HR', count: 1, percentage: 12.5 },
+    { department: 'Sales & Marketing', count: 2, percentage: 25 },
+    { department: 'Finance & Accounting', count: 1, percentage: 12.5 },
+    { department: 'Operations', count: 1, percentage: 12.5 }
   ]
 };

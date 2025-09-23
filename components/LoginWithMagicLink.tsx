@@ -328,12 +328,12 @@ export default function LoginWithMagicLink() {
                             </Button>
 
                             <p className="text-center text-sm text-muted-foreground">
-                                Vous n'avez pas de compte ?{' '}
+                                Vous n&apos;avez pas de compte ?{' '}
                                 <Link
                                     href="/register"
                                     className="font-medium text-primary hover:underline"
                                 >
-                                    S'inscrire
+                                    S&apos;inscrire
                                 </Link>
                             </p>
                         </CardFooter>
@@ -344,7 +344,7 @@ export default function LoginWithMagicLink() {
                     <p className="mt-6 text-center text-xs text-muted-foreground">
                         En continuant, vous acceptez nos{' '}
                         <Link href="/terms" className="underline hover:text-primary">
-                            Conditions d'utilisation
+                            Conditions d&apos;utilisation
                         </Link>{' '}
                         et notre{' '}
                         <Link href="/privacy" className="underline hover:text-primary">

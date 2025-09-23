@@ -11,16 +11,12 @@ module.exports = {
     flowbite.content(),
   ],
   theme: {
-  	colors: {
-  		text: 'var(--text)',
-  		active: 'var(--active)',
-  		warning: 'var(--warning)',
-  		background: 'var(--background)',
-  		primary: 'var(--primary)',
-  		secondary: 'var(--secondary)',
-  		accent: 'var(--accent)'
-  	},
   	extend: {
+  		colors: {
+  			text: 'var(--text)',
+  			active: 'var(--active)',
+  			warning: 'var(--warning)'
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

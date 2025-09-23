@@ -16,6 +16,15 @@ export async function middleware(request: NextRequest) {
     '/forgot-password',
   ];
 
+  // In development mode, allow access to certain API routes for demo/testing
+  if (process.env.NODE_ENV === 'development') {
+    const devPublicPaths = [
+      '/api/payroll',
+      '/api/hr'
+    ];
+    publicPaths.push(...devPublicPaths);
+  }
+
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
 
   // Allow public access to these paths

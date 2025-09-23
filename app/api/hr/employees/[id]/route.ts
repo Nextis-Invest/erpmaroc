@@ -6,9 +6,9 @@ import ACTIVITYLOG from "@/model/activities";
 import { getMockData } from "@/lib/hr/mockData";
 
 // GET /api/hr/employees/[id] - Get employee by ID
-export const GET = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const searchParams = req.nextUrl.searchParams;
     const useMockData = searchParams.get("mock") === "true";
 
@@ -85,9 +85,9 @@ export const GET = async (req: NextRequest, { params }: { params: { id: string }
 };
 
 // PUT /api/hr/employees/[id] - Update employee
-export const PUT = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const useMockData = body.useMockData;
 
@@ -166,9 +166,9 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
 };
 
 // DELETE /api/hr/employees/[id] - Soft delete employee
-export const DELETE = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
     const searchParams = req.nextUrl.searchParams;
     const useMockData = searchParams.get("mock") === "true";
 

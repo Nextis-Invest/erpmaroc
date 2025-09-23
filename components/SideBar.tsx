@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
@@ -13,7 +12,8 @@ import {
   ShieldAlert,
   Settings,
   LogOut,
-  UserCog
+  UserCog,
+  Calculator
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -34,42 +34,42 @@ const SideBar = () => {
 
   const menuItems = [
     {
-      title: "Dashboard",
+      title: "Tableau de Bord",
       url: "/",
       icon: ChartLine,
     },
     {
-      title: "Staffs",
-      url: "/staffs",
-      icon: Users,
-    },
-    {
-      title: "HR",
+      title: "RH",
       url: "/hr",
       icon: UserCog,
     },
     {
-      title: "Branches",
+      title: "Paie",
+      url: "/payroll",
+      icon: Calculator,
+    },
+    {
+      title: "Succursales",
       url: "/branches",
       icon: Store,
     },
     {
-      title: "Products",
+      title: "Produits",
       url: "/products",
       icon: Tags,
     },
     {
-      title: "Record",
+      title: "Enregistrements",
       url: "/record",
       icon: Warehouse,
     },
     {
-      title: "Admin",
+      title: "Administration",
       url: "/admin",
       icon: ShieldAlert,
     },
     {
-      title: "Settings",
+      title: "Paramètres",
       url: "/settings",
       icon: Settings,
     },
@@ -78,16 +78,10 @@ const SideBar = () => {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader>
-        <Link href="/" className="flex items-center justify-center p-2">
-          <Image
-            src="/assets/logo.png"
-            width={100}
-            height={100}
-            alt="logo"
-            priority
-            unoptimized
-            className="w-full h-auto"
-          />
+        <Link href="/" className="flex items-center justify-center p-4">
+          <h1 className="text-2xl font-bold text-primary">
+            ERP Maroc
+          </h1>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -122,7 +116,7 @@ const SideBar = () => {
               >
                 <button onClick={() => signOut({ callbackUrl: '/login' })}>
                   <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
+                  <span>Déconnexion</span>
                 </button>
               </SidebarMenuButton>
             </SidebarMenuItem>

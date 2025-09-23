@@ -44,8 +44,8 @@ export const getBranch = async (email) => {
 
   try {
     if (!email) {
-      console.log("No branch ID");
-      return;
+      console.log("No email provided for branch fetch");
+      return null;
     }
 
     console.log("Fetching Branch");
@@ -55,10 +55,10 @@ export const getBranch = async (email) => {
 
     const res = await axios.get(`/api/admins/branch?email=${email}`);
     console.log(res.data.data);
-    return res.data;
+    return res.data || null;
   } catch (error) {
     console.error("Error fetching admin data:", error.message);
-    throw error;
+    return null;
   }
 
 };
@@ -68,18 +68,18 @@ export const getBranch = async (email) => {
 export const getBranchData = async (_id) => {
   try {
     if (!_id) {
-      console.log("No branch ID");
-      return;
+      console.log("No branch ID provided");
+      return null;
     }
 
     console.log("Fetching Branch Data");
 
     const res = await axios.get(`/api/admins/branch/data?id=${_id}`);
     console.log("📊",res.data.data);
-    return res.data;
+    return res.data || null;
   } catch (error) {
     console.error("Error fetching admin data:", error.message);
-    throw error;
+    return null;
   }
 };
 
@@ -108,8 +108,8 @@ export const getRecords = async (branch, page=1, limit="10", search="") => {
 export const getActivitiesLogs = async (branch) => {
   try {
     if (!branch) {
-      console.log("No Branch IDError");
-      return;
+      console.log("No Branch ID Error");
+      return { data: { activities: [] } };
     }
 
     console.log("Fetching Activities Logs");
@@ -119,7 +119,7 @@ export const getActivitiesLogs = async (branch) => {
     return res.data;
   } catch (error) {
     console.error("Error fetching admin data:", error.message);
-    throw error;
+    return { data: { activities: [] } };
   }
 };
 
@@ -195,4 +195,23 @@ export const removeBranch = async (data) => {
     .catch((error) => {
       console.error("Error posting data:", error);
     });
+};
+
+// Nouvelle fonction pour récupérer toutes les succursales avec filtrage
+export const getAllBranches = async (region?: string, city?: string, manager?: string) => {
+  try {
+    console.log("Fetching all branches with filters:", { region, city, manager });
+
+    const params = new URLSearchParams();
+    if (region && region !== "all") params.append("region", region);
+    if (city && city !== "all") params.append("city", city);
+    if (manager) params.append("manager", manager);
+
+    const res = await axios.get(`/api/admins/branch/all?${params.toString()}`);
+    console.log("🏢 All branches data:", res.data);
+    return res.data || null;
+  } catch (error) {
+    console.error("Error fetching all branches:", error.message);
+    return null;
+  }
 };

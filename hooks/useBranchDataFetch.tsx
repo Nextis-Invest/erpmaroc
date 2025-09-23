@@ -9,12 +9,16 @@ export const useBranchDataFetch = (_id) => {
 
   return useQuery({
     gcTime: 24 * 24 *60 * 60 * 1000,
-    queryKey: "dashboardData",
+    queryKey: ["dashboardData", _id],
     retry: 10,
-    queryFn: () => getBranchData(_id),
-    onSuccess(data) {
-        console.log("🚀 ~ onSuccess ~ useBranch data:", data)
-        setBranchData(data);
+    queryFn: async () => {
+      const result = await getBranchData(_id);
+      if (result) {
+        console.log("🚀 ~ queryFn ~ branchData:", result);
+        setBranchData(result);
+      }
+      return result || null;
     },
+    enabled: !!_id,
   });
 };

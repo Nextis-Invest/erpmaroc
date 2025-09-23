@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Download, Filter, ArrowUpDown, MoreHorizontal } from 'lucide-react';
-import { useHRStore, useEmployees, useHRActions, Employee } from '@/stores/hrStore';
+import { useEmployees, useEmployeeFilters, usePagination, useHRActions, Employee } from '@/stores/hrStoreHooks';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // Status Badge Component
@@ -63,7 +63,7 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 p-0 font-semibold"
       >
-        Employee ID
+        ID Employé
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -79,7 +79,7 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="h-8 p-0 font-semibold"
       >
-        Name
+        Nom
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -93,12 +93,12 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
   },
   {
     accessorKey: "position",
-    header: "Position",
+    header: "Poste",
     cell: ({ row }) => (
       <div>
         <div className="font-medium">{row.getValue("position")}</div>
         <div className="text-sm text-gray-500">
-          {row.original.department?.name || "No Department"}
+          {row.original.department?.name || "Aucun Département"}
         </div>
       </div>
     ),
@@ -112,7 +112,7 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Statut",
     cell: ({ row }) => (
       <StatusBadge status={row.getValue("status")} />
     ),
@@ -128,7 +128,7 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
   },
   {
     accessorKey: "hireDate",
-    header: "Hire Date",
+    header: "Date d'Embauche",
     cell: ({ row }) => (
       <div className="text-sm">
         {new Date(row.getValue("hireDate")).toLocaleDateString()}
@@ -149,16 +149,16 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onViewEmployee(employee)}>
-              View Details
+              Voir Détails
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onViewEmployee(employee)}>
-              Edit Employee
+              Modifier Employé
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => console.log('View leaves', employee)}>
-              View Leaves
+              Voir Congés
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => console.log('View attendance', employee)}>
-              View Attendance
+              Voir Présence
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -170,9 +170,9 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
 // Main Employee Table Component
 const EmployeeTable = () => {
   const employees = useEmployees();
+  const employeeFilters = useEmployeeFilters();
+  const pagination = usePagination();
   const {
-    employeeFilters,
-    pagination,
     setEmployees,
     setEmployeeFilters,
     setPagination,
@@ -233,7 +233,7 @@ const EmployeeTable = () => {
           status: employeeFilters.status,
         });
 
-        if (employeeFilters.department) {
+        if (employeeFilters.department && employeeFilters.department !== 'all') {
           params.append('department', employeeFilters.department);
         }
 
@@ -267,17 +267,17 @@ const EmployeeTable = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Employees</h2>
-          <p className="text-gray-600">Manage your organization's workforce</p>
+          <h2 className="text-2xl font-bold text-gray-900">Employés</h2>
+          <p className="text-gray-600">Gérez la main-d&apos;œuvre de votre organisation</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
-            Export
+            Exporter
           </Button>
           <Button size="sm">
             <Plus className="w-4 h-4 mr-2" />
-            Add Employee
+            Ajouter Employé
           </Button>
         </div>
       </div>
@@ -289,7 +289,7 @@ const EmployeeTable = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Search employees..."
+                placeholder="Rechercher des employés..."
                 value={employeeFilters.search}
                 onChange={(e) => setEmployeeFilters({ search: e.target.value })}
                 className="pl-10"
@@ -301,14 +301,14 @@ const EmployeeTable = () => {
             onValueChange={(value) => setEmployeeFilters({ status: value })}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="on-leave">On Leave</SelectItem>
-              <SelectItem value="terminated">Terminated</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
+              <SelectItem value="active">Actif</SelectItem>
+              <SelectItem value="inactive">Inactif</SelectItem>
+              <SelectItem value="on-leave">En Congé</SelectItem>
+              <SelectItem value="terminated">Licencié</SelectItem>
+              <SelectItem value="suspended">Suspendu</SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -316,15 +316,17 @@ const EmployeeTable = () => {
             onValueChange={(value) => setEmployeeFilters({ department: value })}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by department" />
+              <SelectValue placeholder="Filtrer par département" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Departments</SelectItem>
-              <SelectItem value="hr">Human Resources</SelectItem>
-              <SelectItem value="it">Information Technology</SelectItem>
-              <SelectItem value="sales">Sales & Marketing</SelectItem>
-              <SelectItem value="finance">Finance & Accounting</SelectItem>
-              <SelectItem value="operations">Operations</SelectItem>
+              <SelectItem value="all">Tous les Départements</SelectItem>
+              <SelectItem value="ressources-humaines">Ressources Humaines</SelectItem>
+              <SelectItem value="informatique">Informatique</SelectItem>
+              <SelectItem value="ventes-marketing">Ventes et Marketing</SelectItem>
+              <SelectItem value="finance-comptabilite">Finance et Comptabilité</SelectItem>
+              <SelectItem value="operations">Opérations</SelectItem>
+              <SelectItem value="production">Production</SelectItem>
+              <SelectItem value="logistique">Logistique</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -376,7 +378,7 @@ const EmployeeTable = () => {
                     colSpan={columns.length}
                     className="px-6 py-12 text-center text-gray-500"
                   >
-                    No employees found.
+                    Aucun employé trouvé.
                   </td>
                 </tr>
               )}
@@ -389,9 +391,9 @@ const EmployeeTable = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-gray-700">
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                {pagination.total} results
+                Affichage de {((pagination.page - 1) * pagination.limit) + 1} à{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} sur{' '}
+                {pagination.total} résultats
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -401,7 +403,7 @@ const EmployeeTable = () => {
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
-                Previous
+                Précédent
               </Button>
               <Button
                 variant="outline"
@@ -409,7 +411,7 @@ const EmployeeTable = () => {
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                Next
+                Suivant
               </Button>
             </div>
           </div>

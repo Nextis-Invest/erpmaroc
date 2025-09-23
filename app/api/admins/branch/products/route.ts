@@ -204,7 +204,7 @@ export const GET = async (req, res) => {
             totalProducts: 0,
             branchId: branch,
           },
-          data: [],
+          data: { products: [] },
         });
       }
     }

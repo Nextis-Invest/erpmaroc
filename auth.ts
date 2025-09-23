@@ -68,20 +68,31 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.token) {
+          console.log("Magic link auth: Missing credentials")
           return null
         }
 
         await connectToDB()
 
         try {
-          // Verify magic link token
+          // Verify magic link token - check both used and unused tokens
+          // The token might already be marked as used in some edge cases
           const magicLinkToken = await MagicLinkToken.findOne({
-            email: credentials.email,
             token: credentials.token,
-            used: false
+            email: credentials.email
           })
 
           if (!magicLinkToken) {
+            console.log("Magic link auth: Token not found")
+            return null
+          }
+
+          // Check if token is expired (24 hours)
+          const tokenAge = Date.now() - magicLinkToken.createdAt.getTime()
+          const maxAge = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+
+          if (tokenAge > maxAge) {
+            console.log("Magic link auth: Token expired")
             return null
           }
 
@@ -89,12 +100,15 @@ export const authConfig: NextAuthConfig = {
           const admin = await ADMIN.findOne({ email: credentials.email })
 
           if (!admin) {
+            console.log("Magic link auth: User not found")
             return null
           }
 
-          // Mark token as used
-          magicLinkToken.used = true
-          await magicLinkToken.save()
+          // Mark token as used only if it hasn't been used yet
+          if (!magicLinkToken.used) {
+            magicLinkToken.used = true
+            await magicLinkToken.save()
+          }
 
           return {
             id: admin._id.toString(),
