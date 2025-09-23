@@ -3,6 +3,7 @@
 import React from 'react';
 import type { PayrollEmployee, PayrollCalculation, PayrollPeriod } from '@/types/payroll';
 import { formatMontantMAD, getMoisNom } from '@/types/payroll';
+import { getCompanyInfoForSIMT } from '@/config/company';
 
 interface SIMTGeneratorProps {
   employees: Array<{
@@ -27,17 +28,7 @@ interface SIMTGeneratorProps {
 export const generateSIMTFile = ({
   employees,
   period,
-  companyInfo = {
-    name: 'SOCIETE MAROCAINE SARL',
-    address: '123 Boulevard Hassan II, Casablanca',
-    ice: 'ICE002589641000021',
-    rc: 'RC45621',
-    cnss: 'CNSS1258963',
-    bank: 'BMCE BANK',
-    accountNumber: '00178000001921001680555',
-    agencyCode: '001780',
-    rib: '011780000019210016805555'
-  }
+  companyInfo = getCompanyInfoForSIMT()
 }: SIMTGeneratorProps): string => {
   const lines: string[] = [];
   const currentDate = new Date();

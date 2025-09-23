@@ -12,6 +12,7 @@ interface PayrollEmployeeFormProps {
   onSave?: (employee: PayrollEmployee) => void;
   onCancel?: () => void;
   onPreview?: (employee: PayrollEmployee) => void;
+  onGenerateVirement?: (employee: PayrollEmployee) => void;
   mode?: 'create' | 'edit';
 }
 
@@ -20,6 +21,7 @@ export default function PayrollEmployeeForm({
   onSave,
   onCancel,
   onPreview,
+  onGenerateVirement,
   mode = 'create'
 }: PayrollEmployeeFormProps) {
   const { data: session } = useSession();
@@ -882,20 +884,38 @@ export default function PayrollEmployeeForm({
                   <h4 className="font-medium text-blue-800">Bulletin de Paie</h4>
                   <p className="text-sm text-blue-600">Générer et télécharger le bulletin PDF avec les données actuelles</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updatedEmployee = {
-                      ...formData,
-                      _id: employee._id,
-                    } as PayrollEmployee;
-                    onPreview(updatedEmployee);
-                  }}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-                >
-                  <span>🏦</span>
-                  <span>Ordre de Virement</span>
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updatedEmployee = {
+                        ...formData,
+                        _id: employee._id,
+                      } as PayrollEmployee;
+                      onPreview(updatedEmployee);
+                    }}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  >
+                    <span>👁️</span>
+                    <span>Prévisualiser Bulletin</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updatedEmployee = {
+                        ...formData,
+                        _id: employee._id,
+                      } as PayrollEmployee;
+                      if (onGenerateVirement) {
+                        onGenerateVirement(updatedEmployee);
+                      }
+                    }}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                  >
+                    <span>🏦</span>
+                    <span>Ordre de Virement</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

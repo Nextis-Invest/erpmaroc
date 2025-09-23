@@ -416,7 +416,7 @@ const AttendanceTracking = () => {
     const fetchAttendance = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/hr/attendance?date=${selectedDate}&mock=true`);
+        const response = await fetch(`/api/hr/attendance?date=${selectedDate}&`);
         const data = await response.json();
 
         if (data.meta.status === 200) {
@@ -450,7 +450,7 @@ const AttendanceTracking = () => {
 
       if (response.ok) {
         // Refresh attendance data
-        const attendanceResponse = await fetch(`/api/hr/attendance?date=${selectedDate}&mock=true`);
+        const attendanceResponse = await fetch(`/api/hr/attendance?date=${selectedDate}&`);
         const attendanceData = await attendanceResponse.json();
 
         if (attendanceData.meta.status === 200) {
@@ -475,7 +475,7 @@ const AttendanceTracking = () => {
 
       if (response.ok) {
         // Refresh attendance data
-        const attendanceResponse = await fetch(`/api/hr/attendance?date=${selectedDate}&mock=true`);
+        const attendanceResponse = await fetch(`/api/hr/attendance?date=${selectedDate}&`);
         const attendanceData = await attendanceResponse.json();
 
         if (attendanceData.meta.status === 200) {

@@ -2,20 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Building2, Calendar, Clock, BarChart3, Settings, Wallet } from 'lucide-react';
+import { Users, Building2, Calendar, Clock, BarChart3, Settings, Wallet, UserCheck, UserPlus } from 'lucide-react';
 import HRDashboard from '@/components/hr/HRDashboard';
 import EmployeeTable from '@/components/hr/EmployeeTable';
+import FreelanceTable from '@/components/hr/FreelanceTable';
 import LeaveManagement from '@/components/hr/LeaveManagement';
 import DepartmentManagement from '@/components/hr/DepartmentManagement';
 import AttendanceTracking from '@/components/hr/AttendanceTracking';
 import HRReports from '@/components/hr/HRReports';
 import PayrollCalculator from '@/components/payroll/PayrollCalculator';
-import { useCurrentView, useHRActions } from '@/stores/hrStoreHooks';
+import { useCurrentView, useHRActions, useEmployees } from '@/stores/hrStoreHooks';
+import { toast } from 'sonner';
 
 const HRPage = () => {
   const currentView = useCurrentView();
   const { setCurrentView } = useHRActions();
+  const employees = useEmployees();
   const [currentDate, setCurrentDate] = useState<string>('');
+  const [employeeSubView, setEmployeeSubView] = useState<'employees' | 'freelances'>('employees');
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleDateString('fr-FR', {
@@ -28,6 +32,41 @@ const HRPage = () => {
 
   const handleTabChange = (value: string) => {
     setCurrentView(value as any);
+  };
+
+  // Separate employees and freelances
+  const regularEmployees = employees.filter(emp => !emp.isFreelance);
+  const freelances = employees.filter(emp => emp.isFreelance);
+
+  const handleHireAsEmployee = async (freelance: any) => {
+    if (confirm(`Êtes-vous sûr de vouloir déclarer ${freelance.firstName} ${freelance.lastName} comme salarié ?`)) {
+      try {
+        const response = await fetch(`/api/hr/employees/${freelance.employeeId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            isFreelance: false,
+            employmentType: 'full-time'
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('API Error Response:', errorData);
+          throw new Error(`Erreur lors de l'embauche: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Hire success:', result);
+        toast.success('Employé déclaré comme salarié avec succès!');
+        window.location.reload();
+      } catch (error) {
+        console.error('Error hiring freelance:', error);
+        toast.error('Erreur lors de l\'embauche du freelance');
+      }
+    }
   };
 
   return (
@@ -86,7 +125,48 @@ const HRPage = () => {
           </TabsContent>
 
           <TabsContent value="employees" className="space-y-6">
-            <EmployeeTable />
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="border-b border-gray-200">
+                <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                  <button
+                    onClick={() => setEmployeeSubView('employees')}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                      employeeSubView === 'employees'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Users className="w-4 h-4" />
+                      <span>Employés ({regularEmployees.length})</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setEmployeeSubView('freelances')}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                      employeeSubView === 'freelances'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <UserCheck className="w-4 h-4" />
+                      <span>Non-déclaré ({freelances.length})</span>
+                    </div>
+                  </button>
+                </nav>
+              </div>
+
+              <div className="p-6">
+                {employeeSubView === 'employees' && <EmployeeTable />}
+                {employeeSubView === 'freelances' && (
+                  <FreelanceTable
+                    freelances={freelances}
+                    onHireAsEmployee={handleHireAsEmployee}
+                  />
+                )}
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="departments" className="space-y-6">

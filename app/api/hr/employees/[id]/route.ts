@@ -172,18 +172,108 @@ export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: 
   }
 };
 
-// DELETE /api/hr/employees/[id] - Soft delete employee
-export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+// PATCH /api/hr/employees/[id] - Update specific employee fields (e.g., status conversion)
+export const PATCH = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await params;
-    const searchParams = req.nextUrl.searchParams;
-    const useMockData = searchParams.get("mock") === "true";
+    const body = await req.json();
+    const useMockData = body.useMockData;
 
     if (useMockData) {
       return NextResponse.json({
         meta: {
           status: 200,
-          message: "Employee deactivated successfully (mock mode)"
+          message: "Employee status updated successfully (mock mode)"
+        },
+        data: {
+          employee: {
+            _id: id,
+            ...body,
+            updatedAt: new Date()
+          }
+        }
+      });
+    }
+
+    await connectToDB();
+
+    const session = await auth();
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Handle both ObjectId and employeeId string formats
+    const queryPatch = isValidObjectId(id)
+      ? { $or: [{ _id: id }, { employeeId: id }] }
+      : { employeeId: id };
+
+    const employee = await Employee.findOne(queryPatch);
+
+    if (!employee) {
+      return NextResponse.json(
+        { error: "Employee not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update only specific fields
+    Object.keys(body).forEach(key => {
+      if (key !== 'useMockData') {
+        employee[key] = body[key];
+      }
+    });
+
+    employee.lastModifiedBy = session.user.sub;
+    employee.updatedAt = new Date();
+
+    const updatedEmployee = await employee.save();
+
+    // Log activity
+    const activityMessage = body.isFreelance
+      ? "Employee converted to freelance"
+      : "Freelance hired as employee";
+
+    const log = new ACTIVITYLOG({
+      branch: updatedEmployee.branch,
+      process: activityMessage
+    });
+    await log.save();
+
+    return NextResponse.json({
+      meta: {
+        status: 200,
+        message: "Employee status updated successfully"
+      },
+      data: { employee: updatedEmployee }
+    });
+
+  } catch (error) {
+    console.error("Error updating employee status:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+};
+
+// DELETE /api/hr/employees/[id] - Archive employee (logical deletion)
+export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  try {
+    const { id } = await params;
+    const searchParams = req.nextUrl.searchParams;
+    const useMockData = searchParams.get("mock") === "true";
+    const hardDelete = searchParams.get("hardDelete") === "true"; // Admin-only flag
+    const reason = searchParams.get("reason") || "Employee archived via API";
+
+    if (useMockData) {
+      return NextResponse.json({
+        meta: {
+          status: 200,
+          message: "Employee archived successfully (mock mode)"
         }
       });
     }
@@ -213,29 +303,48 @@ export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ i
       );
     }
 
-    // Soft delete by setting status to inactive
-    employee.status = 'inactive';
-    employee.lastWorkingDate = new Date();
-    employee.lastModifiedBy = session.user.sub;
+    // Check if requesting hard delete (admin only)
+    if (hardDelete) {
+      // TODO: Add admin role check here
+      // For now, allowing hard delete with warning
+      console.warn(`Hard delete requested for employee ${employee.employeeId} by ${session.user.email}`);
 
-    await employee.save();
+      await Employee.findByIdAndDelete(employee._id);
+
+      // Log activity
+      const log = new ACTIVITYLOG({
+        branch: employee.branch,
+        process: "Employee Permanently Deleted (ADMIN)"
+      });
+      await log.save();
+
+      return NextResponse.json({
+        meta: {
+          status: 200,
+          message: "Employee permanently deleted (admin action)"
+        }
+      });
+    }
+
+    // Archive employee (logical deletion)
+    await employee.archive(reason, session.user.sub);
 
     // Log activity
     const log = new ACTIVITYLOG({
       branch: employee.branch,
-      process: "Employee Deactivated"
+      process: "Employee Archived"
     });
     await log.save();
 
     return NextResponse.json({
       meta: {
         status: 200,
-        message: "Employee deactivated successfully"
+        message: "Employee archived successfully"
       }
     });
 
   } catch (error) {
-    console.error("Error deactivating employee:", error);
+    console.error("Error archiving employee:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

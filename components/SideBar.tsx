@@ -12,9 +12,11 @@ import {
   ShieldAlert,
   Settings,
   LogOut,
-  UserCog
+  UserCog,
+  Archive
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import { isAdmin } from "@/lib/auth/permissions";
 import {
   Sidebar,
   SidebarContent,
@@ -30,8 +32,9 @@ import {
 const SideBar = () => {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const userIsAdmin = isAdmin(session);
 
-  const menuItems = [
+  const baseMenuItems = [
     {
       title: "Tableau de Bord",
       url: "/",
@@ -62,6 +65,20 @@ const SideBar = () => {
       url: "/admin",
       icon: ShieldAlert,
     },
+  ];
+
+  const adminOnlyItems = [
+    {
+      title: "Données Archivées",
+      url: "/admin/archived",
+      icon: Archive,
+      adminOnly: true,
+    },
+  ];
+
+  const menuItems = [
+    ...baseMenuItems,
+    ...(userIsAdmin ? adminOnlyItems : []),
     {
       title: "Paramètres",
       url: "/settings",

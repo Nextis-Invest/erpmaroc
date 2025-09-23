@@ -49,7 +49,7 @@ const RecentActivities = ({ activities }: { activities: any[] }) => (
   <Card className="p-6">
     <h3 className="text-lg font-semibold mb-4">Activités Récentes</h3>
     <div className="space-y-4">
-      {activities.slice(0, 5).map((activity, index) => (
+      {(activities || []).slice(0, 5).map((activity, index) => (
         <div key={index} className="flex items-start space-x-3">
           <div className={`w-2 h-2 rounded-full mt-2 ${
             activity.type === 'leave_request' ? 'bg-yellow-400' :
@@ -91,29 +91,39 @@ const UpcomingBirthdays = ({ birthdays }: { birthdays: any[] }) => (
 );
 
 // Leave Requests Widget
-const LeaveRequestsWidget = ({ leaveStats }: { leaveStats: any }) => (
+const LeaveRequestsWidget = ({ leaveStats }: { leaveStats: any }) => {
+  // Provide default values if leaveStats is undefined
+  const stats = leaveStats || {
+    totalRequests: 0,
+    pendingRequests: 0,
+    approvedRequests: 0,
+    rejectedRequests: 0
+  };
+
+  return (
   <Card className="p-6">
     <h3 className="text-lg font-semibold mb-4">Demandes de Congés</h3>
     <div className="space-y-3">
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">Demandes Totales</span>
-        <span className="text-sm font-medium">{leaveStats.totalRequests}</span>
+        <span className="text-sm font-medium">{stats.totalRequests}</span>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">En Attente</span>
-        <span className="text-sm font-medium text-yellow-600">{leaveStats.pendingRequests}</span>
+        <span className="text-sm font-medium text-yellow-600">{stats.pendingRequests}</span>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">Approuvées</span>
-        <span className="text-sm font-medium text-green-600">{leaveStats.approvedRequests}</span>
+        <span className="text-sm font-medium text-green-600">{stats.approvedRequests}</span>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">Rejetées</span>
-        <span className="text-sm font-medium text-red-600">{leaveStats.rejectedRequests}</span>
+        <span className="text-sm font-medium text-red-600">{stats.rejectedRequests}</span>
       </div>
     </div>
   </Card>
-);
+  );
+};
 
 // Department Distribution Chart
 const DepartmentDistribution = ({ distribution }: { distribution: any[] }) => (
@@ -139,29 +149,39 @@ const DepartmentDistribution = ({ distribution }: { distribution: any[] }) => (
 );
 
 // Attendance Overview Component
-const AttendanceOverview = ({ attendanceOverview }: { attendanceOverview: any }) => (
-  <Card className="p-6">
-    <h3 className="text-lg font-semibold mb-4">Présence d&apos;Aujourd&apos;hui</h3>
-    <div className="grid grid-cols-2 gap-4">
-      <div className="text-center">
-        <p className="text-2xl font-bold text-green-600">{attendanceOverview.present}</p>
-        <p className="text-sm text-gray-600">Présents</p>
+const AttendanceOverview = ({ attendanceOverview }: { attendanceOverview: any }) => {
+  // Default values if attendanceOverview is undefined
+  const attendance = attendanceOverview || {
+    present: 0,
+    absent: 0,
+    late: 0,
+    remote: 0
+  };
+
+  return (
+    <Card className="p-6">
+      <h3 className="text-lg font-semibold mb-4">Présence d&apos;Aujourd&apos;hui</h3>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="text-center">
+          <p className="text-2xl font-bold text-green-600">{attendance.present}</p>
+          <p className="text-sm text-gray-600">Présents</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-red-600">{attendance.absent}</p>
+          <p className="text-sm text-gray-600">Absents</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-yellow-600">{attendance.late}</p>
+          <p className="text-sm text-gray-600">En Retard</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-blue-600">{attendance.remote}</p>
+          <p className="text-sm text-gray-600">À Distance</p>
+        </div>
       </div>
-      <div className="text-center">
-        <p className="text-2xl font-bold text-red-600">{attendanceOverview.absent}</p>
-        <p className="text-sm text-gray-600">Absents</p>
-      </div>
-      <div className="text-center">
-        <p className="text-2xl font-bold text-yellow-600">{attendanceOverview.late}</p>
-        <p className="text-sm text-gray-600">En Retard</p>
-      </div>
-      <div className="text-center">
-        <p className="text-2xl font-bold text-blue-600">{attendanceOverview.remote}</p>
-        <p className="text-sm text-gray-600">À Distance</p>
-      </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 // Main Dashboard Component
 const HRDashboard = () => {
@@ -172,7 +192,7 @@ const HRDashboard = () => {
     const fetchAnalytics = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/hr/analytics?mock=true');
+        const response = await fetch('/api/hr/analytics?');
         const data = await response.json();
 
         if (data.meta.status === 200) {

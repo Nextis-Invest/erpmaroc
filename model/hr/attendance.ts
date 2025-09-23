@@ -236,7 +236,7 @@ if (mongoose.models.Attendance) {
   });
 
   // Method to mark check-in
-  attendanceSchema.methods.checkIn = function(location, method = 'manual', deviceId = null, ipAddress = null) {
+  attendanceSchema.methods.performCheckIn = function(location, method = 'manual', deviceId = null, ipAddress = null) {
     this.checkIn = {
       time: new Date(),
       location: location,
@@ -253,7 +253,7 @@ if (mongoose.models.Attendance) {
   };
 
   // Method to mark check-out
-  attendanceSchema.methods.checkOut = function(location, method = 'manual', deviceId = null, ipAddress = null) {
+  attendanceSchema.methods.performCheckOut = function(location, method = 'manual', deviceId = null, ipAddress = null) {
     this.checkOut = {
       time: new Date(),
       location: location,
@@ -331,6 +331,17 @@ if (mongoose.models.Attendance) {
         }
       }
     ]);
+  };
+
+  // Alias for backwards compatibility
+  attendanceSchema.statics.getAttendanceStats = function(targetDate, filters = {}) {
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return this.getStatistics(startOfDay, endOfDay, filters);
   };
 
   // Static method to find attendance by project and team

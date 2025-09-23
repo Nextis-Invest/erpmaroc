@@ -152,12 +152,12 @@ export class PayrollEmployeeService {
   }
 
   /**
-   * Get all payroll employees from database, fallback to mock data
+   * Get all active (non-archived) payroll employees from database, fallback to mock data
    */
   static async getAllEmployees(): Promise<PayrollEmployeeType[]> {
     try {
       await connectToDB();
-      const employees = await PayrollEmployee.find({}).sort({ nom: 1, prenom: 1 });
+      const employees = await PayrollEmployee.find({ isArchived: false }).sort({ nom: 1, prenom: 1 });
       const result = employees.map(emp => emp.toObject());
 
       // If no employees in database, return mock data
@@ -270,7 +270,45 @@ export class PayrollEmployeeService {
   }
 
   /**
-   * Delete payroll employee
+   * Archive payroll employee (logical deletion)
+   */
+  static async archiveEmployee(id: string, reason?: string, archivedBy?: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      await connectToDB();
+
+      const employee = await PayrollEmployee.findById(id);
+
+      if (!employee) {
+        return {
+          success: false,
+          message: 'Employee not found'
+        };
+      }
+
+      // Add archive fields to employee
+      employee.isArchived = true;
+      employee.archivedAt = new Date();
+      employee.archivedBy = archivedBy;
+      employee.archiveReason = reason || 'Payroll employee archived';
+
+      await employee.save();
+
+      return {
+        success: true,
+        message: 'Employee archived successfully'
+      };
+
+    } catch (error) {
+      console.error('Error archiving employee:', error);
+      return {
+        success: false,
+        message: `Error archiving employee: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Hard delete payroll employee (admin only)
    */
   static async deleteEmployee(id: string): Promise<{ success: boolean; message?: string }> {
     try {
@@ -287,7 +325,7 @@ export class PayrollEmployeeService {
 
       return {
         success: true,
-        message: 'Employee deleted successfully'
+        message: 'Employee permanently deleted'
       };
 
     } catch (error) {
@@ -295,6 +333,51 @@ export class PayrollEmployeeService {
       return {
         success: false,
         message: `Error deleting employee: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Restore archived payroll employee
+   */
+  static async restoreEmployee(id: string, restoredBy?: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      await connectToDB();
+
+      const employee = await PayrollEmployee.findById(id);
+
+      if (!employee) {
+        return {
+          success: false,
+          message: 'Employee not found'
+        };
+      }
+
+      if (!employee.isArchived) {
+        return {
+          success: false,
+          message: 'Employee is not archived'
+        };
+      }
+
+      // Remove archive fields
+      employee.isArchived = false;
+      employee.archivedAt = undefined;
+      employee.archivedBy = undefined;
+      employee.archiveReason = undefined;
+
+      await employee.save();
+
+      return {
+        success: true,
+        message: 'Employee restored successfully'
+      };
+
+    } catch (error) {
+      console.error('Error restoring employee:', error);
+      return {
+        success: false,
+        message: `Error restoring employee: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

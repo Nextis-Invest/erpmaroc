@@ -1,0 +1,12 @@
+{
+  "updateDate": "2025-09-23T20:39:39.598Z",
+  "totalEmployees": 8,
+  "updatedEmployees": 8,
+  "errors": 0,
+  "errorDetails": [],
+  "departmentsCreated": 5,
+  "finalStats": {
+    "employeesWithDepartment": 8,
+    "employeesWithoutDepartment": 0
+  }
+}

@@ -13,11 +13,11 @@ interface ClientLayoutWrapperProps {
 
 export default function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
   const pathname = usePathname();
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/auth/magic-link-callback";
 
   if (isAuthPage) {
     return (
-      <main className="min-h-screen">
+      <main className="min-h-screen w-full">
         {children}
       </main>
     );

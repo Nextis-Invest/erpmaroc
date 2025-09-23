@@ -186,12 +186,26 @@ export const usePayrollStore = create<PayrollStore>()(
           const { employees, currentPeriod, settings } = get();
           const employee = employees.find(e => e._id === employeeId);
 
-          if (!employee || !currentPeriod) {
-            throw new Error('Employé ou période introuvable');
+          if (!employee) {
+            console.error('Employé non trouvé dans le store:', employeeId);
+            console.log('Employés disponibles:', employees.map(e => ({ id: e._id, nom: e.nom })));
+            throw new Error(`Employé introuvable: ${employeeId}`);
+          }
+
+          if (!currentPeriod) {
+            console.error('Aucune période active');
+            throw new Error('Aucune période active. Veuillez créer une période de paie.');
           }
 
           if (!currentPeriod._id) {
-            throw new Error('ID de période manquant - veuillez recréer la période');
+            console.error('ID de période manquant:', currentPeriod);
+            // Créer un ID temporaire si nécessaire
+            const tempPeriod = {
+              ...currentPeriod,
+              _id: `period_${currentPeriod.annee}_${currentPeriod.mois.toString().padStart(2, '0')}_${Date.now()}`
+            };
+            set({ currentPeriod: tempPeriod });
+            console.log('Période mise à jour avec ID temporaire:', tempPeriod._id);
           }
 
           set({ isLoading: true, error: null });

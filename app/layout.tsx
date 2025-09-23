@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/SidebarWithZustand";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { HRStoreProvider } from "@/stores/hrStoreProvider";
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -24,7 +25,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-background" suppressHydrationWarning={true}>
-        <SessionProvider>
+        <SessionProvider
+          refetchInterval={0}
+          refetchOnWindowFocus={false}
+        >
           <ReactQueryProvider>
             <DataContextProvider>
               <HRStoreProvider>
@@ -37,6 +41,7 @@ export default function RootLayout({
               </HRStoreProvider>
             </DataContextProvider>
           </ReactQueryProvider>
+          <Toaster position="top-right" expand={true} richColors />
         </SessionProvider>
       </body>
     </html>

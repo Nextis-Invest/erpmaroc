@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { Employee } from '@/stores/hrStoreHooks';
+import { useSession } from 'next-auth/react';
+import { getDeleteTerminology } from '@/lib/auth/permissions';
 
 interface EmployeeDeleteDialogProps {
   employee: Employee | null;
@@ -31,6 +33,9 @@ const EmployeeDeleteDialog: React.FC<EmployeeDeleteDialogProps> = ({
   onConfirm,
   isLoading = false
 }) => {
+  const { data: session } = useSession();
+  const terminology = getDeleteTerminology(session);
+
   if (!employee) return null;
 
   const handleConfirm = () => {
@@ -68,7 +73,7 @@ const EmployeeDeleteDialog: React.FC<EmployeeDeleteDialogProps> = ({
             </div>
             <div>
               <AlertDialogTitle className="text-lg font-semibold text-left">
-                Supprimer l'employé
+                {terminology.deleteTitle}
               </AlertDialogTitle>
             </div>
           </div>
@@ -96,20 +101,35 @@ const EmployeeDeleteDialog: React.FC<EmployeeDeleteDialogProps> = ({
           
           <div className="space-y-2">
             <p className="text-sm">
-              Êtes-vous sûr de vouloir supprimer cet employé ? Cette action est
-              <strong className="text-red-600"> irréversible</strong>.
+              {terminology.deleteDescription}
             </p>
-            
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+
+            <div className={`border rounded-lg p-3 ${
+              terminology.deleteButton === 'Supprimer'
+                ? 'bg-red-50 border-red-200'
+                : 'bg-blue-50 border-blue-200'
+            }`}>
               <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-medium mb-1">Conséquences de la suppression :</p>
+                <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                  terminology.deleteButton === 'Supprimer'
+                    ? 'text-red-600'
+                    : 'text-blue-600'
+                }`} />
+                <div className={`text-sm ${
+                  terminology.deleteButton === 'Supprimer'
+                    ? 'text-red-800'
+                    : 'text-blue-800'
+                }`}>
+                  <p className="font-medium mb-1">
+                    {terminology.deleteButton === 'Supprimer'
+                      ? 'Conséquences de la suppression :'
+                      : 'Conséquences de l\'effacement :'
+                    }
+                  </p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li>Toutes les données de l'employé seront supprimées</li>
-                    <li>L'historique des congés et des présences sera perdu</li>
-                    <li>Les données de paie associées seront supprimées</li>
-                    <li>Cette action ne peut pas être annulée</li>
+                    {terminology.consequences.map((consequence, index) => (
+                      <li key={index}>{consequence}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -133,12 +153,12 @@ const EmployeeDeleteDialog: React.FC<EmployeeDeleteDialogProps> = ({
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Suppression...
+                  {terminology.loadingText}
                 </>
               ) : (
                 <>
                   <Trash2 className="w-4 h-4" />
-                  Supprimer définitivement
+                  {terminology.deleteAction}
                 </>
               )}
             </Button>

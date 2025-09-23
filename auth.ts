@@ -137,23 +137,39 @@ export const authConfig: NextAuthConfig = {
       return true
     },
     async redirect({ url, baseUrl }) {
-      // Always redirect to dashboard after successful authentication
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/`
+      // Handle logout - allow redirects to login page
+      if (url === `${baseUrl}/login` || url.endsWith('/login')) {
+        return `${baseUrl}/login`
       }
+
       // Allow callback URLs and auth-related URLs
       if (url.startsWith(baseUrl)) {
-        // Don't redirect auth-related URLs
+        // Don't redirect auth-related URLs including magic link callback
         if (url.includes('/auth/') || url.includes('/api/auth/')) {
           return url
         }
-        // For any other URL starting with baseUrl, redirect to dashboard
+        // Allow login page specifically
+        if (url.includes('/login')) {
+          return url
+        }
+        // For any other URL starting with baseUrl, redirect to dashboard after successful auth
         return `${baseUrl}/`
       }
+
+      // For relative URLs, check specific paths
+      if (url.startsWith('/login')) {
+        return `${baseUrl}/login`
+      }
+
+      if (url.startsWith('/auth/magic-link-callback')) {
+        return `${baseUrl}/auth/magic-link-callback`
+      }
+
       // For relative URLs, redirect to dashboard
       if (url.startsWith('/')) {
         return `${baseUrl}/`
       }
+
       // Default to dashboard
       return `${baseUrl}/`
     },

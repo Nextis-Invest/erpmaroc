@@ -34,7 +34,7 @@ if (mongoose.models.Department) {
   });
 
   // Indexes
-  departmentSchema.index({ code: 1 });
+  // Note: code already has unique index from unique: true
   departmentSchema.index({ branch: 1 });
   departmentSchema.index({ status: 1 });
 

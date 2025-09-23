@@ -17,11 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Download, Filter, ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { useEmployees, useEmployeeFilters, usePagination, useHRActions, Employee } from '@/stores/hrStoreHooks';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 import AddEmployeeButton from './AddEmployeeButton';
 import EmployeeViewDialog from './EmployeeViewDialog';
 import EmployeeEditDialog from './EmployeeEditDialog';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
+import ContractTypeManager from './ContractTypeManager';
+import { fetchEmployees } from '@/lib/api/employeeApi';
 
 // Status Badge Component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -61,7 +64,8 @@ const EmploymentTypeBadge = ({ type }: { type: string }) => {
 const createColumns = (
   onViewEmployee: (employee: Employee) => void,
   onEditEmployee: (employee: Employee) => void,
-  onDeleteEmployee: (employee: Employee) => void
+  onDeleteEmployee: (employee: Employee) => void,
+  onConvertToFreelance?: (employee: Employee) => void
 ): ColumnDef<Employee>[] => [
   {
     accessorKey: "employeeId",
@@ -149,7 +153,12 @@ const createColumns = (
       const employee = row.original;
 
       return (
-        <DropdownMenu>
+        <div className="flex items-center space-x-2">
+          <ContractTypeManager
+            employee={employee}
+            onUpdate={() => window.location.reload()}
+          />
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <MoreHorizontal className="h-4 w-4" />
@@ -165,6 +174,17 @@ const createColumns = (
             <DropdownMenuItem onClick={() => console.log('View attendance', employee)}>
               Voir Présence
             </DropdownMenuItem>
+            {onConvertToFreelance && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onConvertToFreelance(employee)}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  Convertir en Non-déclaré
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuItem
               onClick={() => onDeleteEmployee(employee)}
               className="text-red-600 focus:text-red-600"
@@ -173,6 +193,7 @@ const createColumns = (
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       );
     },
   },
@@ -240,11 +261,11 @@ const EmployeeTable = () => {
 
       setIsEditDialogOpen(false);
       setSelectedEmployeeForEdit(null);
-      alert('Employé mis à jour avec succès!');
+      toast.success('Employé mis à jour avec succès!');
 
     } catch (error) {
       console.error('Error updating employee:', error);
-      alert('Erreur lors de la mise à jour de l\'employé');
+      toast.error('Erreur lors de la mise à jour de l\'employé');
     } finally {
       setIsEditing(false);
     }
@@ -266,17 +287,49 @@ const EmployeeTable = () => {
 
       setIsDeleteDialogOpen(false);
       setSelectedEmployeeForDelete(null);
-      alert('Employé supprimé avec succès!');
+      toast.success('Employé supprimé avec succès!');
 
     } catch (error) {
       console.error('Error deleting employee:', error);
-      alert('Erreur lors de la suppression de l\'employé');
+      toast.error('Erreur lors de la suppression de l\'employé');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const columns = createColumns(handleViewEmployee, handleEditEmployee, handleDeleteEmployee);
+  const handleConvertToFreelance = async (employee: Employee) => {
+    if (confirm(`Êtes-vous sûr de vouloir convertir ${employee.firstName} ${employee.lastName} en non-déclaré ?`)) {
+      try {
+        const response = await fetch(`/api/hr/employees/${employee.employeeId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            
+            isFreelance: true,
+            employmentType: 'freelance'
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('API Error Response:', errorData);
+          throw new Error(`Erreur lors de la conversion en non-déclaré: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Conversion success:', result);
+        toast.success('Employé converti en non-déclaré avec succès!');
+        window.location.reload();
+      } catch (error) {
+        console.error('Error converting to non-declared:', error);
+        toast.error('Erreur lors de la conversion en non-déclaré');
+      }
+    }
+  };
+
+  const columns = createColumns(handleViewEmployee, handleEditEmployee, handleDeleteEmployee, handleConvertToFreelance);
 
   const table = useReactTable({
     data: employees,
@@ -309,44 +362,28 @@ const EmployeeTable = () => {
 
   // Fetch employees data
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const loadEmployees = async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams({
-          mock: 'true',
-          page: pagination.page.toString(),
-          limit: pagination.limit.toString(),
+        const result = await fetchEmployees({
+          page: pagination.page,
+          limit: pagination.limit,
           search: employeeFilters.search,
+          department: employeeFilters.department,
+          team: employeeFilters.team,
           status: employeeFilters.status,
         });
 
-        if (employeeFilters.department && employeeFilters.department !== 'all') {
-          params.append('department', employeeFilters.department);
-        }
-
-        if (employeeFilters.team) {
-          params.append('team', employeeFilters.team);
-        }
-
-        const response = await fetch(`/api/hr/employees?${params}`);
-        const data = await response.json();
-
-        if (data.meta.status === 200) {
-          setEmployees(data.data.employees);
-          setPagination({
-            total: data.meta.total,
-            page: data.meta.page,
-            limit: data.meta.limit,
-          });
-        }
+        setEmployees(result.employees);
+        setPagination(result.pagination);
       } catch (error) {
-        console.error('Error fetching employees:', error);
+        console.error('Unexpected error loading employees:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEmployees();
+    loadEmployees();
   }, [employeeFilters, pagination.page, pagination.limit, setEmployees, setPagination, setLoading]);
 
   return (

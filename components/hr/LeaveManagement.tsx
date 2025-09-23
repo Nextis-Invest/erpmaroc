@@ -140,7 +140,7 @@ const LeaveManagement = () => {
   useEffect(() => {
     const fetchLeaveRequests = async () => {
       try {
-        const response = await fetch('/api/hr/leave-requests?mock=true');
+        const response = await fetch('/api/hr/leave-requests?');
         const data = await response.json();
 
         if (data.meta.status === 200) {

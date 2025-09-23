@@ -20,7 +20,7 @@ export const GET = async (req: NextRequest) => {
     const status = searchParams.get("status") || "active";
     const useMockData = searchParams.get("mock") === "true";
 
-    // Use mock data if requested
+    // Use mock data only if explicitly requested
     if (useMockData) {
       let employees = getMockData('employees');
 
@@ -63,7 +63,7 @@ export const GET = async (req: NextRequest) => {
       });
     }
 
-    // Database operations (for when models are connected)
+    // Database operations
     await connectToDB();
 
     const session = await auth();
@@ -75,8 +75,11 @@ export const GET = async (req: NextRequest) => {
       );
     }
 
-    // Build query
-    let query: any = { status };
+    // Build query - exclude archived employees by default
+    let query: any = {
+      status,
+      isArchived: false  // Only show active (non-archived) employees
+    };
 
     if (search) {
       query.$or = [

@@ -1,0 +1,11 @@
+{
+  "initDate": "2025-09-23T20:44:20.174Z",
+  "totalEmployees": 8,
+  "updatedEmployees": 8,
+  "errors": 0,
+  "errorDetails": [],
+  "finalStats": {
+    "employeesWithHistory": 8,
+    "employeesWithOriginalDate": 8
+  }
+}

@@ -14,6 +14,7 @@ import CNSSDeclaration from './CNSSDeclaration';
 import PayrollDocumentViewer from './PayrollDocumentViewer';
 import { PayrollStatusIndicator } from './PayrollStatusIndicator';
 import { cnssDeclarationService } from '@/services/cnss/cnssDeclarationService';
+import { PayrollWorkflowOrchestrator } from './workflow/PayrollWorkflowOrchestrator';
 import type { PayrollEmployee } from '@/types/payroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -50,6 +51,7 @@ export default function PayrollCalculator() {
   const [activeTab, setActiveTab] = useState<'paie' | 'cnss'>('paie');
   const [savedDocumentId, setSavedDocumentId] = useState<string | null>(null);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
+  const [useNewWorkflow, setUseNewWorkflow] = useState(true);
 
   // PDF download functionality
   const { downloadBulletin } = useBulletinPaieDownload();
@@ -143,6 +145,60 @@ export default function PayrollCalculator() {
     }
   };
 
+  const handleGenerateVirement = async (previewEmployee?: PayrollEmployee) => {
+    const employeeToPreview = previewEmployee || selectedEmployee;
+
+    if (!employeeToPreview || !currentPeriod) {
+      alert('Données manquantes pour générer l\'ordre de virement');
+      return;
+    }
+
+    // Vérifier que la période a un ID valide
+    if (!currentPeriod._id) {
+      console.log('Création d\'une nouvelle période avec ID temporaire');
+      createPeriod(currentPeriod.mois, currentPeriod.annee);
+      return;
+    }
+
+    // Si on passe un employé différent, on met à jour la sélection
+    if (previewEmployee && previewEmployee._id !== selectedEmployeeId) {
+      setSelectedEmployeeId(previewEmployee._id);
+      setSelectedEmployee(previewEmployee);
+      // S'assurer que l'employé existe dans le store
+      const existingEmployee = employees.find(e => e._id === previewEmployee._id);
+      if (!existingEmployee) {
+        // Ajouter l'employé au store s'il n'existe pas
+        const updatedEmployees = [...employees, previewEmployee];
+        setPayrollEmployees(updatedEmployees);
+      } else {
+        // Mettre à jour les données de l'employé dans le store
+        updatePayrollEmployee(previewEmployee._id, previewEmployee);
+      }
+    }
+
+    try {
+      // Vérifier si on a déjà un calcul pour cet employé
+      let calculation = calculations.find(c => c.employee_id === employeeToPreview._id && c.periode_id === currentPeriod._id);
+
+      if (!calculation) {
+        console.log('Calcul de la paie en cours pour l\'ordre de virement...');
+        await calculateSalary(employeeToPreview._id);
+
+        // Récupérer le calcul après l'avoir créé
+        calculation = calculations.find(c => c.employee_id === employeeToPreview._id && c.periode_id === currentPeriod._id);
+      }
+
+      if (calculation) {
+        setShowVirementModal(true);
+      } else {
+        alert('Impossible de récupérer le calcul de paie');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la préparation de l\'ordre de virement:', error);
+      alert('Une erreur est survenue lors de la préparation de l\'ordre de virement');
+    }
+  };
+
   const handleDownloadBulletin = async () => {
     if (!selectedEmployee || !employeeCalculation || !currentPeriod) {
       alert('Données manquantes pour générer le bulletin');
@@ -175,12 +231,27 @@ export default function PayrollCalculator() {
       return;
     }
 
+    // Vérifier que la période a un ID valide
+    if (!currentPeriod._id) {
+      console.log('Création d\'une nouvelle période avec ID temporaire');
+      createPeriod(currentPeriod.mois, currentPeriod.annee);
+      return;
+    }
+
     // Si on passe un employé différent, on met à jour la sélection
     if (previewEmployee && previewEmployee._id !== selectedEmployeeId) {
       setSelectedEmployeeId(previewEmployee._id);
       setSelectedEmployee(previewEmployee);
-      // Mettre à jour les données de l'employé dans le store
-      updatePayrollEmployee(previewEmployee._id, previewEmployee);
+      // S'assurer que l'employé existe dans le store
+      const existingEmployee = employees.find(e => e._id === previewEmployee._id);
+      if (!existingEmployee) {
+        // Ajouter l'employé au store s'il n'existe pas
+        const updatedEmployees = [...employees, previewEmployee];
+        setPayrollEmployees(updatedEmployees);
+      } else {
+        // Mettre à jour les données de l'employé dans le store
+        updatePayrollEmployee(previewEmployee._id, previewEmployee);
+      }
     }
 
     try {
@@ -852,6 +923,7 @@ export default function PayrollCalculator() {
             onSave={handleEmployeeDataSaved}
             onCancel={handleBackToSelection}
             onPreview={handlePreviewBulletin}
+            onGenerateVirement={handleGenerateVirement}
           />
         </div>
       )}
@@ -899,11 +971,11 @@ export default function PayrollCalculator() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
             <div className="bg-gray-50 rounded-lg p-3">
               <span className="text-xs text-gray-600">Salaire de base</span>
-              <p className="font-semibold text-lg">{formatMontantMAD(selectedEmployee.salaire_base)}</p>
+              <p className="font-semibold text-lg">{formatMontantMAD(selectedEmployee.salaire_base || 0)}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <span className="text-xs text-gray-600">Ancienneté</span>
-              <p className="font-semibold text-lg">{calculerAncienneteMois(selectedEmployee.date_embauche)} mois</p>
+              <p className="font-semibold text-lg">{calculerAncienneteMois(selectedEmployee.dateEmbauche || selectedEmployee.date_embauche)} mois</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <span className="text-xs text-gray-600">Situation familiale</span>
@@ -1002,55 +1074,77 @@ export default function PayrollCalculator() {
                   </div>
                 </div>
 
-                {/* Actions pour le bulletin de paie */}
-                <div className="border-t pt-3 mt-3">
-                  <p className="text-xs text-gray-600 mb-2">Génération du bulletin</p>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
+                {/* New PDF Workflow System */}
+                {useNewWorkflow ? (
+                  <div className="border-t pt-3 mt-3">
+                    <PayrollWorkflowOrchestrator
+                      employee={selectedEmployee}
+                      calculation={employeeCalculation}
+                      period={currentPeriod}
+                      onStatusChange={(status) => {
+                        console.log('Workflow status changed:', status);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  /* Legacy Actions pour le bulletin de paie */
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-xs text-gray-600">Génération du bulletin</p>
+                      <button
+                        onClick={() => setUseNewWorkflow(true)}
+                        className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200 transition-colors"
+                      >
+                        🚀 Nouveau Workflow
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <button
+                        onClick={handlePreviewBulletin}
+                        className="px-2 py-2 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                      >
+                        💾 Générer & Sauvegarder
+                      </button>
+                      <button
+                        onClick={handleDownloadBulletin}
+                        className="px-2 py-2 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+                      >
+                        📄 Générer & Télécharger
+                      </button>
+                    </div>
+
+                    {/* Actions pour les documents sauvegardés */}
+                    {savedDocumentId && (
+                      <>
+                        <p className="text-xs text-gray-600 mb-2 mt-3">Document sauvegardé</p>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          <button
+                            onClick={handlePreviewSavedDocument}
+                            className="px-2 py-2 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 transition-colors"
+                          >
+                            👁️ Prévisualiser
+                          </button>
+                          <button
+                            onClick={handleDownloadSavedDocument}
+                            className="px-2 py-2 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700 transition-colors"
+                          >
+                            ⬇️ Télécharger
+                          </button>
+                        </div>
+                      </>
+                    )}
+
                     <button
-                      onClick={handlePreviewBulletin}
-                      className="px-2 py-2 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                      onClick={handleDownloadAllDocuments}
+                      className="w-full px-2 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded text-xs hover:from-indigo-700 hover:to-purple-700 transition-colors font-semibold"
                     >
-                      💾 Générer & Sauvegarder
-                    </button>
-                    <button
-                      onClick={handleDownloadBulletin}
-                      className="px-2 py-2 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
-                    >
-                      📄 Générer & Télécharger
+                      📦 Télécharger tous les documents
+                      <div className="text-[10px] opacity-90 mt-1">
+                        (Bulletin individuel + Préétabli CNSS global + Ordre de virement)
+                      </div>
                     </button>
                   </div>
-
-                  {/* Actions pour les documents sauvegardés */}
-                  {savedDocumentId && (
-                    <>
-                      <p className="text-xs text-gray-600 mb-2 mt-3">Document sauvegardé</p>
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <button
-                          onClick={handlePreviewSavedDocument}
-                          className="px-2 py-2 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 transition-colors"
-                        >
-                          👁️ Prévisualiser
-                        </button>
-                        <button
-                          onClick={handleDownloadSavedDocument}
-                          className="px-2 py-2 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700 transition-colors"
-                        >
-                          ⬇️ Télécharger
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  <button
-                    onClick={handleDownloadAllDocuments}
-                    className="w-full px-2 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded text-xs hover:from-indigo-700 hover:to-purple-700 transition-colors font-semibold"
-                  >
-                    📦 Télécharger tous les documents
-                    <div className="text-[10px] opacity-90 mt-1">
-                      (Bulletin individuel + Préétabli CNSS global + Ordre de virement)
-                    </div>
-                  </button>
-                </div>
+                )}
               </div>
             </div>
           </div>

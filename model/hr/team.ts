@@ -43,7 +43,7 @@ if (mongoose.models.Team) {
   });
 
   // Indexes
-  teamSchema.index({ code: 1 });
+  // Note: code already has unique index from unique: true
   teamSchema.index({ branch: 1 });
   teamSchema.index({ department: 1 });
   teamSchema.index({ status: 1 });

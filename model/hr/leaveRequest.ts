@@ -54,7 +54,7 @@ if (mongoose.models.LeaveRequest) {
   });
 
   // Indexes
-  leaveRequestSchema.index({ requestId: 1 });
+  // Note: requestId already has unique index from unique: true
   leaveRequestSchema.index({ employee: 1 });
   leaveRequestSchema.index({ leaveType: 1 });
   leaveRequestSchema.index({ status: 1 });

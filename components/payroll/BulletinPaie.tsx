@@ -256,122 +256,143 @@ const styles = StyleSheet.create({
 
 // Calculate values for the bulletin using actual form data
 const calculateBulletinData = (employee: PayrollEmployee, calculation: PayrollCalculation) => {
+  // CALCULS CORRIGES - Utilise les données du service de calcul au lieu des valeurs erronées de l'employé
+
+  // Constantes réglementaires
+  const HEURES_MENSUELLES_STANDARD = 191;
+  const TAUX_CNSS_PATRONAL_ALLOCATION = 0.064; // 6.4%
+  const TAUX_CNSS_PATRONAL_PRESTATIONS = 0.0898; // 8.98%
+  const TAUX_AMO_PATRONAL = 0.0411; // 4.11%
+
+  // Calculs de base corrects
+  const tauxHoraireCorrect = calculation.salaire_base / HEURES_MENSUELLES_STANDARD;
+
+  // Cotisations patronales correctes
+  const allocationFamilialePatronale = calculation.salaire_base * TAUX_CNSS_PATRONAL_ALLOCATION;
+  const prestationsSocialesPatronales = calculation.salaire_base * TAUX_CNSS_PATRONAL_PRESTATIONS;
+  const amoPatronale = calculation.salaire_base * TAUX_AMO_PATRONAL;
+
   return {
-    // Basic info
-    tauxHoraire: employee.taux_horaire || 16.29,
-    totalHeuresTravaillees: employee.total_heures_travaillees || 191,
+    // Informations de base - CORRIGES
+    tauxHoraire: tauxHoraireCorrect.toFixed(2),
+    totalHeuresTravaillees: HEURES_MENSUELLES_STANDARD,
 
-    // Salaire de base
-    salaireBaseJours: employee.salaire_base_jours || 26,
-    salaireBaseTaux: employee.salaire_base_taux || 300,
-    salaireBaseMontant: employee.salaire_base_montant || 9000,
+    // Salaire de base - SIMPLIFIE pour salaire mensuel
+    salaireBaseJours: '-', // Non applicable pour salaire mensuel
+    salaireBaseTaux: '-', // Non applicable pour salaire mensuel
+    salaireBaseMontant: calculation.salaire_base,
 
-    // Salaire mensuel
-    salaireMensuelJours: employee.salaire_base_mensuel_jours || 22,
-    salaireMensuelTaux: employee.salaire_base_mensuel_taux || 346.15,
-    salaireMensuelMontant: employee.salaire_base_mensuel_montant || 7615.38,
+    // Salaire mensuel - CORRIGE
+    salaireMensuelJours: '-', // Non applicable
+    salaireMensuelTaux: '-', // Non applicable
+    salaireMensuelMontant: calculation.salaire_base,
 
-    // Congés et jours fériés
-    congePayeJours: employee.conge_paye_jours || 2,
-    congePayeTaux: employee.conge_paye_taux || 346.15,
-    congePayeMontant: employee.conge_paye_montant || 692.31,
+    // Congés payés - ELIMINES (ne s'appliquent pas aux salaires mensuels)
+    congePayeJours: 0,
+    congePayeTaux: 0,
+    congePayeMontant: 0,
 
-    joursFeriesJours: employee.jours_feries_jours || 2,
-    joursFeriesTaux: employee.jours_feries_taux || 346.15,
-    joursFeriesMontant: employee.jours_feries_montant || 692.31,
+    // Jours fériés - ELIMINES (ne s'appliquent pas aux salaires mensuels)
+    joursFeriesJours: 0,
+    joursFeriesTaux: 0,
+    joursFeriesMontant: 0,
 
-    // Heures supplémentaires
+    // Heures supplémentaires - ELIMINEES par défaut
     heuresSupp25: {
-      heures: employee.heures_supp_25_heures || 2,
-      taux: employee.heures_supp_25_taux || 47.12,
-      montant: employee.heures_supp_25_montant || 117.80,
+      heures: 0,
+      taux: 0,
+      montant: 0,
     },
     heuresSupp50: {
-      heures: employee.heures_supp_50_heures || 2,
-      taux: employee.heures_supp_50_taux || 47.12,
-      montant: employee.heures_supp_50_montant || 141.36,
+      heures: 0,
+      taux: 0,
+      montant: 0,
     },
     heuresSupp100: {
-      heures: employee.heures_supp_100_heures || 2,
-      taux: employee.heures_supp_100_taux || 47.12,
-      montant: employee.heures_supp_100_montant || 188.48,
+      heures: 0,
+      taux: 0,
+      montant: 0,
     },
 
-    // Prime d'ancienneté
-    primeAncienneteAnnees: employee.prime_anciennete_annees || 15,
-    primeAncienneteTaux: employee.prime_anciennete_taux || 0.15,
-    primeAncienneteMontant: employee.prime_anciennete_montant || 1417.15,
+    // Prime d'ancienneté - DU SERVICE DE CALCUL
+    primeAncienneteAnnees: Math.floor(calculation.anciennete_mois / 12),
+    primeAncienneteTaux: calculation.prime_anciennete > 0 ? (calculation.prime_anciennete / calculation.salaire_base) : 0,
+    primeAncienneteMontant: calculation.prime_anciennete,
 
     // Primes additionnelles
     primeTransport: employee.prime_transport || 0,
     primePanier: employee.prime_panier || 0,
     indemniteRepresentation: employee.indemnite_representation || 0,
     indemniteDeplacement: employee.indemnite_deplacement || 0,
+    autresPrimes: employee.autres_primes || 0,
+    autresIndemnites: employee.autres_indemnites || 0,
 
-    // Salaire brut
-    salaireBrutGlobal: calculation.salaire_brut_global || 10864.79,
-    salaireBrutImposable: calculation.salaire_brut_imposable || 10864.79,
+    // Salaires bruts - DU SERVICE DE CALCUL
+    salaireBrutGlobal: calculation.salaire_brut_global,
+    salaireBrutImposable: calculation.salaire_brut_imposable,
 
-    // Cotisations salariales
-    cnss: {
-      base: employee.cnss_base || 10864.79,
-      taux: employee.cnss_taux || 0.0448,
-      montant: employee.cnss_montant || 268.80,
+    // Cotisations salariales - DU SERVICE DE CALCUL
+    cotisationCNSS: {
+      base: Math.min(calculation.salaire_brut_imposable, 6000),
+      taux: 0.0448,
+      montant: calculation.cnss_salariale,
     },
-    amo: {
-      base: employee.amo_base || 10864.79,
-      taux: employee.amo_taux || 0.0226,
-      montant: employee.amo_montant || 245.54,
+    cotisationAMO: {
+      base: calculation.salaire_brut_imposable,
+      taux: 0.0226,
+      montant: calculation.amo_salariale,
     },
-    mutuelle: {
-      base: employee.mutuelle_base || 10864.79,
+    cotisationMutuelle: {
+      base: employee.mutuelle_base || 0,
       taux: employee.mutuelle_taux || 0,
       montant: employee.mutuelle_montant || 0,
     },
-    cimr: {
-      base: employee.cimr_base || 10864.79,
+    cotisationCIMR: {
+      base: employee.cimr_base || 0,
       taux: employee.cimr_taux || 0,
       montant: employee.cimr_montant || 0,
     },
+
+    // Frais professionnels - DU SERVICE DE CALCUL
     fraisProfessionnels: {
-      base: employee.frais_professionnels_base || 10864.79,
-      taux: employee.frais_professionnels_taux || 0.25,
-      montant: employee.frais_professionnels_montant || 2716.20,
+      base: calculation.salaire_brut_imposable,
+      taux: 0.20,
+      montant: calculation.frais_professionnels,
     },
 
-    // Cotisations patronales
+    // Cotisations patronales - CALCULEES CORRECTEMENT
     allocationFamiliale: {
-      base: employee.allocation_familiale_base || 10864.79,
-      taux: employee.allocation_familiale_taux || 0.064,
-      montant: employee.allocation_familiale_montant || 695.35,
+      base: calculation.salaire_base,
+      taux: TAUX_CNSS_PATRONAL_ALLOCATION,
+      montant: allocationFamilialePatronale,
     },
     prestationsSociales: {
-      base: employee.prestations_sociales_base || 10864.79,
-      taux: employee.prestations_sociales_taux || 0.0898,
-      montant: employee.prestations_sociales_montant || 538.80,
+      base: calculation.salaire_base,
+      taux: TAUX_CNSS_PATRONAL_PRESTATIONS,
+      montant: prestationsSocialesPatronales,
     },
     taxeFormation: {
-      base: employee.taxe_formation_base || 10864.79,
-      taux: employee.taxe_formation_taux || 0.016,
-      montant: employee.taxe_formation_montant || 173.84,
+      base: calculation.salaire_base,
+      taux: 0.016,
+      montant: calculation.taxe_formation,
     },
     amoPatronale: {
-      base: employee.amo_patronale_base || 10864.79,
-      taux: employee.amo_patronale_taux || 0.0411,
-      montant: employee.amo_patronale_montant || 446.54,
+      base: calculation.salaire_base,
+      taux: TAUX_AMO_PATRONAL,
+      montant: amoPatronale,
     },
 
-    // Calculs finaux
-    salaireNetImposable: calculation.salaire_net_imposable || 7634.25,
-    irBrut: employee.ir_brut || 1162.31,
-    chargeFamille: employee.charge_famille || 60,
-    irNet: employee.ir_net || 1102.31,
-    avanceSalaire: employee.avance_salaire || 1500,
-    cotisationSolidarite: employee.cotisation_solidarite || 0,
-    salaireNet: employee.salaire_net || 7748.13,
-    netAPayer: employee.net_a_payer || 7748.13,
+    // Calculs finaux - DU SERVICE DE CALCUL
+    salaireNetImposable: calculation.salaire_net_imposable,
+    irBrut: calculation.ir_brut,
+    chargeFamille: calculation.charges_familiales,
+    irNet: calculation.ir_net,
+    avanceSalaire: employee.avance_salaire || 0,
+    cotisationSolidarite: 0, // Non utilisé actuellement
+    salaireNet: calculation.salaire_net,
+    netAPayer: calculation.salaire_net - (employee.avance_salaire || 0),
   };
-};
+};;
 
 // Helper components
 const TableHeaderRow = () => (
@@ -938,95 +959,98 @@ export const useBulletinPaieDownload = () => {
 
           // Save the bulletin document
           try {
-          const documentData = {
-            documentType: 'bulletin_paie',
-            title: `Bulletin de Paie - ${employee.nom} ${employee.prenom}`,
-            description: `Bulletin de paie pour ${getMoisNom(period.mois)} ${period.annee}`,
-            employeeId: employee._id,
-            employeeName: `${employee.nom} ${employee.prenom}`,
-            employeeCode: employee.employeeId,
-            periodType: 'monthly',
-            periodMonth: period.mois,
-            periodYear: period.annee,
-            periodLabel: `${getMoisNom(period.mois)} ${period.annee}`,
-            pdfBase64: base64String,
-            salaryData: {
-              baseSalary: calculation.salaireBase || 0,
-              totalAllowances: calculation.totalIndemnites || 0,
-              totalDeductions: calculation.totalRetenues || 0,
-              netSalary: calculation.salaireNet || 0,
-              cnssEmployee: calculation.cotisationsCNSS?.employee || 0,
-              cnssEmployer: calculation.cotisationsCNSS?.employer || 0,
-              incomeTax: calculation.impotRevenu || 0
-            },
-            branch: options.branchId,
-            company: companyInfo?.name,
-            tags: ['bulletin_paie', getMoisNom(period.mois), period.annee.toString()],
-            category: 'payroll'
-          };
+            const documentData = {
+              documentType: 'bulletin_paie',
+              title: `Bulletin de Paie - ${employee.nom} ${employee.prenom}`,
+              description: `Bulletin de paie pour ${getMoisNom(period.mois)} ${period.annee}`,
+              employeeId: employee._id,
+              employeeName: `${employee.nom} ${employee.prenom}`,
+              employeeCode: employee.employeeId,
+              periodType: 'monthly',
+              periodMonth: period.mois,
+              periodYear: period.annee,
+              periodLabel: `${getMoisNom(period.mois)} ${period.annee}`,
+              pdfBase64: base64String,
+              salaryData: {
+                baseSalary: calculation.salaire_base || 0,
+                totalAllowances: calculation.totalIndemnités || 0,
+                totalDeductions: calculation.totalRetenues || 0,
+                netSalary: calculation.salaireNet || 0,
+                cnssEmployee: calculation.cotisationsCNSS?.employee || 0,
+                cnssEmployer: calculation.cotisationsCNSS?.employer || 0,
+                incomeTax: calculation.impotRevenu || 0
+              },
+              branch: options.branchId,
+              company: companyInfo?.name,
+              tags: ['bulletin_paie', getMoisNom(period.mois), period.annee.toString()],
+              category: 'payroll'
+            };
 
-          console.log('Données à envoyer:', {
-            hasEmployeeId: !!documentData.employeeId,
-            employeeId: documentData.employeeId,
-            hasBranch: !!documentData.branch,
-            branch: documentData.branch,
-            hasPdfBase64: !!documentData.pdfBase64,
-            pdfBase64Length: documentData.pdfBase64?.length
-          });
+            console.log('Données à envoyer:', {
+              hasEmployeeId: !!documentData.employeeId,
+              employeeId: documentData.employeeId,
+              hasBranch: !!documentData.branch,
+              branch: documentData.branch,
+              hasPdfBase64: !!documentData.pdfBase64,
+              pdfBase64Length: documentData.pdfBase64?.length
+            });
 
-          const response = await fetch('/api/payroll/documents', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(documentData),
-          });
+            const response = await fetch('/api/payroll/documents', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(documentData),
+            });
 
-          if (response.ok) {
-            const result = await response.json();
-            savedDocument = result.data.document;
-            console.log('Bulletin sauvegardé en base de données:', savedDocument.documentId);
+            if (response.ok) {
+              const result = await response.json();
+              savedDocument = result.data.document;
+              console.log('Bulletin sauvegardé en base de données:', savedDocument.documentId);
 
-            // Update status with bulletin ID
-            try {
-              const statusUpdateData = {
-                employeeId: employee._id,
-                periodMonth: period.mois,
-                periodYear: period.annee,
-                bulletinPaieId: savedDocument.documentId,
-                status: 'GENERE'
-              };
+              // Update status with bulletin ID
+              try {
+                const statusUpdateData = {
+                  employeeId: employee._id,
+                  periodMonth: period.mois,
+                  periodYear: period.annee,
+                  bulletinPaieId: savedDocument.documentId,
+                  status: 'GENERE'
+                };
 
-              await fetch('/api/payroll/status', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(statusUpdateData),
-              });
+                await fetch('/api/payroll/status', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(statusUpdateData),
+                });
 
-              console.log('Statut mis à jour avec l\'ID du bulletin');
-            } catch (err) {
-              console.error('Erreur lors de la mise à jour du statut avec ID:', err);
-            }
-          } else {
-            const errorData = await response.text();
-            let errorMessage = 'Erreur lors de la sauvegarde en base de données';
-            try {
-              const errorJson = JSON.parse(errorData);
-              errorMessage = errorJson.error || errorJson.message || errorMessage;
-              if (errorJson.details) {
-                console.error('Détails de l\'erreur:', errorJson.details);
+                console.log('Statut mis à jour avec l\'ID du bulletin');
+              } catch (err) {
+                console.error('Erreur lors de la mise à jour du statut avec ID:', err);
               }
-            } catch (e) {
-              errorMessage = errorData || errorMessage;
+            } else {
+              const errorData = await response.text();
+              let errorMessage = 'Erreur lors de la sauvegarde en base de données';
+              try {
+                const errorJson = JSON.parse(errorData);
+                errorMessage = errorJson.error || errorJson.message || errorMessage;
+                if (errorJson.details) {
+                  console.error('Détails de l\'erreur:', errorJson.details);
+                }
+              } catch (e) {
+                errorMessage = errorData || errorMessage;
+              }
+              console.error('Erreur lors de la sauvegarde:', errorMessage);
+              console.error('Status:', response.status);
+              console.error('Branch ID envoyé:', options.branchId);
             }
-            console.error('Erreur lors de la sauvegarde:', errorMessage);
-            console.error('Status:', response.status);
-            console.error('Branch ID envoyé:', options.branchId);
+          } catch (dbError) {
+            console.error('Erreur de sauvegarde en base de données:', dbError);
           }
-        } catch (dbError) {
-          console.error('Erreur de sauvegarde en base de données:', dbError);
+        } catch (error) {
+          console.error('Erreur lors de la sauvegarde:', error);
         }
       }
 

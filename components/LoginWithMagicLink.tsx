@@ -121,7 +121,7 @@ export default function LoginWithMagicLink() {
     }
 
     return (
-        <section className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-12 dark:from-slate-950 dark:to-slate-900">
+        <section className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-12 dark:from-slate-950 dark:to-slate-900">
             <div className="w-full max-w-md">
                 <Card className="border-slate-200 shadow-xl dark:border-slate-800">
                     <CardHeader className="space-y-1 text-center">

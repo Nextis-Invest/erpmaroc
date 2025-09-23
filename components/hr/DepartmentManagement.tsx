@@ -213,7 +213,7 @@ const DepartmentManagement = () => {
     const fetchDepartments = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/hr/departments?mock=true');
+        const response = await fetch('/api/hr/departments?');
         const data = await response.json();
 
         if (data.meta.status === 200) {
@@ -247,7 +247,7 @@ const DepartmentManagement = () => {
 
       if (response.ok) {
         // Refresh departments list
-        const departmentsResponse = await fetch('/api/hr/departments?mock=true');
+        const departmentsResponse = await fetch('/api/hr/departments?');
         const departmentsData = await departmentsResponse.json();
 
         if (departmentsData.meta.status === 200) {
@@ -265,7 +265,7 @@ const DepartmentManagement = () => {
   const handleDeleteDepartment = async (departmentId: string) => {
     if (confirm('Are you sure you want to delete this department?')) {
       try {
-        const response = await fetch(`/api/hr/departments/${departmentId}?mock=true`, {
+        const response = await fetch(`/api/hr/departments/${departmentId}?`, {
           method: 'DELETE',
         });
 

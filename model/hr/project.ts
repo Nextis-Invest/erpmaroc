@@ -101,7 +101,7 @@ if (mongoose.models.Project) {
   });
 
   // Indexes for performance
-  projectSchema.index({ code: 1 });
+  // Note: code already has unique index from unique: true
   projectSchema.index({ branch: 1 });
   projectSchema.index({ department: 1 });
   projectSchema.index({ status: 1 });

@@ -2,6 +2,64 @@
 // Moroccan Payroll System Types
 
 export interface PayrollEmployee {
+  total_heures_travaillees: number;
+  salaire_base_jours: number;
+  salaire_base_taux: number;
+  salaire_base_montant: number;
+  salaire_base_mensuel_jours: number;
+  salaire_base_mensuel_taux: number;
+  salaire_base_mensuel_montant: number;
+  conge_paye_jours: number;
+  conge_paye_taux: number;
+  conge_paye_montant: number;
+  jours_feries_jours: number;
+  jours_feries_taux: number;
+  jours_feries_montant: number;
+  heures_supp_25_heures: number;
+  heures_supp_25_taux: number;
+  heures_supp_25_montant: number;
+  heures_supp_50_heures: number;
+  heures_supp_50_taux: number;
+  heures_supp_50_montant: number;
+  heures_supp_100_heures: number;
+  heures_supp_100_taux: number;
+  heures_supp_100_montant: number;
+  prime_anciennete_annees: number;
+  prime_anciennete_taux: number;
+  prime_anciennete_montant: number;
+  cnss_base: number;
+  cnss_taux: number;
+  cnss_montant: number;
+  amo_base: number;
+  amo_taux: number;
+  amo_montant: number;
+  mutuelle_base: number;
+  mutuelle_taux: number;
+  mutuelle_montant: number;
+  cimr_base: number;
+  cimr_taux: number;
+  cimr_montant: number;
+  frais_professionnels_base: number;
+  frais_professionnels_taux: number;
+  frais_professionnels_montant: number;
+  allocation_familiale_base: number;
+  allocation_familiale_taux: number;
+  allocation_familiale_montant: number;
+  prestations_sociales_base: number;
+  prestations_sociales_taux: number;
+  prestations_sociales_montant: number;
+  taxe_formation_base: number;
+  taxe_formation_taux: number;
+  taxe_formation_montant: number;
+  amo_patronale_base: number;
+  amo_patronale_taux: number;
+  amo_patronale_montant: number;
+  ir_brut: number;
+  charge_famille: number;
+  ir_net: number;
+  cotisation_solidarite: number;
+  salaire_net: number;
+  net_a_payer: number;
   _id: string;
   employeeId: string;
   nom: string;
@@ -59,6 +117,11 @@ export interface PayrollPeriod {
 }
 
 export interface PayrollCalculation {
+  totalIndemnités: number;
+  totalRetenues: number;
+  salaireNet: number;
+  cotisationsCNSS: any;
+  impotRevenu: number;
   _id?: string;
   employee_id: string;
   periode_id: string;
@@ -274,19 +337,44 @@ export function getMoisNom(mois: number): string {
   return moisNoms[mois - 1] || '';
 }
 
-export function formatMontantMAD(montant: number | string): string {
+export function formatMontantMAD(montant: number | string | undefined | null): string {
+  // Handle undefined, null, or invalid values
+  if (montant === undefined || montant === null) {
+    return '0.00 DH';
+  }
+
   const valeur = typeof montant === 'string' ? parseFloat(montant) : montant;
+
+  // Check if the value is a valid number
+  if (isNaN(valeur) || !isFinite(valeur)) {
+    return '0.00 DH';
+  }
+
   return `${valeur.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH`;
 }
 
-export function calculerAncienneteMois(dateEmbauche: string | Date): number {
+export function calculerAncienneteMois(dateEmbauche: string | Date | undefined | null): number {
+  // Handle undefined, null, or invalid values
+  if (!dateEmbauche) {
+    return 0;
+  }
+
   const debut = new Date(dateEmbauche);
+
+  // Check if the date is valid
+  if (isNaN(debut.getTime())) {
+    return 0;
+  }
+
   const maintenant = new Date();
 
   const annees = maintenant.getFullYear() - debut.getFullYear();
   const mois = maintenant.getMonth() - debut.getMonth();
 
-  return annees * 12 + mois;
+  const result = annees * 12 + mois;
+
+  // Return 0 if result is negative (date in future)
+  return Math.max(0, result);
 }
 
 export function validerPeriodePaie(mois: number, annee: number): boolean {

@@ -181,6 +181,24 @@ const PayrollEmployeeSchema: Schema = new Schema({
     type: String,
     sparse: true,
     trim: true
+  },
+
+  // Archive/Restore System (logical deletion)
+  isArchived: {
+    type: Boolean,
+    default: false
+  },
+  archivedAt: {
+    type: Date,
+    sparse: true
+  },
+  archivedBy: {
+    type: String,
+    sparse: true
+  },
+  archiveReason: {
+    type: String,
+    sparse: true
   }
 }, {
   timestamps: true,
@@ -192,6 +210,7 @@ PayrollEmployeeSchema.index({ employeeId: 1 }, { unique: true });
 PayrollEmployeeSchema.index({ nom: 1, prenom: 1 });
 PayrollEmployeeSchema.index({ cin: 1 }, { sparse: true });
 PayrollEmployeeSchema.index({ cnss_numero: 1 }, { sparse: true });
+PayrollEmployeeSchema.index({ isArchived: 1 });
 PayrollEmployeeSchema.index({ date_embauche: 1 });
 
 // Pre-save middleware to ensure data consistency

@@ -1,0 +1,11 @@
+{
+  "migrationDate": "2025-09-23T20:35:21.686Z",
+  "sourceCollection": "payroll_employees",
+  "targetCollection": "employees",
+  "totalProcessed": 8,
+  "successfullyMigrated": 8,
+  "skipped": 0,
+  "errors": 0,
+  "errorDetails": [],
+  "finalCount": 8
+}

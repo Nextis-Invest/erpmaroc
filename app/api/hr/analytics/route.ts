@@ -237,7 +237,15 @@ export const GET = async (req: NextRequest) => {
       approvedLeaveRequests,
       departmentDistribution,
       monthlyHires,
-      upcomingBirthdays
+      upcomingBirthdays,
+
+      // Add leaveStats that the dashboard expects
+      leaveStats: {
+        totalRequests: totalLeaveRequests,
+        pendingRequests: pendingLeaveRequests,
+        approvedRequests: approvedLeaveRequests,
+        rejectedRequests: await LeaveRequest.countDocuments({ status: 'rejected' })
+      }
     };
 
     return NextResponse.json({

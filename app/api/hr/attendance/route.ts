@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { connectToDB } from '@/lib/database/connectToDB';
+import Employee from '@/model/hr/employee';
+import Attendance from '@/model/hr/attendance';
 import { mockEmployees, mockAttendanceRecords } from '@/lib/hr/mockData';
 
 interface AttendanceRecord {
@@ -121,29 +124,96 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
     const useMock = searchParams.get('mock') === 'true';
 
-    if (!useMock) {
+    if (useMock) {
+      // Generate attendance for the requested date
+      const attendance = generateDailyAttendance(date);
+      const stats = calculateStats(attendance);
+
       return NextResponse.json({
         meta: {
-          status: 501,
-          message: 'Database attendance not implemented yet'
+          status: 200,
+          message: 'Attendance records retrieved successfully',
+          date: date,
+          useMockData: true
         },
-        data: null
-      }, { status: 501 });
+        data: {
+          attendance,
+          stats
+        }
+      }, { status: 200 });
     }
 
-    // Generate attendance for the requested date
-    const attendance = generateDailyAttendance(date);
-    const stats = calculateStats(attendance);
+    // Database implementation
+    await connectToDB();
+
+    const targetDate = new Date(date);
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Get attendance records for the date
+    const attendance = await Attendance.find({
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      }
+    })
+    .populate('employee', 'firstName lastName employeeId')
+    .sort({ 'employee.firstName': 1 })
+    .lean();
+
+    // Calculate attendance statistics manually
+    const totalEmployees = attendance.length;
+    const present = attendance.filter(r => r.status === 'present').length;
+    const absent = attendance.filter(r => r.status === 'absent').length;
+    const late = attendance.filter(r => r.status === 'late').length;
+    const remote = attendance.filter(r => r.checkIn?.location?.type === 'remote').length;
+    const onLeave = attendance.filter(r => r.status === 'leave').length;
+
+    const attendanceRate = totalEmployees > 0
+      ? ((present + late) / totalEmployees) * 100
+      : 0;
+
+    const stats = {
+      totalEmployees,
+      present,
+      absent,
+      late,
+      remote,
+      onLeave,
+      attendanceRate: Number(attendanceRate.toFixed(1))
+    };
+
+    // Format attendance records to match interface
+    const formattedAttendance = attendance.map(record => ({
+      _id: record._id,
+      employee: {
+        firstName: record.employee?.firstName || '',
+        lastName: record.employee?.lastName || '',
+        employeeId: record.employee?.employeeId || ''
+      },
+      date: record.date.toISOString().split('T')[0],
+      checkIn: record.checkIn?.time?.toISOString(),
+      checkOut: record.checkOut?.time?.toISOString(),
+      status: record.status,
+      scheduledHours: record.scheduledHours || 8,
+      actualHours: record.actualHours || 0,
+      overtimeHours: record.overtimeHours || 0,
+      isRemote: record.checkIn?.location?.type === 'remote' || false,
+      notes: record.notes
+    }));
 
     return NextResponse.json({
       meta: {
         status: 200,
         message: 'Attendance records retrieved successfully',
         date: date,
-        useMockData: true
+        useMockData: false
       },
       data: {
-        attendance,
+        attendance: formattedAttendance,
         stats
       }
     }, { status: 200 });
@@ -173,7 +243,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { employeeId, date, status, checkIn, checkOut, isRemote, notes } = body;
+    const { employeeId, date, status, checkIn, checkOut, isRemote, notes, useMockData } = body;
 
     if (!employeeId || !date || !status) {
       return NextResponse.json({
@@ -185,8 +255,60 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Find employee
-    const employee = mockEmployees.find(emp => emp.employeeId === employeeId);
+    if (useMockData) {
+      // Find employee
+      const employee = mockEmployees.find(emp => emp.employeeId === employeeId);
+      if (!employee) {
+        return NextResponse.json({
+          meta: {
+            status: 404,
+            message: 'Employee not found'
+          },
+          data: null
+        }, { status: 404 });
+      }
+
+      // Create attendance record
+      const attendanceRecord: AttendanceRecord = {
+        _id: `att_${employeeId}_${date}`,
+        employee: {
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          employeeId: employee.employeeId
+        },
+        date,
+        checkIn,
+        checkOut,
+        status,
+        scheduledHours: 8,
+        actualHours: checkIn && checkOut
+          ? Number(((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60) - 1).toFixed(2))
+          : 0,
+        overtimeHours: 0, // Will be calculated
+        isRemote: isRemote || false,
+        notes
+      };
+
+      // Calculate overtime
+      attendanceRecord.overtimeHours = Math.max(0, attendanceRecord.actualHours - 8);
+
+      return NextResponse.json({
+        meta: {
+          status: 201,
+          message: 'Attendance record created successfully',
+          useMockData: true
+        },
+        data: {
+          attendance: attendanceRecord
+        }
+      }, { status: 201 });
+    }
+
+    // Database implementation
+    await connectToDB();
+
+    // Find employee by employeeId
+    const employee = await Employee.findOne({ employeeId }).lean();
     if (!employee) {
       return NextResponse.json({
         meta: {
@@ -197,38 +319,58 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // Create attendance record
-    const attendanceRecord: AttendanceRecord = {
-      _id: `att_${employeeId}_${date}`,
-      employee: {
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        employeeId: employee.employeeId
-      },
-      date,
-      checkIn,
-      checkOut,
+    // Create or update attendance record
+    const attendanceData = {
+      employee: employee._id,
+      date: new Date(date),
       status,
+      notes,
       scheduledHours: 8,
-      actualHours: checkIn && checkOut
-        ? Number(((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60) - 1).toFixed(2))
-        : 0,
-      overtimeHours: 0, // Will be calculated
-      isRemote: isRemote || false,
-      notes
+      checkIn: checkIn ? {
+        time: new Date(checkIn),
+        location: {
+          type: isRemote ? 'remote' : 'office'
+        }
+      } : undefined,
+      checkOut: checkOut ? {
+        time: new Date(checkOut),
+        location: {
+          type: isRemote ? 'remote' : 'office'
+        }
+      } : undefined
     };
 
-    // Calculate overtime
-    attendanceRecord.overtimeHours = Math.max(0, attendanceRecord.actualHours - 8);
+    // Use upsert to create or update
+    const attendanceRecord = await Attendance.findOneAndUpdate(
+      { employee: employee._id, date: new Date(date) },
+      attendanceData,
+      { upsert: true, new: true, runValidators: true }
+    ).populate('employee', 'firstName lastName employeeId');
 
     return NextResponse.json({
       meta: {
         status: 201,
-        message: 'Attendance record created successfully',
-        useMockData: true
+        message: 'Attendance record created/updated successfully',
+        useMockData: false
       },
       data: {
-        attendance: attendanceRecord
+        attendance: {
+          _id: attendanceRecord._id,
+          employee: {
+            firstName: attendanceRecord.employee.firstName,
+            lastName: attendanceRecord.employee.lastName,
+            employeeId: attendanceRecord.employee.employeeId
+          },
+          date: attendanceRecord.date.toISOString().split('T')[0],
+          checkIn: attendanceRecord.checkIn?.time?.toISOString(),
+          checkOut: attendanceRecord.checkOut?.time?.toISOString(),
+          status: attendanceRecord.status,
+          scheduledHours: attendanceRecord.scheduledHours || 8,
+          actualHours: attendanceRecord.actualHours || 0,
+          overtimeHours: attendanceRecord.overtimeHours || 0,
+          isRemote: attendanceRecord.checkIn?.location?.type === 'remote' || false,
+          notes: attendanceRecord.notes
+        }
       }
     }, { status: 201 });
 

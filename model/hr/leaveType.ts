@@ -51,7 +51,7 @@ if (mongoose.models.LeaveType) {
   });
 
   // Indexes
-  leaveTypeSchema.index({ code: 1 });
+  // Note: code already has unique index from unique: true
   leaveTypeSchema.index({ branch: 1 });
   leaveTypeSchema.index({ status: 1 });
 
