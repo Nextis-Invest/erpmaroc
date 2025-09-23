@@ -4,6 +4,7 @@ import { connectToDB } from "@/lib/database/connectToDB";
 import Employee from "@/model/hr/employee";
 import ACTIVITYLOG from "@/model/activities";
 import { getMockData } from "@/lib/hr/mockData";
+import { isValidObjectId } from "mongoose";
 
 // GET /api/hr/employees/[id] - Get employee by ID
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
@@ -55,9 +56,12 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ id: 
       );
     }
 
-    const employee = await Employee.findOne({
-      $or: [{ _id: id }, { employeeId: id }]
-    })
+    // Handle both ObjectId and employeeId string formats
+    const query = isValidObjectId(id)
+      ? { $or: [{ _id: id }, { employeeId: id }] }
+      : { employeeId: id };
+
+    const employee = await Employee.findOne(query)
       .populate('department', 'name code description')
       .populate('team', 'name code description')
       .populate('manager', 'firstName lastName employeeId email')
@@ -118,9 +122,12 @@ export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: 
       );
     }
 
-    const employee = await Employee.findOne({
-      $or: [{ _id: id }, { employeeId: id }]
-    });
+    // Handle both ObjectId and employeeId string formats
+    const queryUpdate = isValidObjectId(id)
+      ? { $or: [{ _id: id }, { employeeId: id }] }
+      : { employeeId: id };
+
+    const employee = await Employee.findOne(queryUpdate);
 
     if (!employee) {
       return NextResponse.json(
@@ -192,9 +199,12 @@ export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ i
       );
     }
 
-    const employee = await Employee.findOne({
-      $or: [{ _id: id }, { employeeId: id }]
-    });
+    // Handle both ObjectId and employeeId string formats
+    const queryDelete = isValidObjectId(id)
+      ? { $or: [{ _id: id }, { employeeId: id }] }
+      : { employeeId: id };
+
+    const employee = await Employee.findOne(queryDelete);
 
     if (!employee) {
       return NextResponse.json(

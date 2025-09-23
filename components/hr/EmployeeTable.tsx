@@ -18,6 +18,10 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Download, Filter, ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { useEmployees, useEmployeeFilters, usePagination, useHRActions, Employee } from '@/stores/hrStoreHooks';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import AddEmployeeButton from './AddEmployeeButton';
+import EmployeeViewDialog from './EmployeeViewDialog';
+import EmployeeEditDialog from './EmployeeEditDialog';
+import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 
 // Status Badge Component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -54,7 +58,11 @@ const EmploymentTypeBadge = ({ type }: { type: string }) => {
 };
 
 // Table columns definition
-const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<Employee>[] => [
+const createColumns = (
+  onViewEmployee: (employee: Employee) => void,
+  onEditEmployee: (employee: Employee) => void,
+  onDeleteEmployee: (employee: Employee) => void
+): ColumnDef<Employee>[] => [
   {
     accessorKey: "employeeId",
     header: ({ column }) => (
@@ -151,14 +159,17 @@ const createColumns = (onViewEmployee: (employee: Employee) => void): ColumnDef<
             <DropdownMenuItem onClick={() => onViewEmployee(employee)}>
               Voir Détails
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onViewEmployee(employee)}>
+            <DropdownMenuItem onClick={() => onEditEmployee(employee)}>
               Modifier Employé
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => console.log('View leaves', employee)}>
-              Voir Congés
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => console.log('View attendance', employee)}>
               Voir Présence
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDeleteEmployee(employee)}
+              className="text-red-600 focus:text-red-600"
+            >
+              Supprimer Employé
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -182,14 +193,90 @@ const EmployeeTable = () => {
 
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedEmployeeForView, setSelectedEmployeeForView] = useState<Employee | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState<Employee | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedEmployeeForDelete, setSelectedEmployeeForDelete] = useState<Employee | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleViewEmployee = (employee: Employee) => {
     setSelectedEmployee(employee);
-    // Here you would navigate to employee detail view or open a modal
-    console.log('Viewing employee:', employee);
+    setSelectedEmployeeForView(employee);
+    setIsViewDialogOpen(true);
   };
 
-  const columns = createColumns(handleViewEmployee);
+  const handleEditEmployee = (employee: Employee) => {
+    setSelectedEmployeeForEdit(employee);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteEmployee = (employee: Employee) => {
+    setSelectedEmployeeForDelete(employee);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleEditSubmit = async (employeeData: any) => {
+    setIsEditing(true);
+    try {
+      const response = await fetch(`/api/hr/employees/${selectedEmployeeForEdit?.employeeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(employeeData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la mise à jour de l\'employé');
+      }
+
+      const result = await response.json();
+
+      // Refresh the employee list
+      window.location.reload();
+
+      setIsEditDialogOpen(false);
+      setSelectedEmployeeForEdit(null);
+      alert('Employé mis à jour avec succès!');
+
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert('Erreur lors de la mise à jour de l\'employé');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleDeleteConfirm = async (employee: Employee) => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/hr/employees/${employee.employeeId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression de l\'employé');
+      }
+
+      // Refresh the employee list
+      window.location.reload();
+
+      setIsDeleteDialogOpen(false);
+      setSelectedEmployeeForDelete(null);
+      alert('Employé supprimé avec succès!');
+
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      alert('Erreur lors de la suppression de l\'employé');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const columns = createColumns(handleViewEmployee, handleEditEmployee, handleDeleteEmployee);
 
   const table = useReactTable({
     data: employees,
@@ -275,10 +362,10 @@ const EmployeeTable = () => {
             <Download className="w-4 h-4 mr-2" />
             Exporter
           </Button>
-          <Button size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter Employé
-          </Button>
+          <AddEmployeeButton onEmployeeAdded={(employee) => {
+            // Refresh the employee list when a new employee is added
+            window.location.reload();
+          }} />
         </div>
       </div>
 
@@ -417,6 +504,48 @@ const EmployeeTable = () => {
           </div>
         </div>
       </Card>
+
+      {/* Employee View Dialog */}
+      <EmployeeViewDialog
+        employee={selectedEmployeeForView}
+        open={isViewDialogOpen}
+        onOpenChange={(open) => {
+          setIsViewDialogOpen(open);
+          if (!open) {
+            setSelectedEmployeeForView(null);
+          }
+        }}
+        onEdit={handleEditEmployee}
+        onDelete={handleDeleteEmployee}
+      />
+
+      {/* Employee Edit Dialog */}
+      <EmployeeEditDialog
+        employee={selectedEmployeeForEdit}
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) {
+            setSelectedEmployeeForEdit(null);
+          }
+        }}
+        onSubmit={handleEditSubmit}
+        isLoading={isEditing}
+      />
+
+      {/* Employee Delete Dialog */}
+      <EmployeeDeleteDialog
+        employee={selectedEmployeeForDelete}
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+          if (!open) {
+            setSelectedEmployeeForDelete(null);
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
