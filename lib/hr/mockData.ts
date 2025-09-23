@@ -158,6 +158,8 @@ export const mockEmployees = [
     maritalStatus: "married",
     nationality: "Moroccan",
     nationalId: "AB123456",
+    cnssNumber: "123456789012",
+    contractType: "cdi",
     address: {
       street: "123 Hassan II Boulevard",
       city: "Casablanca",
@@ -217,6 +219,8 @@ export const mockEmployees = [
     maritalStatus: "single",
     nationality: "Moroccan",
     nationalId: "CD789012",
+    cnssNumber: "234567890123",
+    contractType: "cdd",
     address: {
       street: "456 Mohammed VI Avenue",
       city: "Rabat",
@@ -270,6 +274,8 @@ export const mockEmployees = [
     maritalStatus: "married",
     nationality: "Moroccan",
     nationalId: "EF345678",
+    cnssNumber: "345678901234",
+    contractType: "freelance",
     address: {
       street: "789 Atlas Street",
       city: "Fez",
@@ -323,6 +329,8 @@ export const mockEmployees = [
     maritalStatus: "single",
     nationality: "Moroccan",
     nationalId: "GH901234",
+    cnssNumber: "456789012345",
+    contractType: "cdi",
     address: {
       street: "321 Corniche Road",
       city: "Tangier",
@@ -377,6 +385,8 @@ export const mockEmployees = [
     maritalStatus: "married",
     nationality: "Moroccan",
     nationalId: "IJ567890",
+    cnssNumber: "567890123456",
+    contractType: "cdd",
     address: {
       street: "567 Anfa Boulevard",
       city: "Casablanca",
@@ -436,6 +446,8 @@ export const mockEmployees = [
     maritalStatus: "married",
     nationality: "Moroccan",
     nationalId: "KL123456",
+    cnssNumber: "678901234567",
+    contractType: "cdi",
     address: {
       street: "345 Ibn Battuta Street",
       city: "Salé",
@@ -495,6 +507,8 @@ export const mockEmployees = [
     maritalStatus: "single",
     nationality: "Moroccan",
     nationalId: "MN789012",
+    cnssNumber: "789012345678",
+    contractType: "freelance",
     address: {
       street: "678 Hassan V Avenue",
       city: "Agadir",
@@ -555,6 +569,8 @@ export const mockEmployees = [
     maritalStatus: "single",
     nationality: "Moroccan",
     nationalId: "OP345678",
+    cnssNumber: "890123456789",
+    contractType: "cdi",
     address: {
       street: "890 Moulay Youssef Boulevard",
       city: "Meknes",

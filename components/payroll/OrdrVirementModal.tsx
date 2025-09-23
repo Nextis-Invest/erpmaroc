@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useBulletinPaieDownload } from './BulletinPaie';
+import { useSIMTDownload } from './OrdrVirementSIMT';
 import type { PayrollEmployee, PayrollCalculation, PayrollPeriod } from '@/types/payroll';
 
-interface BulletinPaieModalProps {
+interface OrdrVirementModalProps {
   isOpen: boolean;
   onClose: () => void;
   employee: PayrollEmployee;
@@ -14,7 +14,7 @@ interface BulletinPaieModalProps {
   onSave: () => void;
 }
 
-const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
+const OrdrVirementModal: React.FC<OrdrVirementModalProps> = ({
   isOpen,
   onClose,
   employee,
@@ -23,38 +23,26 @@ const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
   onDownload,
   onSave
 }) => {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [simtContent, setSIMTContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const { generateBulletinBlob } = useBulletinPaieDownload();
+  const { generateSingleEmployeeSIMT, previewSIMTContent } = useSIMTDownload();
 
   useEffect(() => {
     if (isOpen && employee && calculation && period) {
-      generatePdfPreview();
+      generateSIMTPreview();
     }
-
-    // Cleanup blob URL on unmount
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-    };
   }, [isOpen, employee, calculation, period]);
 
-  const generatePdfPreview = async () => {
+  const generateSIMTPreview = () => {
     setLoading(true);
     try {
-      const blob = await generateBulletinBlob(
-        employee,
-        calculation,
+      const content = previewSIMTContent(
+        [{ employee, calculation }],
         period
       );
-
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        setPdfUrl(url);
-      }
+      setSIMTContent(content);
     } catch (error) {
-      console.error('Erreur lors de la génération du PDF:', error);
+      console.error('Erreur lors de la génération du fichier SIMT:', error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +57,7 @@ const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
         <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              Aperçu du Bulletin de Paie
+              Aperçu du Fichier SIMT - Ordre de Virement
             </h2>
             <p className="text-sm text-gray-600">
               {employee.prenom} {employee.nom} - {period.mois}/{period.annee}
@@ -83,27 +71,37 @@ const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
           </button>
         </div>
 
-        {/* PDF Content */}
-        <div className="bg-gray-100 p-4 h-[calc(90vh-140px)]">
+        {/* SIMT Content */}
+        <div className="bg-gray-100 p-4 h-[calc(90vh-140px)] overflow-auto">
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Chargement du PDF...</p>
+                <p className="mt-4 text-gray-600">Génération du fichier SIMT...</p>
               </div>
             </div>
-          ) : pdfUrl ? (
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full border-0 rounded"
-              title="Aperçu du bulletin de paie"
-            />
+          ) : simtContent ? (
+            <div className="bg-white rounded-lg p-6 h-full overflow-auto">
+              <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500">
+                <p className="text-sm text-blue-800">
+                  <strong>Format SIMT</strong> - Fichier de virement bancaire compatible avec les banques marocaines
+                </p>
+              </div>
+              <pre className="font-mono text-xs leading-relaxed whitespace-pre-wrap break-all bg-gray-50 p-4 rounded">
+                {simtContent}
+              </pre>
+              <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-500">
+                <p className="text-xs text-yellow-800">
+                  <strong>Note:</strong> Ce fichier sera traité automatiquement par votre banque pour effectuer le virement.
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <p className="text-red-600">Erreur lors du chargement du PDF</p>
+                <p className="text-red-600">Erreur lors de la génération du fichier SIMT</p>
                 <button
-                  onClick={generatePdfPreview}
+                  onClick={generateSIMTPreview}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Réessayer
@@ -128,7 +126,7 @@ const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
             >
               <span>⬇️</span>
-              <span>Télécharger PDF</span>
+              <span>Télécharger SIMT</span>
             </button>
           </div>
           <button
@@ -143,4 +141,4 @@ const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
   );
 };
 
-export default BulletinPaieModal;
+export default OrdrVirementModal;

@@ -30,8 +30,14 @@ export class CNSSDeclarationService {
   ): CNSSDeclaration {
     const cnssEmployees: CNSSEmploye[] = [];
 
-    // Transformer les employés et calculs en format CNSS
+    // Filtrer les freelances et transformer les employés et calculs en format CNSS
     employees.forEach((employee) => {
+      // Exclure les freelances des déclarations CNSS
+      if (employee.contractType === 'freelance') {
+        console.log(`Freelance exclu de la déclaration CNSS: ${employee.nom} ${employee.prenom}`);
+        return;
+      }
+
       const calculation = calculations.find(c => c.employee_id === employee._id);
 
       if (calculation) {
@@ -50,7 +56,7 @@ export class CNSSDeclarationService {
           cotisation_salariale: calculation.cnss_salariale,
           cotisation_patronale: calculation.cnss_patronale,
           situation: 'ACTIF',
-          type_contrat: 'CDI',
+          type_contrat: employee.contractType === 'cdd' ? 'CDD' : 'CDI',
         });
       }
     });

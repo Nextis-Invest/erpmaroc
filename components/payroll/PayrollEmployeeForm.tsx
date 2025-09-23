@@ -197,7 +197,7 @@ export default function PayrollEmployeeForm({
     <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
-          {mode === 'create' ? 'Nouvel Employé' : 'Modifier Employé'}
+          {mode === 'create' ? 'Nouvel Employé' : 'Modifier Bulletin'}
         </h2>
         <p className="text-gray-600 mt-1">
           Informations complètes pour le calcul de paie marocain
@@ -870,7 +870,7 @@ export default function PayrollEmployeeForm({
               disabled={isSubmitting}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Sauvegarde...' : (mode === 'create' ? 'Créer Employé' : 'Modifier Employé')}
+              {isSubmitting ? 'Sauvegarde...' : (mode === 'create' ? 'Créer Employé' : 'Modifier Bulletin')}
             </button>
           </div>
 
@@ -893,8 +893,8 @@ export default function PayrollEmployeeForm({
                   }}
                   className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                 >
-                  <span>📄</span>
-                  <span>Générer PDF</span>
+                  <span>🏦</span>
+                  <span>Ordre de Virement</span>
                 </button>
               </div>
             </div>

@@ -1,19 +1,27 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { usePayrollStore } from '@/stores/payrollStore';
 import { formatMontantMAD, getMoisNom, calculerAncienneteMois } from '@/types/payroll';
 import PayrollEmployeeForm from './PayrollEmployeeForm';
 import { usePayrollEmployees } from '@/hooks/usePayrollEmployees';
 import { useBulletinPaieDownload } from './BulletinPaie';
 import BulletinPaieModal from './BulletinPaieModal';
+import OrdrVirementModal from './OrdrVirementModal';
+import { useSIMTDownload } from './OrdrVirementSIMT';
 import CNSSDeclaration from './CNSSDeclaration';
+import PayrollDocumentViewer from './PayrollDocumentViewer';
+import { PayrollStatusIndicator } from './PayrollStatusIndicator';
 import { cnssDeclarationService } from '@/services/cnss/cnssDeclarationService';
 import type { PayrollEmployee } from '@/types/payroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export default function PayrollCalculator() {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   const {
     employees,
     currentPeriod,
@@ -38,10 +46,14 @@ export default function PayrollCalculator() {
   const [currentStep, setCurrentStep] = useState<'select' | 'form' | 'calculate'>('select');
   const [selectedEmployee, setSelectedEmployee] = useState<PayrollEmployee | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showVirementModal, setShowVirementModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'paie' | 'cnss'>('paie');
+  const [savedDocumentId, setSavedDocumentId] = useState<string | null>(null);
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
 
   // PDF download functionality
   const { downloadBulletin } = useBulletinPaieDownload();
+  const { downloadSIMTFile } = useSIMTDownload();
 
   // Fetch employees from database
   const { employees: dbEmployees, loading: loadingEmployees, error: employeesError, refetch } = usePayrollEmployees();
@@ -186,24 +198,47 @@ export default function PayrollCalculator() {
         }
       }
 
-      // Maintenant qu'on a le calcul, générer et télécharger le PDF
-      console.log('Génération du PDF...');
-      const success = await downloadBulletin(
-        employeeToPreview,
-        calculation,
-        currentPeriod
-      );
-
-      if (success) {
-        console.log('Bulletin PDF généré et téléchargé avec succès');
-        // Optionnel: afficher un message de succès
-        // alert('Bulletin PDF téléchargé avec succès !');
-      } else {
-        alert('Erreur lors de la génération du PDF');
-      }
+      // Afficher le modal de l'ordre de virement au lieu du bulletin
+      console.log('Affichage de l\'ordre de virement...');
+      setShowVirementModal(true);
     } catch (error) {
       console.error('Erreur lors de la génération du bulletin:', error);
       alert('Erreur lors de la génération du bulletin PDF');
+    }
+  };
+
+  // Handle preview of saved document
+  const handlePreviewSavedDocument = () => {
+    if (savedDocumentId) {
+      setShowDocumentViewer(true);
+    } else {
+      alert('Aucun document sauvegardé à prévisualiser. Veuillez d\'abord générer un bulletin.');
+    }
+  };
+
+  // Handle manual download of saved document
+  const handleDownloadSavedDocument = async () => {
+    if (!savedDocumentId || !selectedEmployee || !employeeCalculation || !currentPeriod) {
+      alert('Aucun document sauvegardé à télécharger. Veuillez d\'abord générer un bulletin.');
+      return;
+    }
+
+    try {
+      // Download the already generated document
+      await downloadBulletin(
+        selectedEmployee,
+        employeeCalculation,
+        currentPeriod,
+        undefined,
+        {
+          saveToDatabase: false,
+          downloadFile: true,
+          documentId: savedDocumentId
+        }
+      );
+    } catch (error) {
+      console.error('Error downloading saved document:', error);
+      alert('Erreur lors du téléchargement du document sauvegardé');
     }
   };
 
@@ -387,6 +422,70 @@ export default function PayrollCalculator() {
     } catch (error) {
       console.error('Erreur lors du téléchargement du préétabli CNSS:', error);
       alert('Erreur lors du téléchargement du préétabli CNSS');
+    }
+  };
+
+  // Handle download of ordre de virement SIMT
+  const handleDownloadOrdrVirement = async () => {
+    if (!selectedEmployee || !employeeCalculation || !currentPeriod) {
+      alert('Données manquantes pour générer le fichier SIMT');
+      return;
+    }
+
+    try {
+      const result = await downloadSIMTFile(
+        [{ employee: selectedEmployee, calculation: employeeCalculation }],
+        currentPeriod,
+        undefined, // companyInfo
+        {
+          saveToDatabase: false,
+          downloadFile: true,
+          branchId: user?.branchId
+        }
+      );
+
+      if (result.success) {
+        console.log('Fichier SIMT téléchargé avec succès');
+        setShowVirementModal(false);
+      } else {
+        alert('Erreur lors du téléchargement du fichier SIMT');
+      }
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      alert('Erreur lors du téléchargement du fichier SIMT');
+    }
+  };
+
+  // Handle save of ordre de virement SIMT
+  const handleSaveOrdrVirement = async () => {
+    if (!selectedEmployee || !employeeCalculation || !currentPeriod) {
+      alert('Données manquantes pour sauvegarder le fichier SIMT');
+      return;
+    }
+
+    try {
+      const result = await downloadSIMTFile(
+        [{ employee: selectedEmployee, calculation: employeeCalculation }],
+        currentPeriod,
+        undefined, // companyInfo
+        {
+          saveToDatabase: true,
+          downloadFile: false,
+          branchId: user?.branchId
+        }
+      );
+
+      if (result && result.success) {
+        console.log('Fichier SIMT sauvegardé:', result.documentId);
+        setSavedDocumentId(result.documentId);
+        alert('Fichier SIMT sauvegardé avec succès !');
+        setShowVirementModal(false);
+      } else {
+        alert('Erreur lors de la sauvegarde du fichier SIMT');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde du fichier SIMT');
     }
   };
 
@@ -688,6 +787,17 @@ export default function PayrollCalculator() {
                       </span>
                     </div>
                   </div>
+                  {currentPeriod && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <PayrollStatusIndicator
+                        employeeId={emp._id}
+                        employeeName={`${emp.prenom} ${emp.nom}`}
+                        periodMonth={currentPeriod.mois}
+                        periodYear={currentPeriod.annee}
+                        showDetails={false}
+                      />
+                    </div>
+                  )}
                   <button className="w-full mt-3 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors">
                     Sélectionner
                   </button>
@@ -894,21 +1004,43 @@ export default function PayrollCalculator() {
 
                 {/* Actions pour le bulletin de paie */}
                 <div className="border-t pt-3 mt-3">
-                  <p className="text-xs text-gray-600 mb-2">Documents de paie</p>
+                  <p className="text-xs text-gray-600 mb-2">Génération du bulletin</p>
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <button
                       onClick={handlePreviewBulletin}
                       className="px-2 py-2 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
                     >
-                      👁️ Prévisualiser
+                      💾 Générer & Sauvegarder
                     </button>
                     <button
                       onClick={handleDownloadBulletin}
                       className="px-2 py-2 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
                     >
-                      📄 Bulletin PDF
+                      📄 Générer & Télécharger
                     </button>
                   </div>
+
+                  {/* Actions pour les documents sauvegardés */}
+                  {savedDocumentId && (
+                    <>
+                      <p className="text-xs text-gray-600 mb-2 mt-3">Document sauvegardé</p>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <button
+                          onClick={handlePreviewSavedDocument}
+                          className="px-2 py-2 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 transition-colors"
+                        >
+                          👁️ Prévisualiser
+                        </button>
+                        <button
+                          onClick={handleDownloadSavedDocument}
+                          className="px-2 py-2 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700 transition-colors"
+                        >
+                          ⬇️ Télécharger
+                        </button>
+                      </div>
+                    </>
+                  )}
+
                   <button
                     onClick={handleDownloadAllDocuments}
                     className="w-full px-2 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded text-xs hover:from-indigo-700 hover:to-purple-700 transition-colors font-semibold"
@@ -920,6 +1052,30 @@ export default function PayrollCalculator() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {showDocumentViewer && savedDocumentId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">Prévisualisation du Bulletin de Paie</h3>
+              <button
+                onClick={() => setShowDocumentViewer(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[calc(90vh-80px)]">
+              <PayrollDocumentViewer
+                documentId={savedDocumentId}
+                onClose={() => setShowDocumentViewer(false)}
+                showMetadata={true}
+              />
             </div>
           </div>
         </div>
@@ -981,7 +1137,7 @@ export default function PayrollCalculator() {
         </div>
       )}
 
-      {/* Modal de prévisualisation */}
+      {/* Modal de prévisualisation du bulletin */}
       {showPreviewModal && selectedEmployee && employeeCalculation && currentPeriod && (
         <BulletinPaieModal
           isOpen={showPreviewModal}
@@ -991,6 +1147,19 @@ export default function PayrollCalculator() {
           period={currentPeriod}
           onDownload={handleDownloadBulletin}
           onSave={handleSaveBulletin}
+        />
+      )}
+
+      {/* Modal de l'ordre de virement */}
+      {showVirementModal && selectedEmployee && employeeCalculation && currentPeriod && (
+        <OrdrVirementModal
+          isOpen={showVirementModal}
+          onClose={() => setShowVirementModal(false)}
+          employee={selectedEmployee}
+          calculation={employeeCalculation}
+          period={currentPeriod}
+          onDownload={handleDownloadOrdrVirement}
+          onSave={handleSaveOrdrVirement}
         />
       )}
         </>

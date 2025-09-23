@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { usePayrollStore } from '@/stores/payrollStore';
 import { cnssDeclarationService } from '@/services/cnss/cnssDeclarationService';
+import { cnssPreetabliService, CNSSPreetabliService } from '@/services/cnss/cnssPreetabliService';
 import type { CNSSDeclaration } from '@/types/cnss';
 
 type TabType = 'declaration' | 'bds' | 'preestablie';
@@ -13,6 +14,7 @@ export default function CNSSDeclarationComponent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [fileContent, setFileContent] = useState<string>('');
+  const [preetabliContent, setPreetabliContent] = useState<string>('');
   const [activeTab, setActiveTab] = useState<TabType>('declaration');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -41,8 +43,18 @@ export default function CNSSDeclarationComponent() {
         calculations
       );
       setDeclaration(newDeclaration);
-      const content = cnssDeclarationService.generateBDSFile(newDeclaration);
-      setFileContent(content);
+
+      // Generate BDS file for standard declaration and BDS tabs
+      if (activeTab === 'declaration' || activeTab === 'bds') {
+        const content = cnssDeclarationService.generateBDSFile(newDeclaration);
+        setFileContent(content);
+      }
+
+      // Generate préétabli file for préétablie tab
+      if (activeTab === 'preestablie') {
+        const preetabliData = cnssPreetabliService.generatePreetabliFile(newDeclaration);
+        setPreetabliContent(preetabliData);
+      }
     } catch (error) {
       console.error('Erreur lors de la génération:', error);
       alert('Erreur lors de la génération de la déclaration CNSS');
@@ -484,7 +496,25 @@ export default function CNSSDeclarationComponent() {
                   <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
                     ✅ Valider et appliquer
                   </button>
-                  <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (!preetabliContent || !declaration) return;
+                      const blob = new Blob([preetabliContent], { type: 'text/plain;charset=utf-8' });
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      const periode = `${selectedYear}${selectedMonth.toString().padStart(2, '0')}`;
+                      link.download = CNSSPreetabliService.generateFileName(
+                        declaration.entreprise.numero_affiliation,
+                        periode
+                      );
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(url);
+                    }}
+                    disabled={!preetabliContent}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:bg-gray-400">
                     📥 Exporter la préétablie
                   </button>
                   <button className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex items-center gap-2">

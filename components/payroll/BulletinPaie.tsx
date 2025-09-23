@@ -863,13 +863,18 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
   );
 };
 
-// Hook to generate and download PDF
+// Hook to generate and download PDF with database saving
 export const useBulletinPaieDownload = () => {
   const downloadBulletin = async (
     employee: PayrollEmployee,
     calculation: PayrollCalculation,
     period: PayrollPeriod,
-    companyInfo?: any
+    companyInfo?: any,
+    options: {
+      saveToDatabase?: boolean;
+      downloadFile?: boolean;
+      branchId?: string;
+    } = { saveToDatabase: true, downloadFile: true }
   ) => {
     try {
       const doc = <BulletinPaiePDF
@@ -882,24 +887,199 @@ export const useBulletinPaieDownload = () => {
       const asPdf = pdf(doc);
       const blob = await asPdf.toBlob();
 
-      // Create download link
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `bulletin-paie-${employee.employeeId}-${getMoisNom(period.mois)}-${period.annee}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Convert blob to base64 for database storage
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const base64String = btoa(String.fromCharCode(...uint8Array));
 
-      return true;
+      let savedDocument = null;
+
+      // Save to database if requested
+      if (options.saveToDatabase) {
+        try {
+          // Update payroll status first
+          try {
+            const statusData = {
+              employeeId: employee._id,
+              employeeName: `${employee.nom} ${employee.prenom}`,
+              employeeCode: employee.employeeId,
+              periodMonth: period.mois,
+              periodYear: period.annee,
+              status: 'GENERE',
+              financialSummary: {
+                salaireBase: calculation.salaire_base || 0,
+                totalPrimes: (calculation.primes_imposables || 0) + (calculation.primes_non_imposables || 0),
+                totalDeductions: calculation.cnss_salariale + calculation.amo_salariale + calculation.ir_net + (calculation.autres_deductions || 0),
+                salaireNet: calculation.salaire_net || 0,
+                cnssEmployee: calculation.cnss_salariale || 0,
+                cnssEmployer: calculation.cnss_patronale || 0,
+                ir: calculation.ir_net || 0
+              },
+              branch: options.branchId,
+              company: companyInfo?.name
+            };
+
+            const statusResponse = await fetch('/api/payroll/status', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(statusData),
+            });
+
+            if (statusResponse.ok) {
+              console.log('Statut de paie mis à jour: GENERE');
+            } else {
+              console.error('Erreur lors de la mise à jour du statut');
+            }
+          } catch (statusError) {
+            console.error('Erreur lors de la mise à jour du statut:', statusError);
+          }
+
+          // Save the bulletin document
+          try {
+          const documentData = {
+            documentType: 'bulletin_paie',
+            title: `Bulletin de Paie - ${employee.nom} ${employee.prenom}`,
+            description: `Bulletin de paie pour ${getMoisNom(period.mois)} ${period.annee}`,
+            employeeId: employee._id,
+            employeeName: `${employee.nom} ${employee.prenom}`,
+            employeeCode: employee.employeeId,
+            periodType: 'monthly',
+            periodMonth: period.mois,
+            periodYear: period.annee,
+            periodLabel: `${getMoisNom(period.mois)} ${period.annee}`,
+            pdfBase64: base64String,
+            salaryData: {
+              baseSalary: calculation.salaireBase || 0,
+              totalAllowances: calculation.totalIndemnites || 0,
+              totalDeductions: calculation.totalRetenues || 0,
+              netSalary: calculation.salaireNet || 0,
+              cnssEmployee: calculation.cotisationsCNSS?.employee || 0,
+              cnssEmployer: calculation.cotisationsCNSS?.employer || 0,
+              incomeTax: calculation.impotRevenu || 0
+            },
+            branch: options.branchId,
+            company: companyInfo?.name,
+            tags: ['bulletin_paie', getMoisNom(period.mois), period.annee.toString()],
+            category: 'payroll'
+          };
+
+          console.log('Données à envoyer:', {
+            hasEmployeeId: !!documentData.employeeId,
+            employeeId: documentData.employeeId,
+            hasBranch: !!documentData.branch,
+            branch: documentData.branch,
+            hasPdfBase64: !!documentData.pdfBase64,
+            pdfBase64Length: documentData.pdfBase64?.length
+          });
+
+          const response = await fetch('/api/payroll/documents', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(documentData),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            savedDocument = result.data.document;
+            console.log('Bulletin sauvegardé en base de données:', savedDocument.documentId);
+
+            // Update status with bulletin ID
+            try {
+              const statusUpdateData = {
+                employeeId: employee._id,
+                periodMonth: period.mois,
+                periodYear: period.annee,
+                bulletinPaieId: savedDocument.documentId,
+                status: 'GENERE'
+              };
+
+              await fetch('/api/payroll/status', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(statusUpdateData),
+              });
+
+              console.log('Statut mis à jour avec l\'ID du bulletin');
+            } catch (err) {
+              console.error('Erreur lors de la mise à jour du statut avec ID:', err);
+            }
+          } else {
+            const errorData = await response.text();
+            let errorMessage = 'Erreur lors de la sauvegarde en base de données';
+            try {
+              const errorJson = JSON.parse(errorData);
+              errorMessage = errorJson.error || errorJson.message || errorMessage;
+              if (errorJson.details) {
+                console.error('Détails de l\'erreur:', errorJson.details);
+              }
+            } catch (e) {
+              errorMessage = errorData || errorMessage;
+            }
+            console.error('Erreur lors de la sauvegarde:', errorMessage);
+            console.error('Status:', response.status);
+            console.error('Branch ID envoyé:', options.branchId);
+          }
+        } catch (dbError) {
+          console.error('Erreur de sauvegarde en base de données:', dbError);
+        }
+      }
+
+      // Download file if requested
+      if (options.downloadFile) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `bulletin-paie-${employee.employeeId}-${getMoisNom(period.mois)}-${period.annee}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      return {
+        success: true,
+        savedDocument,
+        documentId: savedDocument?._id,
+        filename: `bulletin-paie-${employee.employeeId}-${getMoisNom(period.mois)}-${period.annee}.pdf`
+      };
     } catch (error) {
-      console.error('Error downloading bulletin:', error);
-      return false;
+      console.error('Error processing bulletin:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   };
 
-  return { downloadBulletin };
+  // Function to generate PDF without download (for preview)
+  const generateBulletinBlob = async (
+    employee: PayrollEmployee,
+    calculation: PayrollCalculation,
+    period: PayrollPeriod,
+    companyInfo?: any
+  ) => {
+    try {
+      const doc = <BulletinPaiePDF
+        employee={employee}
+        calculation={calculation}
+        period={period}
+        companyInfo={companyInfo}
+      />;
+      const asPdf = pdf(doc);
+      return await asPdf.toBlob();
+    } catch (error) {
+      console.error('Error generating bulletin blob:', error);
+      return null;
+    }
+  };
+
+  return { downloadBulletin, generateBulletinBlob };
 };
 
 export default BulletinPaiePDF;

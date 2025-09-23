@@ -56,6 +56,14 @@ if (mongoose.models.Employee) {
     nationality: String,
     nationalId: String,
     passportNumber: String,
+    cnssNumber: String,
+
+    // Contract Information
+    contractType: {
+      type: String,
+      enum: ['cdi', 'cdd', 'freelance'],
+      default: 'cdi'
+    },
 
     // Address Information
     address: {

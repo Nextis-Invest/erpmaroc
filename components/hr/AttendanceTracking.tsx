@@ -16,7 +16,8 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Users
+  Users,
+  FolderOpen
 } from 'lucide-react';
 import { useAttendance, useHRActions } from '@/stores/hrStoreHooks';
 import {
@@ -35,6 +36,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AttendancePlanner from './AttendancePlanner';
+import ProjectTeamAssignment from './ProjectTeamAssignment';
+import { getEmployeeAssignments } from '@/lib/attendance/mockProjectsTeams';
 
 interface AttendanceRecord {
   _id: string;
@@ -52,6 +56,19 @@ interface AttendanceRecord {
   overtimeHours: number;
   isRemote: boolean;
   notes?: string;
+  projects?: {
+    id: string;
+    name: string;
+    code: string;
+    allocation: number;
+    hoursWorked?: number;
+  }[];
+  teams?: {
+    id: string;
+    name: string;
+    code: string;
+    role: string;
+  }[];
 }
 
 interface AttendanceStats {
@@ -103,6 +120,26 @@ const AttendanceTable = ({ records, onMarkAttendance }: {
   records: AttendanceRecord[];
   onMarkAttendance: (employeeId: string, status: string) => void;
 }) => {
+  // Enhance records with project/team information
+  const enhancedRecords = records.map(record => {
+    const assignments = getEmployeeAssignments(record.employee.employeeId);
+    return {
+      ...record,
+      projects: assignments.projects.map(p => ({
+        id: p.project,
+        name: p.projectDetails?.name || 'Projet inconnu',
+        code: p.projectDetails?.code || 'N/A',
+        allocation: p.allocation,
+        hoursWorked: p.performanceMetrics.totalHoursWorked
+      })),
+      teams: assignments.teams.map(t => ({
+        id: t.team,
+        name: t.teamDetails?.name || 'Équipe inconnue',
+        code: t.teamDetails?.code || 'N/A',
+        role: t.role
+      }))
+    };
+  });
   const getStatusBadge = (status: string) => {
     const variants: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
       present: "default",
@@ -145,6 +182,9 @@ const AttendanceTable = ({ records, onMarkAttendance }: {
                 Employee
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Projets/Équipes
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Check In
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -162,7 +202,7 @@ const AttendanceTable = ({ records, onMarkAttendance }: {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {records.map((record) => (
+            {enhancedRecords.map((record) => (
               <tr key={record._id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
@@ -172,6 +212,54 @@ const AttendanceTable = ({ records, onMarkAttendance }: {
                     <div className="text-sm text-gray-500">
                       {record.employee.employeeId}
                     </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="space-y-1">
+                    {/* Projects */}
+                    {record.projects && record.projects.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {record.projects.slice(0, 2).map((project, index) => (
+                          <Badge
+                            key={index}
+                            className="bg-blue-100 text-blue-800 text-xs"
+                            title={`${project.name} (${project.allocation}%)`}
+                          >
+                            <FolderOpen className="w-3 h-3 mr-1" />
+                            {project.code}
+                          </Badge>
+                        ))}
+                        {record.projects.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{record.projects.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    {/* Teams */}
+                    {record.teams && record.teams.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {record.teams.slice(0, 2).map((team, index) => (
+                          <Badge
+                            key={index}
+                            className="bg-purple-100 text-purple-800 text-xs"
+                            title={`${team.name} (${team.role})`}
+                          >
+                            <Users className="w-3 h-3 mr-1" />
+                            {team.code}
+                          </Badge>
+                        ))}
+                        {record.teams.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{record.teams.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    {(!record.projects || record.projects.length === 0) &&
+                     (!record.teams || record.teams.length === 0) && (
+                      <span className="text-xs text-gray-400">Aucune assignation</span>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -428,12 +516,22 @@ const AttendanceTracking = () => {
 
       <AttendanceStatsCard stats={attendanceStats} />
 
-      <Tabs defaultValue="daily" className="space-y-6">
+      <Tabs defaultValue="planner" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="daily">Daily View</TabsTrigger>
+          <TabsTrigger value="planner">Planificateur</TabsTrigger>
+          <TabsTrigger value="daily">Vue Journalière</TabsTrigger>
+          <TabsTrigger value="projects">Projets & Équipes</TabsTrigger>
           <TabsTrigger value="checkin">Check-In/Out</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="reports">Rapports</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="planner" className="space-y-6">
+          <AttendancePlanner />
+        </TabsContent>
+
+        <TabsContent value="projects" className="space-y-6">
+          <ProjectTeamAssignment />
+        </TabsContent>
 
         <TabsContent value="daily" className="space-y-6">
           <div className="flex items-center space-x-4">

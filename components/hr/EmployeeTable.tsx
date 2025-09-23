@@ -160,7 +160,7 @@ const createColumns = (
               Voir Détails
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEditEmployee(employee)}>
-              Modifier Employé
+              Modifier le bulletin
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => console.log('View attendance', employee)}>
               Voir Présence

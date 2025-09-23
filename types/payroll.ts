@@ -14,6 +14,7 @@ export interface PayrollEmployee {
   nombre_enfants: number;
   cnss_numero?: string;
   mode_paiement?: 'VIR' | 'CHQ' | 'ESP';
+  contractType?: 'cdi' | 'cdd' | 'freelance';
 
   // Salary & Working Time
   salaire_base: number;
