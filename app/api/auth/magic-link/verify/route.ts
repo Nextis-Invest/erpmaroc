@@ -17,6 +17,11 @@ export async function GET(request: Request) {
     // Connect to database
     await connectToDB();
 
+    // Clean up expired tokens first
+    await MagicLinkToken.deleteMany({
+      createdAt: { $lt: new Date(Date.now() - 15 * 60 * 1000) }
+    });
+
     // Find and validate token
     const magicLinkToken = await MagicLinkToken.findOne({
       token,
@@ -29,9 +34,9 @@ export async function GET(request: Request) {
       );
     }
 
-    // Check if token is expired (24 hours)
+    // Check if token is expired (15 minutes - matches TTL)
     const tokenAge = Date.now() - magicLinkToken.createdAt.getTime();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const maxAge = 15 * 60 * 1000; // 15 minutes in milliseconds
 
     if (tokenAge > maxAge) {
       return NextResponse.redirect(

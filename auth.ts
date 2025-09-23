@@ -87,9 +87,9 @@ export const authConfig: NextAuthConfig = {
             return null
           }
 
-          // Check if token is expired (24 hours)
+          // Check if token is expired (15 minutes - matches TTL)
           const tokenAge = Date.now() - magicLinkToken.createdAt.getTime()
-          const maxAge = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+          const maxAge = 15 * 60 * 1000 // 15 minutes in milliseconds
 
           if (tokenAge > maxAge) {
             console.log("Magic link auth: Token expired")
@@ -129,11 +129,10 @@ export const authConfig: NextAuthConfig = {
   },
   pages: {
     signIn: "/login",
-    signUp: "/register",
     error: "/auth/error",
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn() {
       return true
     },
     async redirect({ url, baseUrl }) {

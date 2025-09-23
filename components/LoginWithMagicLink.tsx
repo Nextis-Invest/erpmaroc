@@ -70,7 +70,7 @@ export default function LoginWithMagicLink() {
             if (result?.error) {
                 setError('Email ou mot de passe invalide')
             } else {
-                router.push('/admin')
+                router.push('/')
                 router.refresh()
             }
         } catch (error) {
@@ -113,7 +113,7 @@ export default function LoginWithMagicLink() {
     const handleGoogleSignIn = async () => {
         setIsLoading(true)
         try {
-            await signIn('google', { callbackUrl: '/admin' })
+            await signIn('google', { callbackUrl: '/' })
         } catch (error) {
             setError('Échec de la connexion avec Google')
             setIsLoading(false)

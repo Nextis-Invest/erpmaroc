@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
     '/register',
     '/api/auth',
     '/auth/error',
+    '/auth/magic-link-callback',
     '/privacy-policy',
     '/terms',
     '/forgot-password',
