@@ -432,6 +432,23 @@ export const POST = async (req: NextRequest) => {
       name: `${savedEmployee.firstName} ${savedEmployee.lastName}`
     });
 
+    // Create corresponding payroll employee
+    console.log('💼 [POST] Creating corresponding payroll employee...');
+    try {
+      const { PayrollEmployeeService } = await import('@/services/payroll/payrollEmployeeService');
+      const payrollData = PayrollEmployeeService.transformHRToPayroll(savedEmployee.toObject());
+      const payrollResult = await PayrollEmployeeService.createEmployee(payrollData);
+
+      if (payrollResult.success) {
+        console.log('✅ [POST] Payroll employee created:', payrollResult.employee?.employeeId);
+      } else {
+        console.warn('⚠️ [POST] Failed to create payroll employee:', payrollResult.message);
+      }
+    } catch (payrollError) {
+      console.error('❌ [POST] Error creating payroll employee:', payrollError);
+      // Don't fail the HR employee creation if payroll creation fails
+    }
+
     // Log activity
     console.log('📝 [POST] Creating activity log...');
     const log = new ACTIVITYLOG({

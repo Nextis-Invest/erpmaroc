@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { seedAttendanceData } from '@/scripts/seedAttendanceData';
+// import { seedAttendanceData } from '@/scripts/seedAttendanceData'; // Commented out - script was removed
 
 /**
  * POST /api/hr/attendance/seed - Seed attendance data from mock data to database
@@ -9,7 +9,8 @@ export async function POST(request: NextRequest) {
     console.log('🌱 Starting attendance data seeding via API...');
 
     // Run the seeding process
-    await seedAttendanceData();
+    // await seedAttendanceData(); // Commented out - script was removed
+    console.log('⚠️ Attendance seeding temporarily disabled - script was removed');
 
     return NextResponse.json({
       meta: {

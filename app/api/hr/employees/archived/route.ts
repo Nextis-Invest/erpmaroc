@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDB } from "@/lib/db/connectToDB";
+import { connectToDB } from "@/lib/database/connectToDB";
 import { auth } from "@/auth";
 
 const Employee = require("@/model/hr/employee");

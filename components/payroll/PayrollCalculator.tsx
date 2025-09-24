@@ -12,7 +12,7 @@ import PayrollDocumentViewer from './PayrollDocumentViewer';
 import CalculationResults from './CalculationResults';
 import WorkflowPanel from './WorkflowPanel';
 import PayrollHeader from './PayrollHeader';
-import PeriodSelector from './PeriodSelector';
+import EnhancedPeriodSelector from './EnhancedPeriodSelector';
 import ProcessStepper from './ProcessStepper';
 import EmployeeSelectionStep from './steps/EmployeeSelectionStep';
 import EmployeeFormStep from './steps/EmployeeFormStep';
@@ -32,6 +32,7 @@ export default function PayrollCalculator() {
     version,
     setPayrollEmployees,
     updatePayrollEmployee,
+    setCurrentPeriod,
     createPeriod,
     loadPeriodsFromDB,
     calculateSalary,
@@ -174,13 +175,11 @@ export default function PayrollCalculator() {
 
       {activeTab === 'paie' ? (
         <>
-          <PeriodSelector
-            mois={mois}
-            annee={annee}
+          <EnhancedPeriodSelector
             currentPeriod={currentPeriod}
-            onMoisChange={setMois}
-            onAnneeChange={setAnnee}
-            onCreatePeriod={handleCreatePeriod}
+            onPeriodSelect={(period) => {
+              setCurrentPeriod(period);
+            }}
           />
 
           <ProcessStepper currentStep={currentStep} />

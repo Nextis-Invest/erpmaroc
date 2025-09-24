@@ -6,11 +6,15 @@ export interface IAdmin extends Document {
   tenant: string;
   connection: string;
   email: string;
+  userId?: string;
   password: string;
   role: string;
   debug: boolean;
   is_signup: boolean;
   usePasskey: boolean;
+  payroll?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const adminSchema = new Schema<IAdmin>({
@@ -28,7 +32,13 @@ const adminSchema = new Schema<IAdmin>({
   },
   email: {
     type: String,
-    required: true
+    required: true,
+    unique: true
+  },
+  userId: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   password: {
     type: String,
@@ -49,7 +59,13 @@ const adminSchema = new Schema<IAdmin>({
   usePasskey: {
     type: Boolean,
     default: false
+  },
+  payroll: {
+    type: Boolean,
+    default: false
   }
+}, {
+  timestamps: true
 });
 
 const ADMIN = mongoose.models.ADMIN || mongoose.model<IAdmin>('ADMIN', adminSchema);

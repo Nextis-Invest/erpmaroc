@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy:admin": "node scripts/deploy-create-admin.js",
-    "deploy:setup": "pnpm install && node scripts/deploy-create-admin.js"
+    "deploy:admin": "pnpm exec tsx scripts/deploy-create-admin.ts",
+    "deploy:setup": "pnpm install && pnpm exec tsx scripts/deploy-create-admin.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -56,6 +56,7 @@
     "lucide-react": "^0.544.0",
     "mongodb": "^6.5.0",
     "mongoose": "^8.3.1",
+    "nanoid": "^5.1.6",
     "next": "15.5.3",
     "next-auth": "5.0.0-beta.29",
     "next-elfsight-widget": "^1.1.1",

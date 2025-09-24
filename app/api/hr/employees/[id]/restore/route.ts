@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDB } from "@/lib/db/connectToDB";
+import { connectToDB } from "@/lib/database/connectToDB";
 import { auth } from "@/auth";
 import { isValidObjectId } from "mongoose";
 
 const Employee = require("@/model/hr/employee");
-const ACTIVITYLOG = require("@/model/logActivity");
+const ACTIVITYLOG = require("@/model/activities");
 
 // POST /api/hr/employees/[id]/restore - Restore archived employee (admin only)
 export const POST = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {

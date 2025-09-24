@@ -17,12 +17,13 @@
  * node scripts/deploy-create-admin.js
  */
 
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-require('dotenv').config({ path: '.env.local' });
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
 
 // Import the Admin model
-const ADMIN = require('../model/admin');
+import ADMIN from '../model/admin';
 
 // Color codes for console output
 const colors = {
@@ -121,8 +122,8 @@ async function createAdminUser() {
 
       // Ask for confirmation in interactive mode
       if (process.stdin.isTTY) {
-        const readline = require('readline');
-        const rl = readline.createInterface({
+        const { createInterface } = await import('readline');
+        const rl = createInterface({
           input: process.stdin,
           output: process.stdout
         });
@@ -259,9 +260,9 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Run the script
-if (require.main === module) {
+// Run the script when executed directly
+if (import.meta.url === `file://${process.argv[1].replace(/ /g, '%20')}`) {
   createAdminUser();
 }
 
-module.exports = { createAdminUser };
+export { createAdminUser };
