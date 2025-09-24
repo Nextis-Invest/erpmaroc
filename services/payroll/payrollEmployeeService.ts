@@ -157,7 +157,8 @@ export class PayrollEmployeeService {
   static async getAllEmployees(): Promise<PayrollEmployeeType[]> {
     try {
       await connectToDB();
-      const employees = await PayrollEmployee.find({ isArchived: false }).sort({ nom: 1, prenom: 1 });
+      // Match the HR API logic: exclude only those explicitly archived
+      const employees = await PayrollEmployee.find({ isArchived: { $ne: true } }).sort({ nom: 1, prenom: 1 });
       const result = employees.map(emp => emp.toObject());
 
       // If no employees in database, return mock data

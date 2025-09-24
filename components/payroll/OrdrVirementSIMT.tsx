@@ -39,7 +39,7 @@ export const generateSIMTFile = ({
 
   // Calculate total amount in centimes (multiply by 100)
   const totalAmount = employees.reduce((sum, emp) => {
-    const netSalary = emp.calculation.salaireNet || emp.employee.salaire_net || 0;
+    const netSalary = emp.calculation?.salaire_net || emp.employee?.salaire_net || 0;
     return sum + Math.round(netSalary * 100);
   }, 0);
 
@@ -61,7 +61,7 @@ export const generateSIMTFile = ({
 
   // Detail Records (Type 30) - One for each employee
   employees.forEach((emp, index) => {
-    const netSalary = emp.calculation.salaireNet || emp.employee.salaire_net || 0;
+    const netSalary = emp.calculation?.salaire_net || emp.employee?.salaire_net || 0;
     const amountInCentimes = Math.round(netSalary * 100);
 
     // Clean RIB - remove spaces and ensure 24 digits

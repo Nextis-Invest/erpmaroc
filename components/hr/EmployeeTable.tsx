@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Download, Filter, ArrowUpDown, MoreHorizontal } from 'lucide-react';
-import { useEmployees, useEmployeeFilters, usePagination, useHRActions, Employee } from '@/stores/hrStoreHooks';
+import { useEmployees, useEmployeeFilters, usePagination, useHRActions, useHRLoading, Employee } from '@/stores/hrStoreHooks';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import AddEmployeeButton from './AddEmployeeButton';
@@ -204,6 +204,7 @@ const EmployeeTable = () => {
   const employees = useEmployees();
   const employeeFilters = useEmployeeFilters();
   const pagination = usePagination();
+  const loading = useHRLoading();
   const {
     setEmployees,
     setEmployeeFilters,
@@ -222,6 +223,7 @@ const EmployeeTable = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
 
   const handleViewEmployee = (employee: Employee) => {
     setSelectedEmployee(employee);
@@ -261,11 +263,17 @@ const EmployeeTable = () => {
 
       setIsEditDialogOpen(false);
       setSelectedEmployeeForEdit(null);
-      toast.success('Employé mis à jour avec succès!');
+      toast.success('✅ Employé mis à jour avec succès!', {
+        description: `Les modifications ont été enregistrées`,
+        duration: 3000,
+      });
 
     } catch (error) {
       console.error('Error updating employee:', error);
-      toast.error('Erreur lors de la mise à jour de l\'employé');
+      toast.error('❌ Erreur lors de la mise à jour', {
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        duration: 4000,
+      });
     } finally {
       setIsEditing(false);
     }
@@ -287,46 +295,102 @@ const EmployeeTable = () => {
 
       setIsDeleteDialogOpen(false);
       setSelectedEmployeeForDelete(null);
-      toast.success('Employé supprimé avec succès!');
+      toast.success('✅ Employé supprimé avec succès!', {
+        description: `${employee.firstName} ${employee.lastName} a été retiré(e) de la liste`,
+        duration: 3000,
+      });
 
     } catch (error) {
       console.error('Error deleting employee:', error);
-      toast.error('Erreur lors de la suppression de l\'employé');
+      toast.error('❌ Erreur lors de la suppression', {
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        duration: 4000,
+      });
     } finally {
       setIsDeleting(false);
     }
   };
 
   const handleConvertToFreelance = async (employee: Employee) => {
-    if (confirm(`Êtes-vous sûr de vouloir convertir ${employee.firstName} ${employee.lastName} en non-déclaré ?`)) {
-      try {
-        const response = await fetch(`/api/hr/employees/${employee.employeeId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            
-            isFreelance: true,
-            employmentType: 'freelance'
-          }),
+    // Utilisation de toast.promise pour une meilleure UX
+    toast.promise(
+      new Promise(async (resolve, reject) => {
+        // Confirmation élégante avec sonner
+        toast.custom((t) => (
+          <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+            <h3 className="font-semibold text-gray-900 mb-2">
+              Confirmer la conversion
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Êtes-vous sûr de vouloir convertir <strong>{employee.firstName} {employee.lastName}</strong> en non-déclaré ?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  toast.dismiss(t);
+                  reject(new Error('Conversion annulée'));
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                className="px-3 py-1.5 text-sm bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+                onClick={async () => {
+                  toast.dismiss(t);
+                  try {
+                    const response = await fetch(`/api/hr/employees/${employee.employeeId}`, {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        isFreelance: true,
+                        employmentType: 'freelance'
+                      }),
+                    });
+
+                    if (!response.ok) {
+                      const errorData = await response.text();
+                      console.error('API Error Response:', errorData);
+                      throw new Error(`Erreur lors de la conversion: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('Conversion success:', result);
+
+                    // Attendre un peu avant de recharger pour que l'utilisateur voit le message de succès
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 2000);
+
+                    resolve(result);
+                  } catch (error) {
+                    reject(error);
+                  }
+                }}
+              >
+                Confirmer la conversion
+              </button>
+            </div>
+          </div>
+        ), {
+          duration: Infinity,
         });
-
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error('API Error Response:', errorData);
-          throw new Error(`Erreur lors de la conversion en non-déclaré: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('Conversion success:', result);
-        toast.success('Employé converti en non-déclaré avec succès!');
-        window.location.reload();
-      } catch (error) {
-        console.error('Error converting to non-declared:', error);
-        toast.error('Erreur lors de la conversion en non-déclaré');
+      }),
+      {
+        loading: 'Conversion en cours...',
+        success: (data) => {
+          return `🎉 ${employee.firstName} ${employee.lastName} a été converti(e) en non-déclaré avec succès!`;
+        },
+        error: (err) => {
+          if (err.message === 'Conversion annulée') {
+            return 'Conversion annulée';
+          }
+          return `❌ Erreur lors de la conversion: ${err.message || 'Erreur inconnue'}`;
+        },
       }
-    }
+    );
   };
 
   const columns = createColumns(handleViewEmployee, handleEditEmployee, handleDeleteEmployee, handleConvertToFreelance);
@@ -365,6 +429,15 @@ const EmployeeTable = () => {
     const loadEmployees = async () => {
       setLoading(true);
       try {
+        console.log('🔄 Loading employees with filters:', {
+          page: pagination.page,
+          limit: pagination.limit,
+          search: employeeFilters.search,
+          department: employeeFilters.department,
+          team: employeeFilters.team,
+          status: employeeFilters.status,
+        });
+
         const result = await fetchEmployees({
           page: pagination.page,
           limit: pagination.limit,
@@ -374,10 +447,24 @@ const EmployeeTable = () => {
           status: employeeFilters.status,
         });
 
+        console.log('✅ Employees loaded successfully:', {
+          employeesCount: result.employees.length,
+          pagination: result.pagination
+        });
+
         setEmployees(result.employees);
-        setPagination(result.pagination);
+        setPagination({
+          page: result.pagination.page,
+          limit: result.pagination.limit,
+          total: result.pagination.total
+        });
       } catch (error) {
-        console.error('Unexpected error loading employees:', error);
+        console.error('❌ Error loading employees:', error);
+        toast.error('❌ Erreur lors du chargement des employés', {
+          description: 'Vérifiez votre connexion internet et réessayez',
+          duration: 5000,
+        });
+        setEmployees([]);
       } finally {
         setLoading(false);
       }
@@ -480,7 +567,19 @@ const EmployeeTable = () => {
               ))}
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {table.getRowModel().rows?.length ? (
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span>Chargement des employés...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}

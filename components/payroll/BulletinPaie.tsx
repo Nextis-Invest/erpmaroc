@@ -4,6 +4,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import type { PayrollEmployee, PayrollCalculation, PayrollPeriod } from '@/types/payroll';
 import { formatMontantMAD, getMoisNom } from '@/types/payroll';
+import { getCompanyInfoForPDF } from '@/lib/config/companyInfo';
 
 // Types for the bulletin
 interface BulletinPaieProps {
@@ -254,6 +255,14 @@ const styles = StyleSheet.create({
   },
 });
 
+// Helper function to safely format numbers
+const safeToFixed = (value: any, decimals: number = 2): string => {
+  if (typeof value === 'number' && !isNaN(value)) {
+    return value.toFixed(decimals);
+  }
+  return typeof value === 'string' ? value : '0';
+};
+
 // Calculate values for the bulletin using actual form data
 const calculateBulletinData = (employee: PayrollEmployee, calculation: PayrollCalculation) => {
   // CALCULS CORRIGES - Utilise les données du service de calcul au lieu des valeurs erronées de l'employé
@@ -423,13 +432,7 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
   employee,
   calculation,
   period,
-  companyInfo = {
-    name: 'SOCIETE MAROCAINE SARL',
-    address: '123 Boulevard Hassan II, Casablanca',
-    ice: 'ICE002589641000021',
-    rc: 'RC45621',
-    cnss: 'CNSS1258963',
-  }
+  companyInfo = getCompanyInfoForPDF()
 }) => {
   const data = calculateBulletinData(employee, calculation);
 
@@ -537,7 +540,7 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
               <Text style={styles.tableText}>{data.salaireMensuelJours}</Text>
             </View>
             <View style={styles.colTauxOuPercent}>
-              <Text style={styles.tableText}>{data.salaireMensuelTaux.toFixed(2)}</Text>
+              <Text style={styles.tableText}>{safeToFixed(data.salaireMensuelTaux)}</Text>
             </View>
             <View style={styles.colMontantSalarial}>
               <Text style={styles.tableNumberText}>{formatMontantMAD(data.salaireMensuelMontant).replace('MAD', '').trim()}</Text>
@@ -555,7 +558,7 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
               <Text style={styles.tableText}>{data.congePayeJours}</Text>
             </View>
             <View style={styles.colTauxOuPercent}>
-              <Text style={styles.tableText}>{data.congePayeTaux.toFixed(2)}</Text>
+              <Text style={styles.tableText}>{safeToFixed(data.congePayeTaux)}</Text>
             </View>
             <View style={styles.colMontantSalarial}>
               <Text style={styles.tableNumberText}>{formatMontantMAD(data.congePayeMontant).replace('MAD', '').trim()}</Text>
@@ -573,7 +576,7 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
               <Text style={styles.tableText}>{data.joursFeriesJours}</Text>
             </View>
             <View style={styles.colTauxOuPercent}>
-              <Text style={styles.tableText}>{data.joursFeriesTaux.toFixed(2)}</Text>
+              <Text style={styles.tableText}>{safeToFixed(data.joursFeriesTaux)}</Text>
             </View>
             <View style={styles.colMontantSalarial}>
               <Text style={styles.tableNumberText}>{formatMontantMAD(data.joursFeriesMontant).replace('MAD', '').trim()}</Text>
@@ -688,13 +691,13 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
               <Text style={styles.tableText}>COTISATION CNSS</Text>
             </View>
             <View style={styles.colBase}>
-              <Text style={styles.tableText}>{formatMontantMAD(data.cnss.base).replace('MAD', '').trim()}</Text>
+              <Text style={styles.tableText}>{formatMontantMAD(data.cotisationCNSS.base).replace('MAD', '').trim()}</Text>
             </View>
             <View style={styles.colTauxOuPercent}>
-              <Text style={styles.tableText}>{(data.cnss.taux * 100).toFixed(2)}%</Text>
+              <Text style={styles.tableText}>{(data.cotisationCNSS.taux * 100).toFixed(2)}%</Text>
             </View>
             <View style={styles.colMontantSalarial}>
-              <Text style={styles.tableNumberText}>{formatMontantMAD(data.cnss.montant).replace('MAD', '').trim()}</Text>
+              <Text style={styles.tableNumberText}>{formatMontantMAD(data.cotisationCNSS.montant).replace('MAD', '').trim()}</Text>
             </View>
             <View style={styles.colTauxOuPercent}></View>
             <View style={styles.colMontantPatronal}></View>
@@ -706,13 +709,13 @@ const BulletinPaiePDF: React.FC<BulletinPaieProps> = ({
               <Text style={styles.tableText}>COTISATION AMO</Text>
             </View>
             <View style={styles.colBase}>
-              <Text style={styles.tableText}>{formatMontantMAD(data.amo.base).replace('MAD', '').trim()}</Text>
+              <Text style={styles.tableText}>{formatMontantMAD(data.cotisationAMO.base).replace('MAD', '').trim()}</Text>
             </View>
             <View style={styles.colTauxOuPercent}>
-              <Text style={styles.tableText}>{(data.amo.taux * 100).toFixed(2)}%</Text>
+              <Text style={styles.tableText}>{(data.cotisationAMO.taux * 100).toFixed(2)}%</Text>
             </View>
             <View style={styles.colMontantSalarial}>
-              <Text style={styles.tableNumberText}>{formatMontantMAD(data.amo.montant).replace('MAD', '').trim()}</Text>
+              <Text style={styles.tableNumberText}>{formatMontantMAD(data.cotisationAMO.montant).replace('MAD', '').trim()}</Text>
             </View>
             <View style={styles.colTauxOuPercent}></View>
             <View style={styles.colMontantPatronal}></View>
@@ -1089,17 +1092,31 @@ export const useBulletinPaieDownload = () => {
     companyInfo?: any
   ) => {
     try {
-      const doc = <BulletinPaiePDF
-        employee={employee}
-        calculation={calculation}
-        period={period}
-        companyInfo={companyInfo}
-      />;
+      // Validate input data
+      if (!employee || !calculation || !period) {
+        throw new Error('Missing required data for PDF generation');
+      }
+
+      const doc = (
+        <BulletinPaiePDF
+          employee={employee}
+          calculation={calculation}
+          period={period}
+          companyInfo={companyInfo}
+        />
+      );
+
       const asPdf = pdf(doc);
-      return await asPdf.toBlob();
+      const blob = await asPdf.toBlob();
+
+      if (!blob) {
+        throw new Error('Failed to generate PDF blob');
+      }
+
+      return blob;
     } catch (error) {
       console.error('Error generating bulletin blob:', error);
-      return null;
+      throw error; // Re-throw to let caller handle the error
     }
   };
 

@@ -6,8 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DatePickerInput } from '@/components/ui/date-picker';
+import { ManagerSelector } from './ManagerSelector';
+import { RegionSelector } from './RegionSelector';
+import { SiteSelector } from './SiteSelector';
+import { DepartmentSelector } from './DepartmentSelector';
+import { TeamSelector } from './TeamSelector';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,9 +41,12 @@ interface EmployeeFormData {
   birthDate: Date | undefined;
   gender: string;
   maritalStatus: string;
-  nationality: string;
+  numberOfChildren: number;
   nationalId: string;
-  passportNumber: string;
+  cnssNumber: string;
+  region: string;
+  sites: string[];
+  primarySite: string;
   position: string;
   department: string;
   team: string;
@@ -97,9 +104,12 @@ const EmployeeEditDialog: React.FC<EmployeeEditDialogProps> = ({
     birthDate: undefined,
     gender: '',
     maritalStatus: '',
-    nationality: 'Marocaine',
+    numberOfChildren: 0,
     nationalId: '',
-    passportNumber: '',
+    cnssNumber: '',
+    region: '',
+    sites: [],
+    primarySite: '',
     position: '',
     department: '',
     team: '',
@@ -151,14 +161,17 @@ const EmployeeEditDialog: React.FC<EmployeeEditDialogProps> = ({
         birthDate: employee.birthDate ? new Date(employee.birthDate) : undefined,
         gender: employee.gender || '',
         maritalStatus: employee.maritalStatus || '',
-        nationality: employee.nationality || 'Marocaine',
+        numberOfChildren: employee.numberOfChildren || 0,
         nationalId: employee.nationalId || '',
-        passportNumber: employee.passportNumber || '',
+        cnssNumber: employee.cnssNumber || '',
+        region: employee.region || '',
+        sites: employee.sites || [],
+        primarySite: employee.primarySite || '',
         position: employee.position || '',
         department: employee.department?.name || employee.department || '',
         team: employee.team || '',
         branch: employee.branch || '',
-        manager: employee.manager || '',
+        manager: employee.manager?._id || employee.manager || '',
         employmentType: employee.employmentType || 'full-time',
         hireDate: employee.hireDate ? new Date(employee.hireDate) : undefined,
         confirmationDate: employee.confirmationDate ? new Date(employee.confirmationDate) : undefined,
@@ -386,40 +399,72 @@ const EmployeeEditDialog: React.FC<EmployeeEditDialogProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
+                  <DatePickerInput
+                    id="birthDate"
+                    label="Date de naissance *"
+                    value={formData.birthDate}
+                    onChange={(date) => updateFormData('birthDate', date)}
+                    placeholder="JJ/MM/AAAA"
+                    className="w-full"
+                  />
                   <div className="space-y-2">
-                    <Label>Date de naissance *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !formData.birthDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.birthDate ? format(formData.birthDate, "PPP", { locale: fr }) : "Sélectionner une date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.birthDate}
-                          onSelect={(date) => updateFormData('birthDate', date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="nationality">Nationalité</Label>
+                    <Label htmlFor="numberOfChildren">Nombre d'enfants</Label>
                     <Input
-                      id="nationality"
-                      value={formData.nationality}
-                      onChange={(e) => updateFormData('nationality', e.target.value)}
-                      placeholder="Nationalité"
+                      id="numberOfChildren"
+                      type="number"
+                      min="0"
+                      value={formData.numberOfChildren}
+                      onChange={(e) => updateFormData('numberOfChildren', parseInt(e.target.value) || 0)}
+                      placeholder="0"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nationalId">Carte d&apos;identité nationale</Label>
+                    <Input
+                      id="nationalId"
+                      value={formData.nationalId}
+                      onChange={(e) => updateFormData('nationalId', e.target.value)}
+                      placeholder="Numéro CIN"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cnssNumber">Numéro CNSS</Label>
+                    <Input
+                      id="cnssNumber"
+                      value={formData.cnssNumber}
+                      onChange={(e) => updateFormData('cnssNumber', e.target.value)}
+                      placeholder="Numéro CNSS"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <RegionSelector
+                    value={formData.region}
+                    onValueChange={(value) => {
+                      updateFormData('region', value);
+                      // Reset sites when region changes
+                      updateFormData('sites', []);
+                      updateFormData('primarySite', '');
+                    }}
+                    label="Région"
+                    placeholder="Sélectionner une région..."
+                  />
+                  <SiteSelector
+                    regionId={formData.region}
+                    value={formData.sites}
+                    primarySite={formData.primarySite}
+                    onValueChange={(sites, primarySite) => {
+                      updateFormData('sites', sites);
+                      updateFormData('primarySite', primarySite);
+                    }}
+                    label="Sites"
+                    placeholder="Sélectionner des sites..."
+                    multiple
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -462,61 +507,46 @@ const EmployeeEditDialog: React.FC<EmployeeEditDialogProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="department">Département</Label>
-                    <Select value={formData.department} onValueChange={(value) => updateFormData('department', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Département" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ressources-humaines">Ressources Humaines</SelectItem>
-                        <SelectItem value="informatique">Informatique</SelectItem>
-                        <SelectItem value="ventes-marketing">Ventes et Marketing</SelectItem>
-                        <SelectItem value="finance-comptabilite">Finance et Comptabilité</SelectItem>
-                        <SelectItem value="operations">Opérations</SelectItem>
-                        <SelectItem value="production">Production</SelectItem>
-                        <SelectItem value="logistique">Logistique</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <DepartmentSelector
+                    value={formData.department}
+                    onValueChange={(value) => {
+                      updateFormData('department', value);
+                      // Reset team when department changes
+                      updateFormData('team', '');
+                    }}
+                    label="Département"
+                    placeholder="Sélectionner un département..."
+                    allowCreate={true}
+                  />
+                  <TeamSelector
+                    value={formData.team}
+                    departmentId={formData.department}
+                    onValueChange={(value) => updateFormData('team', value)}
+                    label="Équipe"
+                    placeholder="Sélectionner une équipe..."
+                    allowCreate={true}
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="manager">Manager</Label>
-                    <Input
-                      id="manager"
+                    <ManagerSelector
                       value={formData.manager}
-                      onChange={(e) => updateFormData('manager', e.target.value)}
-                      placeholder="Nom du manager"
+                      onValueChange={(value) => updateFormData('manager', value)}
+                      placeholder="Sélectionner un manager..."
+                      excludeEmployeeId={employee?._id}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Date d'embauche *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !formData.hireDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.hireDate ? format(formData.hireDate, "PPP", { locale: fr }) : "Sélectionner une date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.hireDate}
-                          onSelect={(date) => updateFormData('hireDate', date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <DatePickerInput
+                    id="hireDate"
+                    label="Date d'embauche *"
+                    value={formData.hireDate}
+                    onChange={(date) => updateFormData('hireDate', date)}
+                    placeholder="JJ/MM/AAAA"
+                    className="w-full"
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="salary">Salaire (MAD) *</Label>
                     <Input

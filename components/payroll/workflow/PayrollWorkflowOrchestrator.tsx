@@ -4,7 +4,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePayrollWorkflowStore, selectCurrentSession, selectIsWorkflowActive, selectCurrentStep } from '@/stores/payrollWorkflowStore';
 import { usePayrollStore } from '@/stores/payrollStore';
-import { PayrollWorkflowEngine, type WorkflowState, type PayrollWorkflowStep } from './PayrollWorkflowEngine';
+import { PayrollWorkflowEngine, type WorkflowState, type PayrollWorkflowStep } from './PayrollWorkflowEngine.ts';
+import { PayrollWorkflowEngine as PayrollWorkflowEngineComponent } from './PayrollWorkflowEngine.tsx';
 import { PDFPreviewGenerator } from './PDFPreviewGenerator';
 import { WorkflowStatusIndicator } from './WorkflowStatusIndicator';
 import { DocumentApproval } from './DocumentApproval';
@@ -355,9 +356,9 @@ export const PayrollWorkflowOrchestrator: React.FC<PayrollWorkflowOrchestratorPr
 
   // Render desktop layout
   const renderDesktopLayout = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Sidebar - Progress & Info */}
-      <div className="lg:col-span-1 space-y-4">
+      <div className="md:col-span-1 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Progression</CardTitle>
@@ -393,7 +394,7 @@ export const PayrollWorkflowOrchestrator: React.FC<PayrollWorkflowOrchestratorPr
       </div>
 
       {/* Main Content */}
-      <div className="lg:col-span-3">
+      <div className="md:col-span-2">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="workflow">Workflow</TabsTrigger>
@@ -401,15 +402,15 @@ export const PayrollWorkflowOrchestrator: React.FC<PayrollWorkflowOrchestratorPr
             <TabsTrigger value="history">Historique</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="workflow" className="space-y-4">
+          <TabsContent value="workflow" className="space-y-4 max-h-[400px] overflow-y-auto">
             {currentStep && renderStepContent(currentStep, false)}
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-4">
+          <TabsContent value="settings" className="space-y-4 max-h-[400px] overflow-y-auto">
             {renderSettingsPanel()}
           </TabsContent>
 
-          <TabsContent value="history" className="space-y-4">
+          <TabsContent value="history" className="space-y-4 max-h-[400px] overflow-y-auto">
             {renderHistoryPanel()}
           </TabsContent>
         </Tabs>
@@ -546,7 +547,7 @@ export const PayrollWorkflowOrchestrator: React.FC<PayrollWorkflowOrchestratorPr
     <WorkflowErrorBoundary onError={(error) => {
       trackUserAction('workflow_error', currentStep || 'draft', { error: error.message });
     }}>
-      <div className={cn("w-full", className)}>
+      <div className={cn("w-full max-h-[600px] overflow-y-auto", className)}>
         {showMobileView || options.mobileOptimized ? renderMobileLayout() : renderDesktopLayout()}
       </div>
     </WorkflowErrorBoundary>

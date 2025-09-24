@@ -124,7 +124,7 @@ export default function FreelanceTable({
             >
               <option value="all">Tous les départements</option>
               {departments.map(dept => (
-                <option key={dept} value={dept}>{dept}</option>
+                <option key={dept} value={dept}>{String(dept)}</option>
               ))}
             </select>
 
@@ -208,7 +208,7 @@ export default function FreelanceTable({
                   {freelance.department && (
                     <div className="text-sm text-gray-500 flex items-center mt-1">
                       <Building className="w-4 h-4 mr-1 text-gray-400" />
-                      {freelance.department}
+                      {String(freelance.department)}
                     </div>
                   )}
                 </td>

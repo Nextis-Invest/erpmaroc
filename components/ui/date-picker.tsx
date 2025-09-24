@@ -7,6 +7,7 @@ import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
 import {
   Popover,
   PopoverContent,
@@ -32,7 +33,7 @@ export function DatePicker({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
+          variant="outline"
           className={cn(
             "w-[280px] justify-start text-left font-normal",
             !value && "text-muted-foreground",
@@ -53,6 +54,117 @@ export function DatePicker({
         />
       </PopoverContent>
     </Popover>
+  )
+}
+
+interface DatePickerInputProps {
+  value?: Date
+  onChange?: (date: Date | undefined) => void
+  placeholder?: string
+  disabled?: boolean
+  className?: string
+  label?: string
+  id?: string
+}
+
+export function DatePickerInput({
+  value,
+  onChange,
+  placeholder = "Sélectionner une date",
+  disabled = false,
+  className,
+  label,
+  id
+}: DatePickerInputProps) {
+  const [open, setOpen] = React.useState(false)
+  const [month, setMonth] = React.useState<Date | undefined>(value)
+  const [inputValue, setInputValue] = React.useState(value ? formatDate(value) : "")
+
+  React.useEffect(() => {
+    setInputValue(value ? formatDate(value) : "")
+    setMonth(value)
+  }, [value])
+
+  function formatDate(date: Date | undefined) {
+    if (!date) {
+      return ""
+    }
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  function isValidDate(date: Date | undefined) {
+    if (!date) {
+      return false
+    }
+    return !isNaN(date.getTime())
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {label && (
+        <label htmlFor={id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          {label}
+        </label>
+      )}
+      <div className="relative flex gap-2">
+        <Input
+          id={id}
+          value={inputValue}
+          placeholder={placeholder}
+          className={cn("bg-background pr-10", className)}
+          disabled={disabled}
+          onChange={(e) => {
+            const dateValue = new Date(e.target.value)
+            setInputValue(e.target.value)
+            if (isValidDate(dateValue)) {
+              onChange?.(dateValue)
+              setMonth(dateValue)
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault()
+              setOpen(true)
+            }
+          }}
+        />
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+              disabled={disabled}
+            >
+              <CalendarIcon className="size-3.5" />
+              <span className="sr-only">Select date</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto overflow-hidden p-0"
+            align="end"
+            alignOffset={-8}
+            sideOffset={10}
+          >
+            <Calendar
+              mode="single"
+              selected={value}
+              captionLayout="dropdown"
+              month={month}
+              onMonthChange={setMonth}
+              onSelect={(date) => {
+                onChange?.(date)
+                setInputValue(formatDate(date))
+                setOpen(false)
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
   )
 }
 

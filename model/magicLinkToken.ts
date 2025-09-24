@@ -1,6 +1,14 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const magicLinkTokenSchema = new mongoose.Schema({
+// Define the interface for MagicLinkToken document
+export interface IMagicLinkToken extends Document {
+  email: string;
+  token: string;
+  createdAt: Date;
+  used: boolean;
+}
+
+const magicLinkTokenSchema = new Schema<IMagicLinkToken>({
   email: {
     type: String,
     required: true,
@@ -25,6 +33,6 @@ const magicLinkTokenSchema = new mongoose.Schema({
 // Ensure index for automatic document deletion
 magicLinkTokenSchema.index({ createdAt: 1 }, { expireAfterSeconds: 900 });
 
-const MagicLinkToken = mongoose.models.MagicLinkToken || mongoose.model("MagicLinkToken", magicLinkTokenSchema);
+const MagicLinkToken = mongoose.models.MagicLinkToken || mongoose.model<IMagicLinkToken>("MagicLinkToken", magicLinkTokenSchema);
 
 export default MagicLinkToken;

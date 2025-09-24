@@ -34,6 +34,7 @@ export interface Employee {
   bonus?: number;
   hireDate: string;
   birthDate: string;
+  numberOfChildren?: number;
 }
 
 export interface Department {

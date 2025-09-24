@@ -481,10 +481,13 @@ export const PayrollDocumentsList: React.FC<PayrollDocumentsListProps> = ({
                       <TableCell>
                         <div>
                           <p className="font-medium">
-                            {document.employeeId.firstName} {document.employeeId.lastName}
+                            {document.employeeId?.firstName && document.employeeId?.lastName
+                              ? `${document.employeeId.firstName} ${document.employeeId.lastName}`
+                              : 'Employé non trouvé'
+                            }
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {document.employeeId.employeeId}
+                            {document.employeeId?.employeeId || 'N/A'}
                           </p>
                         </div>
                       </TableCell>

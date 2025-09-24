@@ -23,6 +23,21 @@ if (mongoose.models.Employee) {
     branch: { type: mongoose.Schema.Types.ObjectId, ref: 'BRANCH', required: true },
     manager: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
 
+    // Regional Assignment
+    region: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Region',
+      required: true
+    },
+    sites: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Site'
+    }],
+    primarySite: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Site'
+    },
+
     // Employment Status
     employmentType: {
       type: String,
@@ -58,6 +73,7 @@ if (mongoose.models.Employee) {
     // Personal Information
     gender: { type: String, enum: ['male', 'female', 'other'] },
     maritalStatus: { type: String, enum: ['single', 'married', 'divorced', 'widowed'] },
+    numberOfChildren: { type: Number, default: 0, min: 0 },
     nationality: String,
     nationalId: String,
     passportNumber: String,
@@ -155,10 +171,37 @@ if (mongoose.models.Employee) {
   employeeSchema.index({ status: 1 });
   employeeSchema.index({ isArchived: 1 });
   employeeSchema.index({ isArchived: 1, status: 1 });
+  employeeSchema.index({ region: 1 });
+  employeeSchema.index({ sites: 1 });
+  employeeSchema.index({ primarySite: 1 });
 
-  // Pre-save middleware to update timestamps
-  employeeSchema.pre('save', function(next) {
+  // Pre-save middleware to update timestamps and validate region/sites
+  employeeSchema.pre('save', async function(next) {
     this.updatedAt = new Date();
+
+    // Validate that all sites belong to the selected region
+    if (this.sites && this.sites.length > 0 && this.region) {
+      const Site = mongoose.model('Site');
+      const invalidSites = [];
+
+      for (const siteId of this.sites) {
+        const site = await Site.findById(siteId);
+        if (site && !site.region.equals(this.region)) {
+          invalidSites.push(siteId);
+        }
+      }
+
+      if (invalidSites.length > 0) {
+        const error = new Error(`Sites must belong to the employee's region`);
+        return next(error);
+      }
+    }
+
+    // Set primary site to first site if not specified
+    if (this.sites && this.sites.length > 0 && !this.primarySite) {
+      this.primarySite = this.sites[0];
+    }
+
     next();
   });
 

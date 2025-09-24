@@ -220,28 +220,49 @@ export const PATCH = async (req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
-    // Update only specific fields
+    // Update only specific fields safely
+    const allowedFields = ['isFreelance', 'employmentType', 'contractType', 'status'];
+    const updateData: any = {};
+
     Object.keys(body).forEach(key => {
-      if (key !== 'useMockData') {
-        employee[key] = body[key];
+      if (key !== 'useMockData' && allowedFields.includes(key)) {
+        updateData[key] = body[key];
       }
     });
 
-    employee.lastModifiedBy = session.user.sub;
-    employee.updatedAt = new Date();
+    // Add metadata
+    updateData.lastModifiedBy = session.user?.sub || session.user?.email;
+    updateData.updatedAt = new Date();
 
-    const updatedEmployee = await employee.save();
+    // Use findOneAndUpdate for safer update
+    const updatedEmployee = await Employee.findOneAndUpdate(
+      queryPatch,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
 
-    // Log activity
-    const activityMessage = body.isFreelance
-      ? "Employee converted to freelance"
-      : "Freelance hired as employee";
+    if (!updatedEmployee) {
+      return NextResponse.json(
+        { error: "Failed to update employee" },
+        { status: 500 }
+      );
+    }
 
-    const log = new ACTIVITYLOG({
-      branch: updatedEmployee.branch,
-      process: activityMessage
-    });
-    await log.save();
+    // Log activity (non-blocking)
+    try {
+      const activityMessage = body.isFreelance
+        ? "Employee converted to freelance"
+        : "Freelance hired as employee";
+
+      const log = new ACTIVITYLOG({
+        branch: updatedEmployee.branch || 'default',
+        process: activityMessage
+      });
+      await log.save();
+    } catch (logError) {
+      console.error("Failed to log activity:", logError);
+      // Continue even if logging fails
+    }
 
     return NextResponse.json({
       meta: {
@@ -253,8 +274,13 @@ export const PATCH = async (req: NextRequest, { params }: { params: Promise<{ id
 
   } catch (error) {
     console.error("Error updating employee status:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      {
+        error: "Internal Server Error",
+        details: errorMessage,
+        stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      },
       { status: 500 }
     );
   }

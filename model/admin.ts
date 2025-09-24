@@ -1,6 +1,19 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
-const adminSchema = new mongoose.Schema({
+// Define the interface for Admin document
+export interface IAdmin extends Document {
+  name: string;
+  tenant: string;
+  connection: string;
+  email: string;
+  password: string;
+  role: string;
+  debug: boolean;
+  is_signup: boolean;
+  usePasskey: boolean;
+}
+
+const adminSchema = new Schema<IAdmin>({
   name: {
     type: String,
     required: true,
@@ -39,6 +52,6 @@ const adminSchema = new mongoose.Schema({
   }
 });
 
-const ADMIN = mongoose.models.ADMIN || mongoose.model('ADMIN', adminSchema);
+const ADMIN = mongoose.models.ADMIN || mongoose.model<IAdmin>('ADMIN', adminSchema);
 
 export default ADMIN;

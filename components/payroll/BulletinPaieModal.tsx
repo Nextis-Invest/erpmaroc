@@ -52,6 +52,9 @@ const BulletinPaieModal: React.FC<BulletinPaieModalProps> = ({
       if (blob) {
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
+      } else {
+        console.error('PDF blob is null');
+        // Optionally show an error message to the user
       }
     } catch (error) {
       console.error('Erreur lors de la génération du PDF:', error);

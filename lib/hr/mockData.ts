@@ -1010,8 +1010,8 @@ export const mockShifts = [
   }
 ];
 
-// Helper function to get mock data
-export const getMockData = (type: string) => {
+// Helper function to get mock data with proper typing
+export const getMockData = (type: 'departments' | 'teams' | 'employees' | 'leaveTypes' | 'leaveRequests' | 'leaveBalances' | 'holidays' | 'attendance' | 'shifts'): any[] => {
   switch (type) {
     case 'departments':
       return mockDepartments;

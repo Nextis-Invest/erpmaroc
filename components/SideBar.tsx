@@ -46,8 +46,8 @@ const SideBar = () => {
       icon: UserCog,
     },
     {
-      title: "Succursales",
-      url: "/branches",
+      title: "Régions",
+      url: "/regions",
       icon: Store,
     },
     {

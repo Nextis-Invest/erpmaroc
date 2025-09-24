@@ -321,13 +321,16 @@ export const PayrollDocumentViewer: React.FC<PayrollDocumentViewerProps> = ({
                 <div>
                   <p className="text-sm font-medium">Nom</p>
                   <p className="text-sm text-muted-foreground">
-                    {document.employeeId.firstName} {document.employeeId.lastName}
+                    {document.employeeId?.firstName && document.employeeId?.lastName
+                      ? `${document.employeeId.firstName} ${document.employeeId.lastName}`
+                      : 'Employé non trouvé'
+                    }
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">ID Employé</p>
                   <p className="text-sm text-muted-foreground">
-                    {document.employeeId.employeeId}
+                    {document.employeeId?.employeeId || 'N/A'}
                   </p>
                 </div>
                 {document.employeeCode && (

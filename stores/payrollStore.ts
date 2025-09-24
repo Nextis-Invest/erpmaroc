@@ -56,8 +56,10 @@ interface PayrollStore {
 
   // Actions - Gestion des périodes
   setCurrentPeriod: (period: PayrollPeriod) => void;
-  createPeriod: (mois: number, annee: number) => void;
+  createPeriod: (mois: number, annee: number) => Promise<PayrollPeriod>;
   closePeriod: () => void;
+  loadPeriodsFromDB: () => Promise<void>;
+  updatePeriodInDB: (periodId: string, updates: Partial<PayrollPeriod>) => Promise<void>;
 
   // Actions - Calculs de paie
   calculateSalary: (employeeId: string) => Promise<PayrollCalculation>;
@@ -161,25 +163,197 @@ export const usePayrollStore = create<PayrollStore>()(
         // Gestion des périodes
         setCurrentPeriod: (period) => set({ currentPeriod: period }),
 
-        createPeriod: (mois, annee) => {
-          const period: PayrollPeriod = {
-            _id: `period_${annee}_${mois.toString().padStart(2, '0')}_${Date.now()}`,
-            mois,
-            annee,
-            date_debut: new Date(annee, mois - 1, 1).toISOString(),
-            date_fin: new Date(annee, mois, 0).toISOString(),
-            statut: 'BROUILLON'
-          };
-          set({ currentPeriod: period });
-          console.log('Période créée avec ID:', period._id);
+        createPeriod: async (mois, annee) => {
+          set({ isLoading: true, error: null });
+
+          try {
+            // Appel à l'API pour créer la période en DB
+            const response = await fetch('/api/payroll/periods', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                mois,
+                annee,
+                company_id: 'default'
+              }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || 'Erreur lors de la création de la période');
+            }
+
+            // Mettre à jour le state avec la période créée
+            const period: PayrollPeriod = {
+              _id: result.data._id || result.data.id,
+              mois: result.data.mois,
+              annee: result.data.annee,
+              date_debut: result.data.date_debut,
+              date_fin: result.data.date_fin,
+              statut: result.data.statut || 'BROUILLON'
+            };
+
+            set({
+              currentPeriod: period,
+              isLoading: false,
+              successMessage: `Période ${mois}/${annee} créée avec succès et sauvegardée en base de données`
+            });
+
+            console.log('Période créée et sauvegardée:', period);
+
+            // Effacer le message de succès après 3 secondes
+            setTimeout(() => {
+              set({ successMessage: null });
+            }, 3000);
+
+            return period;
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création de la période';
+            set({
+              isLoading: false,
+              error: errorMessage
+            });
+            console.error('Erreur création période:', error);
+            throw error;
+          }
         },
 
-        closePeriod: () =>
-          set((state) => ({
-            currentPeriod: state.currentPeriod
-              ? { ...state.currentPeriod, statut: 'ARCHIVE' }
-              : null
-          })),
+        closePeriod: async () => {
+          const { currentPeriod } = get();
+          if (!currentPeriod || !currentPeriod._id) {
+            set({ error: 'Aucune période active à clôturer' });
+            return;
+          }
+
+          set({ isLoading: true, error: null });
+
+          try {
+            const response = await fetch('/api/payroll/periods', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: currentPeriod._id,
+                statut: 'CLOTURE'
+              }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || 'Erreur lors de la clôture de la période');
+            }
+
+            set({
+              currentPeriod: { ...currentPeriod, statut: 'CLOTURE' },
+              isLoading: false,
+              successMessage: 'Période clôturée avec succès'
+            });
+
+            setTimeout(() => {
+              set({ successMessage: null });
+            }, 3000);
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la clôture';
+            set({
+              isLoading: false,
+              error: errorMessage
+            });
+            console.error('Erreur clôture période:', error);
+          }
+        },
+
+        loadPeriodsFromDB: async () => {
+          set({ isLoading: true, error: null });
+
+          try {
+            const response = await fetch('/api/payroll/periods?statut=BROUILLON,EN_COURS');
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || 'Erreur lors du chargement des périodes');
+            }
+
+            // Si une période active existe, la définir comme currentPeriod
+            if (result.data && result.data.length > 0) {
+              const activePeriod = result.data[0];
+              set({
+                currentPeriod: {
+                  _id: activePeriod._id,
+                  mois: activePeriod.mois,
+                  annee: activePeriod.annee,
+                  date_debut: activePeriod.date_debut,
+                  date_fin: activePeriod.date_fin,
+                  statut: activePeriod.statut
+                },
+                isLoading: false
+              });
+            } else {
+              set({ isLoading: false });
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur lors du chargement';
+            set({
+              isLoading: false,
+              error: errorMessage
+            });
+            console.error('Erreur chargement périodes:', error);
+          }
+        },
+
+        updatePeriodInDB: async (periodId, updates) => {
+          set({ isLoading: true, error: null });
+
+          try {
+            const response = await fetch('/api/payroll/periods', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: periodId,
+                ...updates
+              }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || 'Erreur lors de la mise à jour de la période');
+            }
+
+            // Mettre à jour le state si c'est la période courante
+            const { currentPeriod } = get();
+            if (currentPeriod && currentPeriod._id === periodId) {
+              set({
+                currentPeriod: { ...currentPeriod, ...updates },
+                isLoading: false,
+                successMessage: 'Période mise à jour avec succès'
+              });
+            } else {
+              set({
+                isLoading: false,
+                successMessage: 'Période mise à jour avec succès'
+              });
+            }
+
+            setTimeout(() => {
+              set({ successMessage: null });
+            }, 3000);
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la mise à jour';
+            set({
+              isLoading: false,
+              error: errorMessage
+            });
+            console.error('Erreur mise à jour période:', error);
+            throw error;
+          }
+        },
 
         // Calculs de paie
         calculateSalary: async (employeeId) => {

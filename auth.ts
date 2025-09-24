@@ -8,8 +8,8 @@ import { connectToDB } from "@/lib/database/connectToDB"
 import type { NextAuthConfig } from "next-auth"
 
 // Import your admin model
-import ADMIN from "@/model/admin"
-import MagicLinkToken from "@/model/magicLinkToken"
+import ADMIN, { type IAdmin } from "@/model/admin"
+import MagicLinkToken, { type IMagicLinkToken } from "@/model/magicLinkToken"
 
 export const authConfig: NextAuthConfig = {
   providers: [

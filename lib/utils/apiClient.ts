@@ -19,6 +19,7 @@ export async function apiClient<T>(
 
     const response = await fetch(fullUrl, {
       ...options,
+      credentials: 'include', // Include authentication cookies
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,

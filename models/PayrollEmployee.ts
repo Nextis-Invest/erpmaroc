@@ -279,10 +279,15 @@ PayrollEmployeeSchema.statics.findActiveByCIN = function(cin: string) {
 PayrollEmployeeSchema.statics.searchByName = function(searchTerm: string) {
   const regex = new RegExp(searchTerm, 'i');
   return this.find({
-    $or: [
-      { nom: regex },
-      { prenom: regex },
-      { employeeId: regex }
+    $and: [
+      {
+        $or: [
+          { nom: regex },
+          { prenom: regex },
+          { employeeId: regex }
+        ]
+      },
+      { isArchived: { $ne: true } }  // Exclude only explicitly archived employees
     ]
   });
 };
